@@ -413,7 +413,7 @@ const TaxManagerMonitoring = () => {
             </div>
 
             {/* Apple-Style Client Cards */}
-            <div className="flex-1 space-y-3 overflow-y-auto px-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
+            <div className="flex-1 space-y-2 overflow-y-auto px-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
               {filteredClients.length > 0 ? (
                 filteredClients.map((client) => {
                   const getStatusColor = (status: string) => {
@@ -476,12 +476,12 @@ const TaxManagerMonitoring = () => {
                   const secondaryState = client.states[1];
 
                   return (
-                    <div key={client.id} className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+                    <div key={client.id} className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-3 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
                       {/* Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 ${getIconBgColor(client.nexusStatus)} rounded-xl flex items-center justify-center`}>
-                            <svg className={`w-5 h-5 ${getIconColor(client.nexusStatus)}`} fill="currentColor" viewBox="0 0 20 20">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-8 h-8 ${getIconBgColor(client.nexusStatus)} rounded-lg flex items-center justify-center`}>
+                            <svg className={`w-4 h-4 ${getIconColor(client.nexusStatus)}`} fill="currentColor" viewBox="0 0 20 20">
                               {client.nexusStatus === 'critical' || client.nexusStatus === 'warning' ? (
                                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                               ) : client.nexusStatus === 'pending' ? (
@@ -498,13 +498,13 @@ const TaxManagerMonitoring = () => {
                             <p className="text-gray-400 text-xs font-medium">{client.industry}</p>
                           </div>
                         </div>
-                        <div className={`px-3 py-1.5 ${getStatusColor(client.nexusStatus)} rounded-full`}>
+                        <div className={`px-2 py-1 ${getStatusColor(client.nexusStatus)} rounded-full`}>
                           <span className="text-white text-xs font-semibold">{getStatusText(client.nexusStatus)}</span>
                         </div>
                       </div>
 
                       {/* Content */}
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {/* Revenue and States */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
@@ -541,12 +541,12 @@ const TaxManagerMonitoring = () => {
                         {/* Progress Bar */}
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
-                            <span className="text-gray-400">Threshold Progress</span>
+                            <span className="text-gray-400">Progress</span>
                             <span className="text-white font-medium">{client.thresholdProgress}%</span>
                           </div>
-                          <div className="w-full bg-white/10 rounded-full h-1.5">
+                          <div className="w-full bg-white/10 rounded-full h-1">
                             <div 
-                              className={`h-1.5 rounded-full transition-all duration-500 ${
+                              className={`h-1 rounded-full transition-all duration-500 ${
                                 client.nexusStatus === 'critical' ? 'bg-red-500' :
                                 client.nexusStatus === 'warning' ? 'bg-orange-500' :
                                 client.nexusStatus === 'pending' ? 'bg-blue-500' :
