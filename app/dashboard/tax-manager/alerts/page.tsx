@@ -460,6 +460,7 @@ export default function TaxManagerAlerts() {
               </TableBody>
             </Table>
           </div>
+          </div>
         </div>
       </div>
 
