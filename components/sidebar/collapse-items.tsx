@@ -19,26 +19,28 @@ export const CollapseItems = ({ icon, items, title }: Props) => {
         <AccordionItem
           indicator={<ChevronDownIcon />}
           classNames={{
-            indicator: "data-[open=true]:-rotate-180",
+            indicator: "data-[open=true]:-rotate-180 text-gray-400",
             trigger:
-              "py-0 min-h-[44px] hover:bg-default-100 rounded-xl active:scale-[0.98] transition-transform px-3.5",
+              "py-0 min-h-[36px] hover:bg-white/5 rounded-lg active:scale-[0.98] transition-all duration-200 px-3",
 
             title:
-              "px-0 flex text-base gap-2 h-full items-center cursor-pointer",
+              "px-0 flex text-sm gap-3 h-full items-center cursor-pointer",
           }}
           aria-label="Accordion 1"
           title={
-            <div className="flex flex-row gap-2">
-              <span>{icon}</span>
-              <span>{title}</span>
+            <div className="flex flex-row gap-3 items-center">
+              <div className="w-4 h-4 flex items-center justify-center [&_svg_path]:fill-gray-400 [&_svg]:text-gray-400">
+                {icon}
+              </div>
+              <span className="text-gray-300 font-medium">{title}</span>
             </div>
           }
         >
-          <div className="pl-12">
+          <div className="pl-7 space-y-1">
             {items.map((item, index) => (
               <span
                 key={index}
-                className="w-full flex  text-default-500 hover:text-default-900 transition-colors"
+                className="w-full flex text-sm text-gray-400 hover:text-white transition-colors duration-200 py-1 px-2 rounded hover:bg-white/5 cursor-pointer"
               >
                 {item}
               </span>
