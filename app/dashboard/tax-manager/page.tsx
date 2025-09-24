@@ -392,7 +392,7 @@ const NexusActivityTable = () => {
 
 export default function TaxManagerDashboard() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen bg-black">
       <div className="h-full lg:px-6">
         <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
           <div className="mt-6 gap-8 flex flex-col w-full">
