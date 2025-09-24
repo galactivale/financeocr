@@ -116,6 +116,18 @@ const TaxManagerMonitoring = () => {
     StateAbbreviations.forEach((state) => {
       const data = nexusData[state as keyof typeof nexusData];
       
+      // If a state is focused (from client card click), only show that state
+      if (mapFocusState && mapFocusState !== state) {
+        settings[state] = {
+          fill: 'transparent',
+          stroke: 'transparent',
+          strokeWidth: 0,
+          onClick: () => handleMapStateClick(state),
+          label: { enabled: false },
+        };
+        return;
+      }
+      
       // Always set label configuration for all states
       const labelConfig = {
         enabled: true,
@@ -641,7 +653,7 @@ const TaxManagerMonitoring = () => {
           <div className="flex-1 bg-black/95 backdrop-blur-sm p-4">
             <div className="h-full flex flex-col">
               {/* Interactive US Map */}
-              <div className="flex-1 relative bg-black rounded-lg overflow-hidden">
+              <div className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out">
                 {/* Cool Background Pattern */}
                 <div className="absolute inset-0 opacity-20">
                   {/* Grid Pattern */}
