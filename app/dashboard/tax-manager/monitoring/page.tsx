@@ -43,11 +43,151 @@ interface StateMonitoringData {
   lastUpdated: string;
 }
 
+// Circular Gauge Component
+const CircularGauge = ({ 
+  value, 
+  max = 100, 
+  label, 
+  color = "blue", 
+  size = 120 
+}: { 
+  value: number; 
+  max?: number; 
+  label: string; 
+  color?: string; 
+  size?: number; 
+}) => {
+  const percentage = (value / max) * 100;
+  const radius = (size - 20) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const getColor = () => {
+    switch (color) {
+      case 'orange': return '#f59e0b';
+      case 'yellow': return '#eab308';
+      case 'purple': return '#8b5cf6';
+      case 'red': return '#ef4444';
+      case 'green': return '#10b981';
+      default: return '#3b82f6';
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          {/* Background circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#374151"
+            strokeWidth="8"
+            fill="none"
+          />
+          {/* Progress circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={getColor()}
+            strokeWidth="8"
+            fill="none"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white">{value}%</div>
+            <div className="text-xs text-gray-400">{label}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Line Graph Component
+const LineGraph = ({ 
+  title, 
+  status, 
+  currentValue, 
+  change, 
+  changePercent, 
+  data = [] 
+}: { 
+  title: string; 
+  status: string; 
+  currentValue: string; 
+  change: string; 
+  changePercent: string; 
+  data?: number[]; 
+}) => {
+  const maxValue = Math.max(...data, 100);
+  const minValue = Math.min(...data, 0);
+  const range = maxValue - minValue;
+
+  const getPathData = () => {
+    if (data.length === 0) return "";
+    const width = 200;
+    const height = 60;
+    const stepX = width / (data.length - 1);
+    
+    return data.map((value, index) => {
+      const x = index * stepX;
+      const y = height - ((value - minValue) / range) * height;
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-lg p-4">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h3 className="text-white font-semibold text-sm">{title}</h3>
+          <div className="flex items-center space-x-2 mt-1">
+            <span className="text-xs text-gray-400">Status:</span>
+            <span className="text-xs text-green-400 font-medium">{status}</span>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-white font-bold text-lg">{currentValue}</div>
+          <div className="flex items-center space-x-1">
+            <span className="text-xs text-red-400">{change}</span>
+            <span className="text-xs text-red-400">({changePercent})</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="relative h-16">
+        <svg width="100%" height="100%" className="overflow-visible">
+          <path
+            d={getPathData()}
+            stroke="#ffffff"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <div className="absolute bottom-0 left-0 text-xs text-gray-400">09:00</div>
+        <div className="absolute bottom-0 right-0 text-xs text-gray-400">10:00</div>
+      </div>
+    </div>
+  );
+};
+
 const TaxManagerMonitoring = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [isMounted, setIsMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState("nexus");
 
   // Sample client data
   const clients: Client[] = [
@@ -141,6 +281,10 @@ const TaxManagerMonitoring = () => {
     { state: "Pennsylvania", clients: 7, totalRevenue: 3500000, criticalAlerts: 1, warningAlerts: 3, complianceRate: 88, lastUpdated: "1 min ago" }
   ];
 
+  // Sample graph data
+  const frequencyData = [59.2, 59.1, 59.3, 59.0, 59.4, 59.2, 59.1, 59.3, 59.0, 59.4];
+  const thresholdData = [45, 47, 43, 49, 46, 48, 44, 47, 45, 46];
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -197,210 +341,159 @@ const TaxManagerMonitoring = () => {
 
   if (!isMounted) {
     return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="w-full h-screen flex items-center justify-center bg-blue-600">
+        <div className="text-center text-white">
           <div className="text-2xl mb-2">📊</div>
-          <p className="text-gray-600 dark:text-gray-400">Loading Monitoring Dashboard...</p>
+          <p>Loading Nexus Monitoring Dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-screen flex bg-gray-50 dark:bg-gray-900">
-      {/* Left Pane - Client Data */}
+    <div className="w-full h-screen flex bg-blue-600">
+      {/* Left Pane - Monitoring Data */}
       <div className="w-1/2 p-6 overflow-y-auto">
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Live Monitoring</h1>
-              <p className="text-gray-600 dark:text-gray-400">Real-time nexus compliance tracking</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Live</span>
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-white">NEXUS MONITORING</h1>
+              <div className="flex items-center space-x-2">
+                <Button isIconOnly size="sm" variant="light" className="text-white">
+                  ⚙️
+                </Button>
+                <Button isIconOnly size="sm" variant="light" className="text-white">
+                  🔔
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-100 text-sm">Total Clients</p>
-                    <p className="text-2xl font-bold">{clients.length}</p>
-                  </div>
-                  <div className="text-2xl">👥</div>
-                </div>
-                <div className="mt-2">
-                  <span className="text-blue-100 text-xs">+2 this week</span>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-red-100 text-sm">Critical Alerts</p>
-                    <p className="text-2xl font-bold">{clients.reduce((sum, client) => sum + client.alerts, 0)}</p>
-                  </div>
-                  <div className="text-2xl">🚨</div>
-                </div>
-                <div className="mt-2">
-                  <span className="text-red-100 text-xs">3 new today</span>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-100 text-sm">Compliant</p>
-                    <p className="text-2xl font-bold">{clients.filter(c => c.nexusStatus === 'compliant').length}</p>
-                  </div>
-                  <div className="text-2xl">✅</div>
-                </div>
-                <div className="mt-2">
-                  <span className="text-green-100 text-xs">85% rate</span>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-purple-100 text-sm">Total Revenue</p>
-                    <p className="text-2xl font-bold">$12.5M</p>
-                  </div>
-                  <div className="text-2xl">💰</div>
-                </div>
-                <div className="mt-2">
-                  <span className="text-purple-100 text-xs">+5.2% this month</span>
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-
-          {/* Search and Filter */}
+          {/* Tab Navigation */}
           <div className="flex items-center space-x-4">
-            <Input
-              placeholder="Search clients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-              startContent={<span className="text-gray-400">🔍</span>}
-            />
-            {selectedState && (
-              <Button
-                size="sm"
-                variant="bordered"
-                onPress={() => setSelectedState(null)}
-              >
-                Clear Filter: {selectedState}
-              </Button>
-            )}
+            <Button
+              size="sm"
+              variant={activeTab === "nexus" ? "solid" : "light"}
+              color={activeTab === "nexus" ? "primary" : "default"}
+              className={activeTab === "nexus" ? "bg-blue-500 text-white" : "text-white"}
+              onPress={() => setActiveTab("nexus")}
+            >
+              👤
+            </Button>
+            <Button
+              size="sm"
+              variant={activeTab === "nexus" ? "solid" : "light"}
+              color={activeTab === "nexus" ? "primary" : "default"}
+              className={activeTab === "nexus" ? "bg-blue-500 text-white" : "text-white"}
+              onPress={() => setActiveTab("nexus")}
+            >
+              ⚡
+            </Button>
+            <Button
+              size="sm"
+              variant="light"
+              className="text-white"
+              onPress={() => setActiveTab("analytics")}
+            >
+              📊
+            </Button>
+            <Button
+              size="sm"
+              variant="light"
+              className="text-white"
+              onPress={() => setActiveTab("alerts")}
+            >
+              🔔
+            </Button>
           </div>
 
-          {/* Client List */}
-          <Card>
-            <CardHeader>
-              <h3 className="text-lg font-semibold">Client Monitoring</h3>
-            </CardHeader>
-            <CardBody className="p-0">
-              <Table aria-label="Client monitoring table">
-                <TableHeader>
-                  <TableColumn>CLIENT</TableColumn>
-                  <TableColumn>STATUS</TableColumn>
-                  <TableColumn>THRESHOLD</TableColumn>
-                  <TableColumn>RISK</TableColumn>
-                  <TableColumn>ALERTS</TableColumn>
-                  <TableColumn>LAST UPDATE</TableColumn>
-                </TableHeader>
-                <TableBody>
-                  {filteredClients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-semibold">{client.name}</p>
-                          <p className="text-sm text-gray-500">{client.industry}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          color={getStatusColor(client.nexusStatus)}
-                          size="sm"
-                          variant="flat"
-                        >
-                          {client.nexusStatus.toUpperCase()}
-                        </Chip>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Progress
-                            value={client.thresholdProgress}
-                            color={client.thresholdProgress > 90 ? 'danger' : client.thresholdProgress > 70 ? 'warning' : 'success'}
-                            className="w-16"
-                            size="sm"
-                          />
-                          <span className="text-sm">{client.thresholdProgress}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          color={getRiskColor(client.riskScore)}
-                          size="sm"
-                          variant="flat"
-                        >
-                          {client.riskScore}
-                        </Chip>
-                      </TableCell>
-                      <TableCell>
-                        {client.alerts > 0 ? (
-                          <Badge content={client.alerts} color="danger">
-                            <span className="text-red-500">🚨</span>
-                          </Badge>
-                        ) : (
-                          <span className="text-green-500">✅</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-500">{client.lastUpdate}</span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardBody>
-          </Card>
+          {/* Circular Gauges */}
+          <div className="flex justify-between">
+            <CircularGauge value={75} label="THRESHOLD" color="orange" />
+            <CircularGauge value={17} label="COMPLIANCE" color="yellow" />
+            <CircularGauge value={34} label="RISK LEVEL" color="purple" />
+          </div>
+
+          {/* Line Graphs */}
+          <div className="space-y-4">
+            <LineGraph
+              title="FREQUENCY"
+              status="Normal"
+              currentValue="59.450 Hz"
+              change="-0.0043"
+              changePercent="-0.78%"
+              data={frequencyData}
+            />
+            <LineGraph
+              title="THRESHOLD"
+              status="Normal"
+              currentValue="750 Mw"
+              change="-0.0021"
+              changePercent="-0.16%"
+              data={thresholdData}
+            />
+          </div>
+
+          {/* Data Table */}
+          <div className="bg-gray-800 rounded-lg p-4">
+            <Table aria-label="Client monitoring table" className="text-white">
+              <TableHeader>
+                <TableColumn className="text-white">CLIENT</TableColumn>
+                <TableColumn className="text-white">DR</TableColumn>
+                <TableColumn className="text-white">FREQUENCY</TableColumn>
+                <TableColumn className="text-white">MAGNITUDE</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.slice(0, 6).map((client, index) => (
+                  <TableRow key={client.id} className="text-white">
+                    <TableCell>
+                      <span className="font-mono text-sm">Client{index + 1}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`text-sm ${client.thresholdProgress > 90 ? 'text-red-400' : 'text-white'}`}>
+                        {client.thresholdProgress > 90 ? '-' : ''}{client.thresholdProgress.toFixed(2)}%
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-white">0.{client.riskScore.toString().padStart(2, '0')}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`text-sm ${client.alerts > 0 ? 'text-orange-400' : 'text-white'}`}>
+                        {client.alerts > 0 ? (client.alerts * 10).toFixed(1) : '0.0'}M
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
       {/* Right Pane - Interactive US Map */}
-      <div className="w-1/2 p-6 bg-white dark:bg-gray-800">
+      <div className="w-1/2 p-6 bg-gray-900">
         <div className="h-full flex flex-col">
           {/* Map Header */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">US Nexus Map</h2>
-              <p className="text-gray-600 dark:text-gray-400">Click states to filter clients</p>
+              <h2 className="text-xl font-bold text-white">US NEXUS GRID</h2>
+              <p className="text-gray-400">Click states to filter clients</p>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Real-time</span>
+              <Button size="sm" variant="light" className="text-white">+</Button>
+              <Button size="sm" variant="light" className="text-white">-</Button>
+              <Button size="sm" variant="light" className="text-white">2D</Button>
+              <Button size="sm" variant="solid" color="primary" className="bg-blue-500">3D</Button>
+              <Button isIconOnly size="sm" variant="light" className="text-white">🧭</Button>
             </div>
           </div>
 
           {/* Interactive US Map */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative bg-gray-800 rounded-lg overflow-hidden">
             <svg 
               viewBox="0 0 800 500" 
               className="w-full h-full"
-              style={{ filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))' }}
             >
               {/* Main US States */}
               {Object.entries({
@@ -429,8 +522,8 @@ const TaxManagerMonitoring = () => {
                 const isSelected = selectedState === code;
                 const hasClients = clients.some(c => c.states.includes(code));
                 
-                let fillColor = '#e5e7eb';
-                let strokeColor = '#9ca3af';
+                let fillColor = '#374151';
+                let strokeColor = '#6b7280';
                 
                 if (hasClients) {
                   if (stateInfo) {
@@ -468,53 +561,86 @@ const TaxManagerMonitoring = () => {
                       x={getStateCenter(code).x}
                       y={getStateCenter(code).y}
                       textAnchor="middle"
-                      className="text-xs font-semibold fill-gray-800 dark:fill-gray-200 pointer-events-none"
+                      className="text-xs font-semibold fill-white pointer-events-none"
                     >
                       {code}
                     </text>
+                    {/* Network nodes */}
+                    {hasClients && (
+                      <g>
+                        <circle
+                          cx={getStateCenter(code).x}
+                          cy={getStateCenter(code).y - 10}
+                          r="8"
+                          fill="white"
+                          stroke="#3b82f6"
+                          strokeWidth="2"
+                          className="animate-pulse"
+                        />
+                        <circle
+                          cx={getStateCenter(code).x}
+                          cy={getStateCenter(code).y - 10}
+                          r="12"
+                          fill="none"
+                          stroke="white"
+                          strokeWidth="1"
+                          opacity="0.5"
+                          className="animate-ping"
+                        />
+                      </g>
+                    )}
                   </g>
                 );
               })}
+              
+              {/* Network connections */}
+              <g opacity="0.3">
+                <line x1="125" y1="300" x2="375" y2="350" stroke="white" strokeWidth="1" />
+                <line x1="375" y1="350" x2="450" y2="175" stroke="white" strokeWidth="1" />
+                <line x1="450" y1="175" x2="600" y2="125" stroke="white" strokeWidth="1" />
+                <line x1="600" y1="125" x2="650" y2="100" stroke="white" strokeWidth="1" />
+                <line x1="550" y1="150" x2="500" y2="200" stroke="white" strokeWidth="1" />
+              </g>
             </svg>
 
             {/* State Info Panel */}
             {selectedState && (
-              <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 min-w-[250px]">
+              <div className="absolute top-4 right-4 bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-4 min-w-[250px]">
                 {(() => {
                   const stateInfo = stateData.find(s => s.state === selectedState);
                   const stateClients = clients.filter(c => c.states.includes(selectedState));
                   
                   return (
                     <div>
-                      <h4 className="font-bold text-lg mb-2">{selectedState}</h4>
+                      <h4 className="font-bold text-lg text-white mb-2">{selectedState}</h4>
                       {stateInfo ? (
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Clients:</span>
-                            <span className="font-semibold">{stateInfo.clients}</span>
+                            <span className="text-sm text-gray-400">Clients:</span>
+                            <span className="font-semibold text-white">{stateInfo.clients}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Revenue:</span>
-                            <span className="font-semibold">{formatCurrency(stateInfo.totalRevenue)}</span>
+                            <span className="text-sm text-gray-400">Revenue:</span>
+                            <span className="font-semibold text-white">{formatCurrency(stateInfo.totalRevenue)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Critical:</span>
-                            <span className="font-semibold text-red-600">{stateInfo.criticalAlerts}</span>
+                            <span className="text-sm text-gray-400">Critical:</span>
+                            <span className="font-semibold text-red-400">{stateInfo.criticalAlerts}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Warnings:</span>
-                            <span className="font-semibold text-amber-600">{stateInfo.warningAlerts}</span>
+                            <span className="text-sm text-gray-400">Warnings:</span>
+                            <span className="font-semibold text-amber-400">{stateInfo.warningAlerts}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Compliance:</span>
-                            <span className="font-semibold text-green-600">{stateInfo.complianceRate}%</span>
+                            <span className="text-sm text-gray-400">Compliance:</span>
+                            <span className="font-semibold text-green-400">{stateInfo.complianceRate}%</span>
                           </div>
                           <div className="mt-3">
                             <p className="text-xs text-gray-500">Last updated: {stateInfo.lastUpdated}</p>
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500">No data available</p>
+                        <p className="text-sm text-gray-400">No data available</p>
                       )}
                     </div>
                   );
@@ -522,26 +648,17 @@ const TaxManagerMonitoring = () => {
               </div>
             )}
 
-            {/* Legend */}
-            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
-              <h5 className="font-semibold text-sm mb-2">Status Legend</h5>
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span className="text-xs">Critical Alerts</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                  <span className="text-xs">Warning Alerts</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-xs">Compliant</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                  <span className="text-xs">No Clients</span>
-                </div>
+            {/* Scale Bar */}
+            <div className="absolute bottom-4 right-4 bg-gray-800 border border-gray-600 rounded p-2">
+              <div className="flex items-center space-x-2 text-white text-xs">
+                <div className="w-16 h-1 bg-white"></div>
+                <span>100KM</span>
+              </div>
+              <div className="flex items-center space-x-1 mt-1 text-gray-400 text-xs">
+                <span>10</span>
+                <span>40</span>
+                <span>70</span>
+                <span>90</span>
               </div>
             </div>
           </div>
