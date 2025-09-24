@@ -15,6 +15,8 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       <NextThemesProvider
         defaultTheme='system'
         attribute='class'
+        enableSystem={true}
+        disableTransitionOnChange={false}
         {...themeProps}>
         {children}
       </NextThemesProvider>
