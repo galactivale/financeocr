@@ -230,140 +230,131 @@ export default function AuditTrailPage() {
 
   return (
     <div className="min-h-screen bg-black p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-4xl font-semibold text-white tracking-tight mb-2">Professional Audit Trail</h1>
-            <p className="text-gray-400 text-lg">Legal Documentation Center</p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              size="sm"
-              className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
-              startContent={<Download className="w-4 h-4" />}
-            >
-              Export Legal Package
-            </Button>
-            <Button
-              size="sm"
-              className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
-              startContent={<RefreshCw className="w-4 h-4" />}
-            >
-              Verify Integrity
-            </Button>
-          </div>
-        </div>
-
-        {/* Legal Protection Status */}
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-6">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-              <Scale className="w-6 h-6 text-red-400" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-white">⚖️ LEGAL PROTECTION ACTIVE</h2>
-              <p className="text-gray-400">Professional liability documentation system</p>
-            </div>
+      {/* Main Content */}
+      <div className="mt-6 gap-6 flex flex-col w-full">
+        {/* Professional Audit Trail Overview */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-1 h-8 bg-green-500 rounded-full"></div>
+            <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Audit Trail</h2>
           </div>
           
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{auditTrailData.overallStatus.documentationComplete}%</div>
-              <div className="text-gray-400 text-sm">Documentation Complete</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">COURT-READY</div>
-              <div className="text-gray-400 text-sm">Legal Status</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{auditTrailData.overallStatus.totalDecisions}</div>
-              <div className="text-gray-400 text-sm">Total Decisions</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">{formatDate(auditTrailData.overallStatus.lastReview)}</div>
-              <div className="text-gray-400 text-sm">Last Review</div>
+          {/* Legal Protection Status */}
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div>
+                  <h3 className="text-white font-semibold text-sm tracking-tight">Jane Doe, Tax Manager</h3>
+                  <p className="text-gray-400 text-xs font-medium">Professional Liability Documentation Center</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 text-xs font-medium">Legal Protection Active</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-6">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-400">{auditTrailData.overallStatus.documentationComplete}%</div>
+                  <div className="text-gray-400 text-xs font-medium">Documentation Complete</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-400">COURT-READY</div>
+                  <div className="text-gray-400 text-xs font-medium">Legal Status</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{auditTrailData.overallStatus.totalDecisions}</div>
+                  <div className="text-gray-400 text-xs font-medium">Total Decisions</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-400">{formatDate(auditTrailData.overallStatus.lastReview)}</div>
+                  <div className="text-gray-400 text-xs font-medium">Last Review</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-            <p className="text-yellow-300 text-sm font-medium">
-              ⚠️ CRITICAL: This audit trail may be used in legal proceedings
-            </p>
+          {/* Critical Warning */}
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+              <p className="text-yellow-300 text-sm font-medium">
+                CRITICAL: This audit trail may be used in legal proceedings
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-6">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-col lg:flex-row gap-4 flex-1">
-            <div className="flex items-center space-x-3">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select 
-                className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+        {/* Controls */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className={`${filterStatus === "all" ? "bg-blue-500/20 border-blue-500/30 text-blue-400" : "bg-white/10 border-white/20 text-gray-300 hover:bg-white/20"}`}
+                onClick={() => setFilterStatus("all")}
               >
-                <option value="all">All Decisions</option>
-                <option value="high">High Exposure</option>
-                <option value="medium">Medium Exposure</option>
-                <option value="low">Low Exposure</option>
-                <option value="peer-reviewed">Peer Reviewed</option>
-                <option value="partner-approved">Partner Approved</option>
-              </select>
+                All Decisions
+              </Button>
+              <Button
+                size="sm"
+                className={`${filterStatus === "high" ? "bg-red-500/20 border-red-500/30 text-red-400" : "bg-white/10 border-white/20 text-gray-300 hover:bg-white/20"}`}
+                onClick={() => setFilterStatus("high")}
+              >
+                High Exposure
+              </Button>
+              <Button
+                size="sm"
+                className={`${filterStatus === "medium" ? "bg-yellow-500/20 border-yellow-500/30 text-yellow-400" : "bg-white/10 border-white/20 text-gray-300 hover:bg-white/20"}`}
+                onClick={() => setFilterStatus("medium")}
+              >
+                Medium Exposure
+              </Button>
+              <Button
+                size="sm"
+                className={`${filterStatus === "peer-reviewed" ? "bg-green-500/20 border-green-500/30 text-green-400" : "bg-white/10 border-white/20 text-gray-300 hover:bg-white/20"}`}
+                onClick={() => setFilterStatus("peer-reviewed")}
+              >
+                Peer Reviewed
+              </Button>
             </div>
             
             <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5 text-gray-400" />
-              <select className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
-                <option value="all">All Time</option>
-                <option value="30">Last 30 Days</option>
-                <option value="90">Last 90 Days</option>
-                <option value="year">This Year</option>
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Building className="w-5 h-5 text-gray-400" />
-              <select className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm">
-                <option value="all">All Clients</option>
-                <option value="techcorp">TechCorp SaaS</option>
-                <option value="retailchain">RetailChain LLC</option>
-                <option value="manufacturing">ManufacturingCo Inc</option>
-              </select>
+              <Input
+                placeholder="Search decisions, reasoning, citations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                startContent={<Search className="w-4 h-4 text-gray-400" />}
+                className="w-64"
+                classNames={{
+                  input: "text-white",
+                  inputWrapper: "bg-white/10 border-white/20 hover:border-white/30 focus:border-white/40"
+                }}
+              />
+              <Button
+                size="sm"
+                className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
+                startContent={<Download className="w-4 h-4" />}
+              >
+                Export Legal Package
+              </Button>
+              <Button
+                size="sm"
+                className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
+                startContent={<RefreshCw className="w-4 h-4" />}
+              >
+                Verify Integrity
+              </Button>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center space-x-3">
-            <Input
-              placeholder="Search decisions, reasoning, citations..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              startContent={<Search className="w-4 h-4 text-gray-400" />}
-              className="w-64"
-              classNames={{
-                input: "text-white",
-                inputWrapper: "bg-white/10 border-white/20 hover:border-white/30 focus:border-white/40"
-              }}
-            />
-            <Button
-              size="sm"
-              className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
-              startContent={<Download className="w-4 h-4" />}
-            >
-              Export
-            </Button>
+        {/* Professional Decision Chronology */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+            <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Decision Chronology</h2>
           </div>
-        </div>
-      </div>
-
-      {/* Professional Decision Chronology */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-          <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Decision Chronology</h2>
-        </div>
 
         <div className="space-y-4">
           {auditTrailData.recentDecisions.map((decision) => (
