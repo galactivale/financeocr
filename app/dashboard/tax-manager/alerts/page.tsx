@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { 
   Card, 
   CardBody, 
@@ -12,7 +12,13 @@ import {
   TableCell, 
   Button, 
   Chip, 
-  Textarea
+  Textarea,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure
 } from "@nextui-org/react";
 
 // Alert data structure
@@ -225,6 +231,8 @@ export default function TaxManagerAlerts() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [decision, setDecision] = useState("");
   const [reasoning, setReasoning] = useState("");
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Filter alerts based on selected filters
   const filteredAlerts = alerts.filter(alert => {
@@ -255,7 +263,34 @@ export default function TaxManagerAlerts() {
     setSelectedAlert(alert);
     setDecision("");
     setReasoning("");
+    setIsPanelOpen(true);
   };
+
+  const handleClosePanel = () => {
+    setIsPanelOpen(false);
+    setSelectedAlert(null);
+    setDecision("");
+    setReasoning("");
+  };
+
+  // Close panel when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        if (isPanelOpen) {
+          handleClosePanel();
+        }
+      }
+    };
+
+    if (isPanelOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPanelOpen]);
 
   const handleSaveDecision = () => {
     if (selectedAlert && decision && reasoning) {
@@ -266,11 +301,11 @@ export default function TaxManagerAlerts() {
   };
 
   return (
-    <div className="h-full lg:px-6">
+    <div className="h-full lg:px-6 relative">
       <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
         
-        {/* Left Section - Alerts Table */}
-        <div className="mt-6 gap-6 flex flex-col w-full xl:max-w-4xl">
+        {/* Main Content - Full Width Table */}
+        <div className="mt-6 gap-6 flex flex-col w-full">
           {/* Header */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
@@ -325,7 +360,9 @@ export default function TaxManagerAlerts() {
                   {filteredAlerts.map((alert) => (
                     <TableRow 
                       key={alert.id}
-                      className={`cursor-pointer hover:bg-default-50 ${selectedAlert?.id === alert.id ? 'bg-primary-50' : ''}`}
+                      className={`cursor-pointer hover:bg-default-50 transition-colors duration-200 ${
+                        selectedAlert?.id === alert.id ? 'bg-primary-50 border-l-4 border-l-primary' : ''
+                      }`}
                       onClick={() => handleAlertSelect(alert)}
                     >
                       <TableCell>
@@ -395,162 +432,184 @@ export default function TaxManagerAlerts() {
             </CardBody>
           </Card>
         </div>
+      </div>
 
-        {/* Right Section - Alert Details */}
-        <div className="mt-4 gap-2 flex flex-col xl:max-w-md w-full">
-          {selectedAlert ? (
-            <div className="space-y-4">
-              {/* Alert Details Card */}
-              <Card className="w-full">
-                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                  <h4 className="font-bold text-large">{selectedAlert.client} Alert</h4>
-                  <Chip
-                    size="sm"
-                    color={getPriorityColor(selectedAlert.priority)}
-                    variant="flat"
-                    className="mt-2"
-                  >
-                    {selectedAlert.priority.toUpperCase()} PRIORITY
-                  </Chip>
-                </CardHeader>
-                <CardBody className="overflow-visible py-2">
-                  <div className="space-y-4">
-                    <div>
-                      <h5 className="font-semibold text-default-900 mb-2">Problem:</h5>
-                      <p className="text-sm text-default-600">{selectedAlert.issue}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h5 className="font-semibold text-default-900 mb-1">Current Amount:</h5>
-                        <p className="text-sm text-default-600">{selectedAlert.currentAmount}</p>
-                      </div>
-                      <div>
-                        <h5 className="font-semibold text-default-900 mb-1">Deadline:</h5>
-                        <p className="text-sm text-default-600">{selectedAlert.deadline}</p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-semibold text-default-900 mb-1">Penalty Risk:</h5>
-                      <p className="text-sm text-danger">{selectedAlert.penaltyRisk}</p>
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-semibold text-default-900 mb-2">What to do:</h5>
-                      <ul className="text-sm text-default-600 space-y-1">
-                        {selectedAlert.actions.map((action, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="mr-2">{index + 1}.</span>
-                            <span>{action}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button size="sm" color="primary" variant="solid">
-                        Make Decision
-                      </Button>
-                      <Button size="sm" color="default" variant="bordered">
-                        Need Help
-                      </Button>
-                      <Button size="sm" color="default" variant="bordered">
-                        Talk to Client
-                      </Button>
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
+      {/* Sliding Alert Panel */}
+      <div
+        ref={panelRef}
+        className={`fixed top-0 right-0 h-full w-1/2 bg-background border-l border-divider shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+          isPanelOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="h-full flex flex-col">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between p-4 border-b border-divider">
+            <h3 className="text-lg font-semibold">Alert Details</h3>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="light"
+              onPress={handleClosePanel}
+              className="text-default-500 hover:text-default-700"
+            >
+              ✕
+            </Button>
+          </div>
 
-              {/* Decision Form */}
-              <Card className="w-full">
-                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                  <h4 className="font-bold text-large">Decision for {selectedAlert.client}</h4>
-                </CardHeader>
-                <CardBody className="overflow-visible py-2">
-                  <div className="space-y-4">
-                    <div>
-                      <h5 className="font-semibold text-default-900 mb-2">My recommendation:</h5>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          color={decision === "register-immediately" ? "primary" : "default"}
-                          variant={decision === "register-immediately" ? "solid" : "bordered"}
-                          onPress={() => setDecision("register-immediately")}
-                        >
-                          Register immediately
-                        </Button>
-                        <Button
-                          size="sm"
-                          color={decision === "monitor-closely" ? "primary" : "default"}
-                          variant={decision === "monitor-closely" ? "solid" : "bordered"}
-                          onPress={() => setDecision("monitor-closely")}
-                        >
-                          Monitor closely
-                        </Button>
-                        <Button
-                          size="sm"
-                          color={decision === "schedule-review" ? "primary" : "default"}
-                          variant={decision === "schedule-review" ? "solid" : "bordered"}
-                          onPress={() => setDecision("schedule-review")}
-                        >
-                          Schedule review
-                        </Button>
-                        <Button
-                          size="sm"
-                          color={decision === "escalate-partner" ? "primary" : "default"}
-                          variant={decision === "escalate-partner" ? "solid" : "bordered"}
-                          onPress={() => setDecision("escalate-partner")}
-                        >
-                          Escalate to partner
-                        </Button>
+          {/* Panel Content */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {selectedAlert ? (
+              <div className="space-y-6">
+                {/* Alert Details Card */}
+                <Card className="w-full">
+                  <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                    <h4 className="font-bold text-large">{selectedAlert.client} Alert</h4>
+                    <Chip
+                      size="sm"
+                      color={getPriorityColor(selectedAlert.priority)}
+                      variant="flat"
+                      className="mt-2"
+                    >
+                      {selectedAlert.priority.toUpperCase()} PRIORITY
+                    </Chip>
+                  </CardHeader>
+                  <CardBody className="overflow-visible py-2">
+                    <div className="space-y-4">
+                      <div>
+                        <h5 className="font-semibold text-default-900 mb-2">Problem:</h5>
+                        <p className="text-sm text-default-600">{selectedAlert.issue}</p>
                       </div>
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-semibold text-default-900 mb-2">Why this decision:</h5>
-                      <Textarea
-                        placeholder="Explain your reasoning..."
-                        value={reasoning}
-                        onValueChange={setReasoning}
-                        minRows={3}
-                      />
-                    </div>
-                    
-                    <div>
-                      <h5 className="font-semibold text-default-900 mb-2">Next steps:</h5>
-                      <div className="flex gap-2 flex-wrap">
-                        <Button size="sm" color="default" variant="bordered">
-                          Schedule client call
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h5 className="font-semibold text-default-900 mb-1">Current Amount:</h5>
+                          <p className="text-sm text-default-600">{selectedAlert.currentAmount}</p>
+                        </div>
+                        <div>
+                          <h5 className="font-semibold text-default-900 mb-1">Deadline:</h5>
+                          <p className="text-sm text-default-600">{selectedAlert.deadline}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h5 className="font-semibold text-default-900 mb-1">Penalty Risk:</h5>
+                        <p className="text-sm text-danger">{selectedAlert.penaltyRisk}</p>
+                      </div>
+                      
+                      <div>
+                        <h5 className="font-semibold text-default-900 mb-2">What to do:</h5>
+                        <ul className="text-sm text-default-600 space-y-1">
+                          {selectedAlert.actions.map((action, index) => (
+                            <li key={index} className="flex items-start">
+                              <span className="mr-2">{index + 1}.</span>
+                              <span>{action}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2">
+                        <Button size="sm" color="primary" variant="solid">
+                          Make Decision
                         </Button>
                         <Button size="sm" color="default" variant="bordered">
-                          Prepare registration docs
+                          Need Help
+                        </Button>
+                        <Button size="sm" color="default" variant="bordered">
+                          Talk to Client
                         </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        size="sm" 
-                        color="success" 
-                        variant="solid"
-                        onPress={handleSaveDecision}
-                        isDisabled={!decision || !reasoning}
-                      >
-                        Save Decision
-                      </Button>
-                      <Button size="sm" color="primary" variant="bordered">
-                        Send to Managing Partner
-                      </Button>
+                  </CardBody>
+                </Card>
+
+                {/* Decision Form */}
+                <Card className="w-full">
+                  <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                    <h4 className="font-bold text-large">Decision for {selectedAlert.client}</h4>
+                  </CardHeader>
+                  <CardBody className="overflow-visible py-2">
+                    <div className="space-y-4">
+                      <div>
+                        <h5 className="font-semibold text-default-900 mb-2">My recommendation:</h5>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            color={decision === "register-immediately" ? "primary" : "default"}
+                            variant={decision === "register-immediately" ? "solid" : "bordered"}
+                            onPress={() => setDecision("register-immediately")}
+                          >
+                            Register immediately
+                          </Button>
+                          <Button
+                            size="sm"
+                            color={decision === "monitor-closely" ? "primary" : "default"}
+                            variant={decision === "monitor-closely" ? "solid" : "bordered"}
+                            onPress={() => setDecision("monitor-closely")}
+                          >
+                            Monitor closely
+                          </Button>
+                          <Button
+                            size="sm"
+                            color={decision === "schedule-review" ? "primary" : "default"}
+                            variant={decision === "schedule-review" ? "solid" : "bordered"}
+                            onPress={() => setDecision("schedule-review")}
+                          >
+                            Schedule review
+                          </Button>
+                          <Button
+                            size="sm"
+                            color={decision === "escalate-partner" ? "primary" : "default"}
+                            variant={decision === "escalate-partner" ? "solid" : "bordered"}
+                            onPress={() => setDecision("escalate-partner")}
+                          >
+                            Escalate to partner
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h5 className="font-semibold text-default-900 mb-2">Why this decision:</h5>
+                        <Textarea
+                          placeholder="Explain your reasoning..."
+                          value={reasoning}
+                          onValueChange={setReasoning}
+                          minRows={3}
+                        />
+                      </div>
+                      
+                      <div>
+                        <h5 className="font-semibold text-default-900 mb-2">Next steps:</h5>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button size="sm" color="default" variant="bordered">
+                            Schedule client call
+                          </Button>
+                          <Button size="sm" color="default" variant="bordered">
+                            Prepare registration docs
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          size="sm" 
+                          color="success" 
+                          variant="solid"
+                          onPress={handleSaveDecision}
+                          isDisabled={!decision || !reasoning}
+                        >
+                          Save Decision
+                        </Button>
+                        <Button size="sm" color="primary" variant="bordered">
+                          Send to Managing Partner
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardBody>
-              </Card>
-            </div>
-          ) : (
-            <Card className="w-full">
-              <CardBody className="flex items-center justify-center py-12">
+                  </CardBody>
+                </Card>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <h4 className="text-lg font-semibold text-default-500 mb-2">
                     Select an Alert
@@ -559,11 +618,19 @@ export default function TaxManagerAlerts() {
                     Choose an alert from the table to view details and make decisions
                   </p>
                 </div>
-              </CardBody>
-            </Card>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Backdrop overlay when panel is open */}
+      {isPanelOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
+          onClick={handleClosePanel}
+        />
+      )}
     </div>
   );
 }
