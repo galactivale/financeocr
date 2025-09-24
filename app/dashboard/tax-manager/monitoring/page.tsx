@@ -408,7 +408,14 @@ const TaxManagerMonitoring = () => {
               <span className="text-green-400 text-xs font-medium">1</span>
             </div>
           </div>
-          <div className="text-gray-400 text-xs">7 Total</div>
+          <div className="flex items-center space-x-2">
+            <div className="text-gray-400 text-xs">7 Total</div>
+            <div className="w-3 h-3 flex items-center justify-center">
+              <svg className="w-2 h-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Ultra-Compact Client Cards */}
@@ -416,7 +423,7 @@ const TaxManagerMonitoring = () => {
           {/* Card 1 - Critical */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">TC2043892CA</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">TechCorp SaaS</h3>
               <span className="bg-red-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">CRIT</span>
             </div>
             <div className="flex justify-between items-center">
@@ -424,8 +431,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">CA</span>
                 </div>
-                <p className="text-gray-300 text-xs">California</p>
-                <p className="text-gray-500 text-xs">OCT 15</p>
+                <p className="text-gray-300 text-xs">$525K Revenue</p>
+                <p className="text-red-400 text-xs">Exceeded $500K</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-red-500/20 rounded-full flex items-center justify-center">
@@ -435,15 +442,15 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$525K</span>
+                  <span className="text-white text-xs">3 Alerts</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">NY</span>
                 </div>
-                <p className="text-gray-300 text-xs">New York</p>
-                <p className="text-gray-500 text-xs">DEC 20</p>
+                <p className="text-gray-300 text-xs">$89K Revenue</p>
+                <p className="text-amber-400 text-xs">95 Transactions</p>
               </div>
             </div>
           </div>
@@ -451,7 +458,7 @@ const TaxManagerMonitoring = () => {
           {/* Card 2 - Warning */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">RC3840291TX</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">RetailChain LLC</h3>
               <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">WARN</span>
             </div>
             <div className="flex justify-between items-center">
@@ -459,8 +466,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">TX</span>
                 </div>
-                <p className="text-gray-300 text-xs">Texas</p>
-                <p className="text-gray-500 text-xs">SEP 18</p>
+                <p className="text-gray-300 text-xs">$485K Revenue</p>
+                <p className="text-amber-400 text-xs">Approaching $500K</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-amber-500/20 rounded-full flex items-center justify-center">
@@ -470,15 +477,15 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$485K</span>
+                  <span className="text-white text-xs">2 Alerts</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">CA</span>
                 </div>
-                <p className="text-gray-300 text-xs">California</p>
-                <p className="text-gray-500 text-xs">NOV 20</p>
+                <p className="text-gray-300 text-xs">$220K Revenue</p>
+                <p className="text-green-400 text-xs">Safe Zone</p>
               </div>
             </div>
           </div>
@@ -486,7 +493,7 @@ const TaxManagerMonitoring = () => {
           {/* Card 3 - Pending */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">GF9982736FL</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">GlobalFin Solutions</h3>
               <span className="bg-blue-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">PEND</span>
             </div>
             <div className="flex justify-between items-center">
@@ -494,8 +501,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">FL</span>
                 </div>
-                <p className="text-gray-300 text-xs">Florida</p>
-                <p className="text-gray-500 text-xs">OCT 2</p>
+                <p className="text-gray-300 text-xs">$28K Revenue</p>
+                <p className="text-blue-400 text-xs">Under Review</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center">
@@ -505,15 +512,15 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$28K</span>
+                  <span className="text-white text-xs">0 Alerts</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">GA</span>
                 </div>
-                <p className="text-gray-300 text-xs">Georgia</p>
-                <p className="text-gray-500 text-xs">DEC 2</p>
+                <p className="text-gray-300 text-xs">$15K Revenue</p>
+                <p className="text-green-400 text-xs">Compliant</p>
               </div>
             </div>
           </div>
@@ -521,7 +528,7 @@ const TaxManagerMonitoring = () => {
           {/* Card 4 - Compliant */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">HC5678920IL</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">HealthCare Inc.</h3>
               <span className="bg-green-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">OK</span>
             </div>
             <div className="flex justify-between items-center">
@@ -529,8 +536,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">IL</span>
                 </div>
-                <p className="text-gray-300 text-xs">Illinois</p>
-                <p className="text-gray-500 text-xs">AUG 10</p>
+                <p className="text-gray-300 text-xs">$18K Revenue</p>
+                <p className="text-green-400 text-xs">Compliant</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -540,15 +547,15 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$18K</span>
+                  <span className="text-white text-xs">0 Alerts</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">PA</span>
                 </div>
-                <p className="text-gray-300 text-xs">Pennsylvania</p>
-                <p className="text-gray-500 text-xs">OCT 15</p>
+                <p className="text-gray-300 text-xs">$12K Revenue</p>
+                <p className="text-green-400 text-xs">Safe Zone</p>
               </div>
             </div>
           </div>
@@ -556,7 +563,7 @@ const TaxManagerMonitoring = () => {
           {/* Card 5 - In Transit */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">MC8495732WA</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">Manufacturing Co.</h3>
               <span className="bg-cyan-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">TRANS</span>
             </div>
             <div className="flex justify-between items-center">
@@ -564,8 +571,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">WA</span>
                 </div>
-                <p className="text-gray-300 text-xs">Washington</p>
-                <p className="text-gray-500 text-xs">SEP 22</p>
+                <p className="text-gray-300 text-xs">$16K Revenue</p>
+                <p className="text-cyan-400 text-xs">Active Monitoring</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-cyan-500/20 rounded-full flex items-center justify-center">
@@ -575,15 +582,15 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$16K</span>
+                  <span className="text-white text-xs">2 Alerts</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">OR</span>
                 </div>
-                <p className="text-gray-300 text-xs">Oregon</p>
-                <p className="text-gray-500 text-xs">NOV 18</p>
+                <p className="text-gray-300 text-xs">$8K Revenue</p>
+                <p className="text-green-400 text-xs">Low Risk</p>
               </div>
             </div>
           </div>
@@ -591,7 +598,7 @@ const TaxManagerMonitoring = () => {
           {/* Additional Cards for World-Class Feel */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">BT1234567AZ</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">E-commerce Hub</h3>
               <span className="bg-green-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">OK</span>
             </div>
             <div className="flex justify-between items-center">
@@ -599,8 +606,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">AZ</span>
                 </div>
-                <p className="text-gray-300 text-xs">Arizona</p>
-                <p className="text-gray-500 text-xs">NOV 5</p>
+                <p className="text-gray-300 text-xs">$12K Revenue</p>
+                <p className="text-green-400 text-xs">Compliant</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-green-500/20 rounded-full flex items-center justify-center">
@@ -610,22 +617,22 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$12K</span>
+                  <span className="text-white text-xs">0 Alerts</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">NV</span>
                 </div>
-                <p className="text-gray-300 text-xs">Nevada</p>
-                <p className="text-gray-500 text-xs">DEC 10</p>
+                <p className="text-gray-300 text-xs">$8K Revenue</p>
+                <p className="text-green-400 text-xs">Safe Zone</p>
               </div>
             </div>
           </div>
 
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-white font-semibold text-xs tracking-wide">FT9876543CO</h3>
+              <h3 className="text-white font-semibold text-xs tracking-wide">Logistics Corp</h3>
               <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">WARN</span>
             </div>
             <div className="flex justify-between items-center">
@@ -633,8 +640,8 @@ const TaxManagerMonitoring = () => {
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">CO</span>
                 </div>
-                <p className="text-gray-300 text-xs">Colorado</p>
-                <p className="text-gray-500 text-xs">OCT 28</p>
+                <p className="text-gray-300 text-xs">$89K Revenue</p>
+                <p className="text-amber-400 text-xs">Approaching $100K</p>
               </div>
               <div className="flex items-center mx-2">
                 <div className="w-4 h-4 bg-amber-500/20 rounded-full flex items-center justify-center">
@@ -644,15 +651,15 @@ const TaxManagerMonitoring = () => {
                 </div>
                 <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
                 <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                  <span className="text-white text-xs">$89K</span>
+                  <span className="text-white text-xs">1 Alert</span>
                 </div>
               </div>
               <div className="flex-1 text-right">
                 <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
                   <span className="text-white text-xs font-medium">UT</span>
                 </div>
-                <p className="text-gray-300 text-xs">Utah</p>
-                <p className="text-gray-500 text-xs">NOV 25</p>
+                <p className="text-gray-300 text-xs">$45K Revenue</p>
+                <p className="text-green-400 text-xs">Safe Zone</p>
               </div>
             </div>
           </div>
