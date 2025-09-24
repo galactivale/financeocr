@@ -368,6 +368,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               Nexus Status
             </button>
             <button
+              onClick={() => setSelectedTab("details")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "details"
+                  ? "border-cyan-500 text-cyan-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Client Details
+            </button>
+            <button
               onClick={() => setSelectedTab("alerts")}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 selectedTab === "alerts"
@@ -527,6 +537,439 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {selectedTab === "details" && (
+            <div className="space-y-6">
+              {/* Business Profile Header */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center border border-cyan-500/30">
+                      <span className="text-2xl font-semibold text-cyan-400">{clientData.avatar}</span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold text-white tracking-tight">{clientData.name}, LLC</h2>
+                      <p className="text-gray-400 text-sm">Delaware LLC (EIN: 12-3456789)</p>
+                      <p className="text-gray-400 text-sm">Founded: March 2019</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Chip color="success" size="sm" className="text-xs mb-2">Active Client Since Jan 2024</Chip>
+                    <p className="text-gray-400 text-xs">Assigned Tax Manager: Jane Doe, CPA</p>
+                    <p className="text-gray-400 text-xs">Service Tier: Professional Nexus Monitoring</p>
+                    <p className="text-gray-400 text-xs">Last Updated: Dec 1, 2024</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Overview */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight">Business Overview</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Corporate Structure</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Legal Name:</span>
+                        <span className="text-white">TechCorp SaaS Solutions, LLC</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">DBA Name:</span>
+                        <span className="text-white">TechCorp SaaS</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Entity Type:</span>
+                        <span className="text-white">Delaware LLC</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Formation Date:</span>
+                        <span className="text-white">March 15, 2019</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Federal EIN:</span>
+                        <span className="text-white font-mono">12-3456789</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Business Classification</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Primary Industry:</span>
+                        <span className="text-white">Software as a Service (SaaS)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">NAICS Code:</span>
+                        <span className="text-white">541511</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Business Model:</span>
+                        <span className="text-white">B2B Software Subscriptions</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Market Focus:</span>
+                        <span className="text-white">SMB CRM Solutions</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <h4 className="text-white font-semibold text-sm mb-3">Financial Profile</h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">{formatCurrency(clientData.revenue)}</div>
+                      <div className="text-gray-400 text-xs">Annual Revenue (2024)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-green-400">47%</div>
+                      <div className="text-gray-400 text-xs">Revenue Growth YoY</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">{clientData.employees}</div>
+                      <div className="text-gray-400 text-xs">Employee Count</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-blue-400">Series A</div>
+                      <div className="text-gray-400 text-xs">Funding Stage</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight">Primary Contacts & Management</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Primary Contact</h4>
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <div className="space-y-2 text-sm">
+                        <div className="font-semibold text-white">John Smith, Chief Financial Officer</div>
+                        <div className="text-gray-400">john.smith@techcorpsaas.com</div>
+                        <div className="text-gray-400">(555) 123-4567 ext. 102</div>
+                        <div className="text-gray-400">(555) 987-6543 (Mobile)</div>
+                        <div className="text-cyan-400 text-xs">Direct Contact: Preferred for nexus compliance matters</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Secondary Contacts</h4>
+                    <div className="space-y-3">
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <div className="font-semibold text-white text-sm">Sarah Johnson - VP Finance</div>
+                        <div className="text-gray-400 text-xs">sarah.j@techcorpsaas.com</div>
+                        <div className="text-gray-400 text-xs">Day-to-day operations and data uploads</div>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <div className="font-semibold text-white text-sm">Mike Chen - CEO</div>
+                        <div className="text-gray-400 text-xs">mike.chen@techcorpsaas.com</div>
+                        <div className="text-gray-400 text-xs">Strategic decisions and high-exposure issues</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <h4 className="text-white font-semibold text-sm mb-3">Legal Counsel</h4>
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <div className="font-semibold text-white text-sm">Wilson & Associates LLP</div>
+                    <div className="text-gray-400 text-xs">Contact: David Wilson, Esq.</div>
+                    <div className="text-gray-400 text-xs">Specialization: Multi-state tax compliance</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Operations */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight">Business Locations & Operations</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Headquarters</h4>
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <div className="space-y-2 text-sm">
+                        <div className="font-semibold text-white">1234 Innovation Drive, Suite 200</div>
+                        <div className="text-gray-400">San Jose, CA 95110</div>
+                        <div className="text-gray-400">Property: Leased office space</div>
+                        <div className="text-gray-400">Employees: 18 (accounting for nexus purposes)</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Remote Workforce Locations</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">California:</span>
+                        <span className="text-white">12 employees (includes HQ)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">New York:</span>
+                        <span className="text-white">3 remote employees</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Texas:</span>
+                        <span className="text-white">2 remote employees</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Florida:</span>
+                        <span className="text-white">1 remote employee</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Other States:</span>
+                        <span className="text-white">6 remote employees (various)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <h4 className="text-white font-semibold text-sm mb-3">Physical Nexus Analysis</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span className="text-white">California: Physical presence (HQ + employees)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                        <span className="text-white">New York: Employee nexus (3 remote workers)</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                        <span className="text-white">Texas: Employee nexus (2 remote workers)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-white">Other states: Monitored for employee threshold</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Revenue & Customer Analysis */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight">Revenue Profile & Customer Base</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Revenue Breakdown (2024 YTD)</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total Annual Revenue:</span>
+                        <span className="text-white font-semibold">{formatCurrency(clientData.revenue)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Subscription Revenue:</span>
+                        <span className="text-white">$1,850,000 (87%)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Professional Services:</span>
+                        <span className="text-white">$185,000 (9%)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Training & Support:</span>
+                        <span className="text-white">$65,000 (3%)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Other Revenue:</span>
+                        <span className="text-white">$25,000 (1%)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Customer Demographics</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total Active Customers:</span>
+                        <span className="text-white">487</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Average Contract Value:</span>
+                        <span className="text-white">$4,362 annually</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Customer Retention Rate:</span>
+                        <span className="text-white">94%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Monthly Recurring Revenue:</span>
+                        <span className="text-white">$154,167</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <h4 className="text-white font-semibold text-sm mb-3">Geographic Distribution</h4>
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">156</div>
+                      <div className="text-gray-400 text-xs">California (32%)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">89</div>
+                      <div className="text-gray-400 text-xs">New York (18%)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">67</div>
+                      <div className="text-gray-400 text-xs">Texas (14%)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">45</div>
+                      <div className="text-gray-400 text-xs">Florida (9%)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">130</div>
+                      <div className="text-gray-400 text-xs">Other States (27%)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk Assessment */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-red-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight">Comprehensive Risk Assessment</h3>
+                </div>
+                
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-lg font-bold text-red-400">CRITICAL</div>
+                      <div className="text-gray-400 text-sm">Overall Risk Level</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-white">87/100</div>
+                      <div className="text-gray-400 text-sm">Risk Score</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Nexus Risk Factors</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Revenue Growth:</span>
+                        <Chip color="danger" size="sm" className="text-xs">HIGH RISK</Chip>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Geographic Expansion:</span>
+                        <Chip color="warning" size="sm" className="text-xs">MEDIUM RISK</Chip>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Transaction Volume:</span>
+                        <Chip color="danger" size="sm" className="text-xs">HIGH RISK</Chip>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Remote Workforce:</span>
+                        <Chip color="danger" size="sm" className="text-xs">HIGH RISK</Chip>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Financial Risk Factors</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Current Penalty Exposure:</span>
+                        <span className="text-red-400 font-semibold">{formatCurrency(clientData.penaltyExposure)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Potential Compliance Costs:</span>
+                        <span className="text-white">$45,000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Professional Liability:</span>
+                        <span className="text-yellow-400">Moderate</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Cash Flow Impact:</span>
+                        <span className="text-green-400">Low</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Relationship */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
+                  <h3 className="text-xl font-semibold text-white tracking-tight">Service Engagement & Relationship History</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Engagement Overview</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Service Start Date:</span>
+                        <span className="text-white">January 15, 2024</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Service Type:</span>
+                        <span className="text-white">Economic Nexus Monitoring</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Service Level:</span>
+                        <span className="text-white">Professional Plus</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Monthly Service Fee:</span>
+                        <span className="text-white">$2,850</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-3">Service Performance Metrics</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Response Time:</span>
+                        <span className="text-white">4.2 hours avg</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Client Satisfaction:</span>
+                        <span className="text-white">96%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Issue Resolution:</span>
+                        <span className="text-white">98% within SLA</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Penalty Prevention:</span>
+                        <span className="text-green-400">{formatCurrency(156000)} YTD</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
