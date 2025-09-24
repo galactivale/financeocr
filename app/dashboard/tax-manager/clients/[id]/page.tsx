@@ -204,7 +204,7 @@ const clientData = {
 
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState("overview");
+  const [selectedTab, setSelectedTab] = useState("nexus");
   const [expandedState, setExpandedState] = useState<string | null>(null);
   const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
 
@@ -352,340 +352,518 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Multi-State Nexus Dashboard */}
-        <div className="lg:col-span-2">
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Multi-State Nexus Dashboard</h2>
-              </div>
-              <Button
-                size="sm"
-                variant="flat"
-                className="bg-white/10 text-gray-300 hover:bg-white/20"
-                startContent={<Filter className="w-3 h-3" />}
-              >
-                Filter States
-              </Button>
-            </div>
-
-            {/* Interactive State Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {clientData.states.map((state) => (
-                <div
-                  key={state.code}
-                  className={`bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200 cursor-pointer ${
-                    expandedState === state.code ? 'ring-2 ring-blue-500/50' : ''
-                  }`}
-                  onClick={() => setExpandedState(expandedState === state.code ? null : state.code)}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                        <Flag className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-sm tracking-tight">{state.name}</h3>
-                        <p className="text-gray-400 text-xs">{state.code}</p>
-                      </div>
-                    </div>
-                    <Chip
-                      color={getStatusColor(state.status)}
-                      size="sm"
-                      className="text-xs"
-                    >
-                      {state.status === "critical" ? "REGISTRATION REQUIRED" :
-                       state.status === "warning" ? "APPROACHING THRESHOLD" :
-                       "MONITORING"}
-                    </Chip>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-400">Revenue</span>
-                        <span className="text-white">{formatCurrency(state.revenue)} of {formatCurrency(state.threshold)}</span>
-                      </div>
-                      <Progress
-                        value={state.percentage}
-                        className="mb-2"
-                        color={state.percentage >= 100 ? "danger" : state.percentage >= 80 ? "warning" : "primary"}
-                      />
-                      <p className="text-xs text-gray-400">{state.percentage}% of threshold</p>
-                    </div>
-
-                    {state.transactions && (
-                      <div>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-400">Transactions</span>
-                          <span className="text-white">{state.transactions} of {state.transactionThreshold}</span>
-                        </div>
-                        <Progress
-                          value={(state.transactions / state.transactionThreshold) * 100}
-                          className="mb-2"
-                          color="warning"
-                        />
-                      </div>
-                    )}
-
-                    {state.daysSinceThreshold && (
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
-                        <p className="text-red-300 text-xs">
-                          Days since threshold crossed: {state.daysSinceThreshold} days
-                        </p>
-                        <p className="text-red-200 text-xs">
-                          Estimated penalty: {formatCurrency(state.penaltyRange.min)} - {formatCurrency(state.penaltyRange.max)}
-                        </p>
-                      </div>
-                    )}
-
-                    {state.projectedCrossover && (
-                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2">
-                        <p className="text-yellow-300 text-xs">
-                          Projected crossover: {state.projectedCrossover}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        className="bg-white/10 text-gray-300 hover:bg-white/20 text-xs"
-                      >
-                        {state.status === "critical" ? "Register Client" : 
-                         state.status === "warning" ? "Monitor Closely" : "Track Progress"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        className="bg-white/10 text-gray-300 hover:bg-white/20 text-xs"
-                      >
-                        Document Decision
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Alert Management Section */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-6 bg-red-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Active Alerts</h2>
-              </div>
-              <Badge content={clientData.alerts.length} color="danger" size="sm">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-              </Badge>
-            </div>
-
-            <div className="space-y-4">
-              {clientData.alerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        alert.type === "critical" ? "bg-red-500/20" :
-                        alert.type === "warning" ? "bg-yellow-500/20" : "bg-blue-500/20"
-                      }`}>
-                        {alert.type === "critical" ? <AlertTriangle className="w-4 h-4 text-red-400" /> :
-                         alert.type === "warning" ? <Clock className="w-4 h-4 text-yellow-400" /> :
-                         <CheckCircle className="w-4 h-4 text-blue-400" />}
-                      </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-sm tracking-tight">{alert.title}</h3>
-                        <p className="text-gray-400 text-sm">{alert.description}</p>
-                      </div>
-                    </div>
-                    <Chip
-                      color={getStatusColor(alert.status)}
-                      size="sm"
-                      className="text-xs"
-                    >
-                      {alert.status}
-                    </Chip>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-3">
-                    <div>
-                      <p className="text-gray-400 text-xs">Financial Impact</p>
-                      <p className="text-white text-sm font-medium">{alert.financialImpact}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">Statute</p>
-                      <p className="text-blue-300 text-sm font-mono">{alert.statute}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">Assigned To</p>
-                      <p className="text-white text-sm">{alert.assignedTo}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">Created</p>
-                      <p className="text-white text-sm">{formatDate(alert.createdAt)}</p>
-                    </div>
-                  </div>
-
-                  {alert.deadline && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-3">
-                      <p className="text-yellow-300 text-sm">
-                        Deadline: {formatDate(alert.deadline)}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
-                    >
-                      Document Decision
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      className="bg-white/10 text-gray-300 hover:bg-white/20"
-                    >
-                      Client Advisory
-                    </Button>
-                    {alert.type === "critical" && (
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                      >
-                        Escalate to Partner
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Main Content with Tabs */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
+        {/* Tab Navigation */}
+        <div className="border-b border-white/10">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setSelectedTab("nexus")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "nexus"
+                  ? "border-blue-500 text-blue-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Nexus Status
+            </button>
+            <button
+              onClick={() => setSelectedTab("alerts")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "alerts"
+                  ? "border-red-500 text-red-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Active Alerts
+            </button>
+            <button
+              onClick={() => setSelectedTab("audit")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "audit"
+                  ? "border-green-500 text-green-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Audit Trail
+            </button>
+            <button
+              onClick={() => setSelectedTab("communications")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "communications"
+                  ? "border-purple-500 text-purple-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Communications
+            </button>
+            <button
+              onClick={() => setSelectedTab("analytics")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "analytics"
+                  ? "border-orange-500 text-orange-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Analytics
+            </button>
+          </nav>
         </div>
 
-        {/* Right Column - Quick Actions & Analytics */}
-        <div className="lg:col-span-1">
-          <div className="space-y-6">
-            {/* Performance Analytics */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Performance Analytics</h2>
+        {/* Tab Content */}
+        <div className="p-6">
+          {selectedTab === "nexus" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Multi-State Nexus Dashboard</h2>
+                </div>
+                <Button
+                  size="sm"
+                  variant="flat"
+                  className="bg-white/10 text-gray-300 hover:bg-white/20"
+                  startContent={<Filter className="w-3 h-3" />}
+                >
+                  Filter States
+                </Button>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Response Time</span>
-                  <span className="text-white text-sm font-semibold">{clientData.performance.responseTime}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Client Satisfaction</span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-white text-sm font-semibold">{clientData.performance.satisfaction}/5</span>
-                    <div className="flex space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-2 h-2 rounded-full ${
-                            i < Math.floor(clientData.performance.satisfaction) ? 'bg-yellow-400' : 'bg-gray-600'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Compliance Rate</span>
-                  <span className="text-white text-sm font-semibold">{clientData.performance.complianceRate}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Penalty Prevention</span>
-                  <span className="text-green-400 text-sm font-semibold">{formatCurrency(clientData.performance.penaltyPrevention)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Time Spent</span>
-                  <span className="text-white text-sm font-semibold">{clientData.performance.timeSpent}</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Data Processing Status */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Data Processing</h2>
-              </div>
-              <div className="space-y-3">
-                {clientData.dataProcessing.currentQueue.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
-                    <div>
-                      <p className="text-white text-sm font-semibold">{item.file}</p>
-                      <p className="text-gray-400 text-xs">{item.status}</p>
-                    </div>
-                    {item.quality && (
+              {/* Interactive State Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {clientData.states.map((state) => (
+                  <div
+                    key={state.code}
+                    className={`bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200 cursor-pointer ${
+                      expandedState === state.code ? 'ring-2 ring-blue-500/50' : ''
+                    }`}
+                    onClick={() => setExpandedState(expandedState === state.code ? null : state.code)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                          <Flag className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold text-sm tracking-tight">{state.name}</h3>
+                          <p className="text-gray-400 text-xs">{state.code}</p>
+                        </div>
+                      </div>
                       <Chip
-                        color={item.quality >= 95 ? "success" : item.quality >= 90 ? "warning" : "danger"}
+                        color={getStatusColor(state.status)}
                         size="sm"
                         className="text-xs"
                       >
-                        {item.quality}%
+                        {state.status === "critical" ? "REGISTRATION REQUIRED" :
+                         state.status === "warning" ? "APPROACHING THRESHOLD" :
+                         "MONITORING"}
                       </Chip>
-                    )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-400">Revenue</span>
+                          <span className="text-white">{formatCurrency(state.revenue)} of {formatCurrency(state.threshold)}</span>
+                        </div>
+                        <Progress
+                          value={state.percentage}
+                          className="mb-2"
+                          color={state.percentage >= 100 ? "danger" : state.percentage >= 80 ? "warning" : "primary"}
+                        />
+                        <p className="text-xs text-gray-400">{state.percentage}% of threshold</p>
+                      </div>
+
+                      {state.transactions && (
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-gray-400">Transactions</span>
+                            <span className="text-white">{state.transactions} of {state.transactionThreshold}</span>
+                          </div>
+                          <Progress
+                            value={(state.transactions / state.transactionThreshold) * 100}
+                            className="mb-2"
+                            color="warning"
+                          />
+                        </div>
+                      )}
+
+                      {state.daysSinceThreshold && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                          <p className="text-red-300 text-xs">
+                            Days since threshold crossed: {state.daysSinceThreshold} days
+                          </p>
+                          <p className="text-red-200 text-xs">
+                            Estimated penalty: {formatCurrency(state.penaltyRange.min)} - {formatCurrency(state.penaltyRange.max)}
+                          </p>
+                        </div>
+                      )}
+
+                      {state.projectedCrossover && (
+                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-2">
+                          <p className="text-yellow-300 text-xs">
+                            Projected crossover: {state.projectedCrossover}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex space-x-2 pt-2">
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-white/10 text-gray-300 hover:bg-white/20 text-xs"
+                        >
+                          {state.status === "critical" ? "Register Client" : 
+                           state.status === "warning" ? "Monitor Closely" : "Track Progress"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-white/10 text-gray-300 hover:bg-white/20 text-xs"
+                        >
+                          Document Decision
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
-            {/* Quick Actions */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Quick Actions</h2>
+          {selectedTab === "alerts" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-6 bg-red-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Active Alerts</h2>
+                </div>
+                <Badge content={clientData.alerts.length} color="danger" size="sm">
+                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                </Badge>
               </div>
-              <div className="space-y-3">
-                <Button
-                  fullWidth
-                  variant="flat"
-                  className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<MessageSquare className="w-4 h-4" />}
-                >
-                  Send Status Update
-                </Button>
-                <Button
-                  fullWidth
-                  variant="flat"
-                  className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<Calendar className="w-4 h-4" />}
-                >
-                  Schedule Advisory Call
-                </Button>
-                <Button
-                  fullWidth
-                  variant="flat"
-                  className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<FileText className="w-4 h-4" />}
-                >
-                  Generate Compliance Letter
-                </Button>
-                <Button
-                  fullWidth
-                  variant="flat"
-                  className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<Download className="w-4 h-4" />}
-                >
-                  Request Additional Data
-                </Button>
+
+              <div className="space-y-4">
+                {clientData.alerts.map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          alert.type === "critical" ? "bg-red-500/20" :
+                          alert.type === "warning" ? "bg-yellow-500/20" : "bg-blue-500/20"
+                        }`}>
+                          {alert.type === "critical" ? <AlertTriangle className="w-4 h-4 text-red-400" /> :
+                           alert.type === "warning" ? <Clock className="w-4 h-4 text-yellow-400" /> :
+                           <CheckCircle className="w-4 h-4 text-blue-400" />}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold text-sm tracking-tight">{alert.title}</h3>
+                          <p className="text-gray-400 text-sm">{alert.description}</p>
+                        </div>
+                      </div>
+                      <Chip
+                        color={getStatusColor(alert.status)}
+                        size="sm"
+                        className="text-xs"
+                      >
+                        {alert.status}
+                      </Chip>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <p className="text-gray-400 text-xs">Financial Impact</p>
+                        <p className="text-white text-sm font-medium">{alert.financialImpact}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Statute</p>
+                        <p className="text-blue-300 text-sm font-mono">{alert.statute}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Assigned To</p>
+                        <p className="text-white text-sm">{alert.assignedTo}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Created</p>
+                        <p className="text-white text-sm">{formatDate(alert.createdAt)}</p>
+                      </div>
+                    </div>
+
+                    {alert.deadline && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-3">
+                        <p className="text-yellow-300 text-sm">
+                          Deadline: {formatDate(alert.deadline)}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
+                      >
+                        Document Decision
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20"
+                      >
+                        Client Advisory
+                      </Button>
+                      {alert.type === "critical" && (
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                        >
+                          Escalate to Partner
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
+
+          {selectedTab === "audit" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Audit Trail</h2>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Chip color="success" size="sm" className="text-xs">EXCELLENT</Chip>
+                  <Button
+                    size="sm"
+                    className="bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30"
+                    startContent={<Shield className="w-3 h-3" />}
+                  >
+                    Generate Legal Package
+                  </Button>
+                </div>
+              </div>
+
+              {/* Audit Trail Status */}
+              <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-6">
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-400">100%</div>
+                    <div className="text-gray-400 text-xs">Documentation Complete</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-400">YES</div>
+                    <div className="text-gray-400 text-xs">Court Defensible</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">156</div>
+                    <div className="text-gray-400 text-xs">Decisions Documented</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-400">Nov 28</div>
+                    <div className="text-gray-400 text-xs">Last Review</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Decisions */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-white tracking-tight">Recent Professional Decisions</h3>
+                {clientData.decisions.map((decision) => (
+                  <div
+                    key={decision.id}
+                    className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-blue-400 text-xs font-mono">NEX-2024-{decision.date.replace(/-/g, '').slice(4)}-001</span>
+                          <span className="text-gray-400 text-xs">{formatDate(decision.date)}</span>
+                        </div>
+                        <h4 className="text-white font-semibold text-sm tracking-tight">{decision.type}</h4>
+                        <p className="text-gray-300 text-sm">{decision.outcome}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Chip color="success" size="sm" className="text-xs">{decision.documentation}</Chip>
+                        <Chip color={decision.clientCommunication === "Complete" ? "success" : "warning"} size="sm" className="text-xs">
+                          {decision.clientCommunication}
+                        </Chip>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 rounded-lg p-3 mb-3">
+                      <p className="text-gray-300 text-sm mb-2">
+                        <span className="text-gray-400 text-xs">Professional Reasoning:</span><br />
+                        {decision.rationale}
+                      </p>
+                      <p className="text-gray-300 text-sm">
+                        <span className="text-gray-400 text-xs">Tax Manager:</span> {decision.manager}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 text-xs text-gray-400">
+                        <span>✓ Statutory citation verified</span>
+                        <span>✓ Professional reasoning documented</span>
+                        <span>✓ Client communication recorded</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20"
+                        startContent={<Eye className="w-3 h-3" />}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedTab === "communications" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Client Communications</h2>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-purple-500/20 border-purple-500/30 text-purple-400 hover:bg-purple-500/30"
+                  startContent={<MessageSquare className="w-3 h-3" />}
+                >
+                  New Communication
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {clientData.communications.map((comm) => (
+                  <div
+                    key={comm.id}
+                    className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          comm.type === "email" ? "bg-blue-500/20" :
+                          comm.type === "call" ? "bg-green-500/20" : "bg-purple-500/20"
+                        }`}>
+                          {comm.type === "email" ? <MessageSquare className="w-4 h-4 text-blue-400" /> :
+                           comm.type === "call" ? <Phone className="w-4 h-4 text-green-400" /> :
+                           <Calendar className="w-4 h-4 text-purple-400" />}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold text-sm tracking-tight">{comm.subject}</h3>
+                          <p className="text-gray-400 text-xs">
+                            {comm.participants.join(", ")} • {formatDate(comm.date)}
+                            {comm.duration && ` • ${comm.duration}`}
+                          </p>
+                        </div>
+                      </div>
+                      <Chip
+                        color={comm.status === "Completed" ? "success" : comm.status === "Sent" ? "primary" : "warning"}
+                        size="sm"
+                        className="text-xs"
+                      >
+                        {comm.status}
+                      </Chip>
+                    </div>
+
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-gray-300 text-sm">
+                        <span className="text-gray-400 text-xs">Follow-up:</span> {comm.followUp}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedTab === "analytics" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Performance Analytics */}
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Performance Analytics</h2>
+                </div>
+                <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Response Time</span>
+                      <span className="text-white text-sm font-semibold">{clientData.performance.responseTime}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Client Satisfaction</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white text-sm font-semibold">{clientData.performance.satisfaction}/5</span>
+                        <div className="flex space-x-1">
+                          {[...Array(5)].map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-2 h-2 rounded-full ${
+                                i < Math.floor(clientData.performance.satisfaction) ? 'bg-yellow-400' : 'bg-gray-600'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Compliance Rate</span>
+                      <span className="text-white text-sm font-semibold">{clientData.performance.complianceRate}%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Penalty Prevention</span>
+                      <span className="text-green-400 text-sm font-semibold">{formatCurrency(clientData.performance.penaltyPrevention)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Time Spent</span>
+                      <span className="text-white text-sm font-semibold">{clientData.performance.timeSpent}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Processing Status */}
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Data Processing</h2>
+                </div>
+                <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                  <div className="space-y-3">
+                    {clientData.dataProcessing.currentQueue.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                        <div>
+                          <p className="text-white text-sm font-semibold">{item.file}</p>
+                          <p className="text-gray-400 text-xs">{item.status}</p>
+                        </div>
+                        {item.quality && (
+                          <Chip
+                            color={item.quality >= 95 ? "success" : item.quality >= 90 ? "warning" : "danger"}
+                            size="sm"
+                            className="text-xs"
+                          >
+                            {item.quality}%
+                          </Chip>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
