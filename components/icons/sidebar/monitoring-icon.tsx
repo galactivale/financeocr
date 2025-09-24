@@ -41,3 +41,4 @@ export const MonitoringIcon = ({ size = 24, filled = false }: IconProps) => {
 };
 
 
+

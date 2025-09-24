@@ -11,3 +11,4 @@ declare module 'react-us-map' {
   
   export const USMap: ComponentType<USMapProps>;
 }
+
