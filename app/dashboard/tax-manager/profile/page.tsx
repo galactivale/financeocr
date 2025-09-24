@@ -10,26 +10,26 @@ import { Badge } from "@nextui-org/badge";
 import { Switch } from "@nextui-org/switch";
 import { Progress } from "@nextui-org/progress";
 import { 
-  UserIcon, 
-  ShieldCheckIcon, 
-  BellIcon, 
-  CogIcon, 
-  AcademicCapIcon,
-  CloudArrowDownIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  KeyIcon,
-  DevicePhoneMobileIcon,
-  ComputerDesktopIcon,
-  ChartBarIcon,
-  BookOpenIcon,
-  CalendarIcon,
-  CreditCardIcon,
-  GlobeAltIcon,
-  WrenchScrewdriverIcon
-} from "@/components/icons/profile";
+  User, 
+  ShieldCheck, 
+  Bell, 
+  Settings, 
+  GraduationCap,
+  Download,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  FileText,
+  Key,
+  Smartphone,
+  Monitor,
+  BarChart3,
+  BookOpen,
+  Calendar,
+  CreditCard,
+  Globe,
+  Wrench
+} from "lucide-react";
 
 // Mock data for profile information
 const profileData = {
@@ -142,7 +142,7 @@ export default function TaxManagerProfilePage() {
                 className="bg-white/10 backdrop-blur-xl border border-white/10 text-white hover:bg-white/20"
                 size="sm"
               >
-                <BellIcon className="w-5 h-5" />
+                <Bell className="w-5 h-5" />
               </Button>
             </Badge>
             <Button
@@ -150,7 +150,7 @@ export default function TaxManagerProfilePage() {
               size="sm"
               onClick={() => setIsEditing(!isEditing)}
             >
-              <UserIcon className="w-4 h-4 mr-2" />
+              <User className="w-4 h-4 mr-2" />
               {isEditing ? "Save Changes" : "Edit Profile"}
             </Button>
           </div>
@@ -169,7 +169,7 @@ export default function TaxManagerProfilePage() {
                 getCredentialStatus().color === "warning" ? "bg-yellow-500/20" :
                 getCredentialStatus().color === "primary" ? "bg-blue-500/20" : "bg-green-500/20"
               }`}>
-                <ShieldCheckIcon className={`w-4 h-4 ${
+                <ShieldCheck className={`w-4 h-4 ${
                   getCredentialStatus().color === "danger" ? "text-red-400" :
                   getCredentialStatus().color === "warning" ? "text-yellow-400" :
                   getCredentialStatus().color === "primary" ? "text-blue-400" : "text-green-400"
@@ -185,7 +185,7 @@ export default function TaxManagerProfilePage() {
                 <p className="text-lg font-light text-white">{profileData.credentials.continuingEducation.completedHours}/{profileData.credentials.continuingEducation.requiredHours}h</p>
               </div>
               <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <AcademicCapIcon className="w-4 h-4 text-blue-400" />
+                <GraduationCap className="w-4 h-4 text-blue-400" />
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ export default function TaxManagerProfilePage() {
                 <p className="text-lg font-light text-white">{profileData.security.activeSessions}</p>
               </div>
               <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <DevicePhoneMobileIcon className="w-4 h-4 text-green-400" />
+                <Smartphone className="w-4 h-4 text-green-400" />
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function TaxManagerProfilePage() {
                 <p className="text-lg font-light text-white">{profileData.integrations.filter(i => i.status === "connected").length}/{profileData.integrations.length}</p>
               </div>
               <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <GlobeAltIcon className="w-4 h-4 text-purple-400" />
+                <Globe className="w-4 h-4 text-purple-400" />
               </div>
             </div>
           </div>
@@ -446,7 +446,7 @@ export default function TaxManagerProfilePage() {
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                                <GlobeAltIcon className="w-5 h-5 text-white" />
+                                <Globe className="w-5 h-5 text-white" />
                               </div>
                               <div>
                                 <h3 className="text-white font-medium">{integration.name}</h3>
@@ -466,7 +466,7 @@ export default function TaxManagerProfilePage() {
                                 variant="flat"
                                 className="bg-white/10 text-gray-300 hover:bg-white/20"
                               >
-                                <WrenchScrewdriverIcon className="w-3 h-3 mr-2" />
+                                <Wrench className="w-3 h-3 mr-2" />
                                 Manage
                               </Button>
                             </div>
@@ -495,7 +495,7 @@ export default function TaxManagerProfilePage() {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                            <ShieldCheckIcon className="w-5 h-5 text-green-400" />
+                            <ShieldCheck className="w-5 h-5 text-green-400" />
                           </div>
                           <div>
                             <h3 className="text-white font-medium">Two-Factor Authentication</h3>
@@ -512,7 +512,7 @@ export default function TaxManagerProfilePage() {
                         variant="flat"
                         className="bg-white/10 text-gray-300 hover:bg-white/20"
                       >
-                        <KeyIcon className="w-3 h-3 mr-2" />
+                        <Key className="w-3 h-3 mr-2" />
                         Manage 2FA
                       </Button>
                     </div>
@@ -553,7 +553,7 @@ export default function TaxManagerProfilePage() {
                           variant="flat"
                           className="bg-white/10 text-gray-300 hover:bg-white/20 mt-3 w-full"
                         >
-                          <KeyIcon className="w-3 h-3 mr-2" />
+                          <Key className="w-3 h-3 mr-2" />
                           Change Password
                         </Button>
                       </div>
@@ -588,7 +588,7 @@ export default function TaxManagerProfilePage() {
                   className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
                   size="sm"
                 >
-                  <BookOpenIcon className="w-4 h-4 mr-2" />
+                  <BookOpen className="w-4 h-4 mr-2" />
                   View CE Schedule
                 </Button>
               </div>
@@ -605,7 +605,7 @@ export default function TaxManagerProfilePage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<CloudArrowDownIcon className="w-4 h-4" />}
+                  startContent={<Download className="w-4 h-4" />}
                 >
                   Export Professional Data
                 </Button>
@@ -613,7 +613,7 @@ export default function TaxManagerProfilePage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<DocumentTextIcon className="w-4 h-4" />}
+                  startContent={<FileText className="w-4 h-4" />}
                 >
                   Download Audit Trail
                 </Button>
@@ -621,7 +621,7 @@ export default function TaxManagerProfilePage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<CalendarIcon className="w-4 h-4" />}
+                  startContent={<Calendar className="w-4 h-4" />}
                 >
                   Backup Schedule
                 </Button>
@@ -651,7 +651,7 @@ export default function TaxManagerProfilePage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 mt-3"
-                  startContent={<ChartBarIcon className="w-4 h-4" />}
+                  startContent={<BarChart3 className="w-4 h-4" />}
                 >
                   Customize Layout
                 </Button>
