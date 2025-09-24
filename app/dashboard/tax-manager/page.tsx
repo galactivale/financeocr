@@ -6,58 +6,12 @@ import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 
-// Nexus data for states
+// Nexus data for states - Only highlighting 4 key states for cleaner appearance
 const nexusData = {
   'CA': { status: 'critical', clients: 15, revenue: 2850000, alerts: 3 },
   'TX': { status: 'warning', clients: 8, revenue: 1200000, alerts: 2 },
   'NY': { status: 'pending', clients: 12, revenue: 1800000, alerts: 1 },
-  'FL': { status: 'compliant', clients: 6, revenue: 800000, alerts: 0 },
-  'IL': { status: 'warning', clients: 4, revenue: 600000, alerts: 1 },
-  'PA': { status: 'compliant', clients: 3, revenue: 450000, alerts: 0 },
-  'OH': { status: 'pending', clients: 2, revenue: 300000, alerts: 0 },
-  'GA': { status: 'warning', clients: 3, revenue: 400000, alerts: 1 },
-  'NC': { status: 'compliant', clients: 2, revenue: 250000, alerts: 0 },
-  'MI': { status: 'pending', clients: 1, revenue: 150000, alerts: 0 },
-  'NJ': { status: 'warning', clients: 2, revenue: 350000, alerts: 1 },
-  'VA': { status: 'compliant', clients: 1, revenue: 200000, alerts: 0 },
-  'WA': { status: 'pending', clients: 2, revenue: 300000, alerts: 0 },
-  'AZ': { status: 'warning', clients: 1, revenue: 180000, alerts: 0 },
-  'MA': { status: 'compliant', clients: 1, revenue: 120000, alerts: 0 },
-  'TN': { status: 'pending', clients: 1, revenue: 100000, alerts: 0 },
-  'IN': { status: 'compliant', clients: 1, revenue: 80000, alerts: 0 },
-  'MO': { status: 'warning', clients: 1, revenue: 90000, alerts: 0 },
-  'MD': { status: 'compliant', clients: 1, revenue: 70000, alerts: 0 },
-  'WI': { status: 'pending', clients: 1, revenue: 60000, alerts: 0 },
-  'CO': { status: 'compliant', clients: 1, revenue: 50000, alerts: 0 },
-  'MN': { status: 'warning', clients: 1, revenue: 40000, alerts: 0 },
-  'SC': { status: 'compliant', clients: 1, revenue: 30000, alerts: 0 },
-  'AL': { status: 'pending', clients: 1, revenue: 25000, alerts: 0 },
-  'LA': { status: 'compliant', clients: 1, revenue: 20000, alerts: 0 },
-  'KY': { status: 'warning', clients: 1, revenue: 15000, alerts: 0 },
-  'OR': { status: 'compliant', clients: 1, revenue: 10000, alerts: 0 },
-  'OK': { status: 'pending', clients: 1, revenue: 8000, alerts: 0 },
-  'CT': { status: 'compliant', clients: 1, revenue: 5000, alerts: 0 },
-  'UT': { status: 'warning', clients: 1, revenue: 3000, alerts: 0 },
-  'IA': { status: 'compliant', clients: 1, revenue: 2000, alerts: 0 },
-  'NV': { status: 'pending', clients: 1, revenue: 1000, alerts: 0 },
-  'AR': { status: 'compliant', clients: 1, revenue: 500, alerts: 0 },
-  'MS': { status: 'warning', clients: 1, revenue: 300, alerts: 0 },
-  'KS': { status: 'compliant', clients: 1, revenue: 200, alerts: 0 },
-  'NM': { status: 'pending', clients: 1, revenue: 100, alerts: 0 },
-  'NE': { status: 'compliant', clients: 1, revenue: 50, alerts: 0 },
-  'WV': { status: 'warning', clients: 1, revenue: 25, alerts: 0 },
-  'ID': { status: 'compliant', clients: 1, revenue: 10, alerts: 0 },
-  'HI': { status: 'pending', clients: 1, revenue: 5, alerts: 0 },
-  'NH': { status: 'compliant', clients: 1, revenue: 2, alerts: 0 },
-  'ME': { status: 'warning', clients: 1, revenue: 1, alerts: 0 },
-  'RI': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
-  'MT': { status: 'pending', clients: 1, revenue: 1, alerts: 0 },
-  'DE': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
-  'SD': { status: 'warning', clients: 1, revenue: 1, alerts: 0 },
-  'ND': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
-  'AK': { status: 'pending', clients: 1, revenue: 1, alerts: 0 },
-  'VT': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
-  'WY': { status: 'warning', clients: 1, revenue: 1, alerts: 0 }
+  'FL': { status: 'compliant', clients: 6, revenue: 800000, alerts: 0 }
 };
 
 // Enhanced US Map Component
