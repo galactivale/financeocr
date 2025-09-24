@@ -550,10 +550,10 @@ const TaxManagerMonitoring = () => {
           </div>
 
           {/* Right Pane - US Nexus Map */}
-          <div className="w-3/4 bg-black/90 backdrop-blur-sm p-4">
+          <div className="w-3/4 bg-black/95 backdrop-blur-sm p-4">
             <div className="h-full flex flex-col">
               {/* Interactive US Map */}
-              <div className="flex-1 relative bg-gray-800/50 rounded-lg overflow-hidden">
+              <div className="flex-1 relative bg-gray-900/80 rounded-lg overflow-hidden">
                 {/* Cool Background Pattern */}
                 <div className="absolute inset-0 opacity-20">
                   {/* Grid Pattern */}
