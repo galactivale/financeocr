@@ -106,22 +106,27 @@ export const SidebarWrapper = () => {
             </SidebarMenu>
           </div>
           <div className={Sidebar.Footer()}>
-            <Tooltip content={"Settings"} color="primary">
-              <div className="max-w-fit">
-                <SettingsIcon />
-              </div>
-            </Tooltip>
-            <Tooltip content={"Adjustments"} color="primary">
-              <div className="max-w-fit">
-                <FilterIcon />
-              </div>
-            </Tooltip>
-            <Tooltip content={"Profile"} color="primary">
-              <Avatar
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                size="sm"
-              />
-            </Tooltip>
+            <div className="flex items-center gap-3">
+              <Tooltip content={"Settings"} color="primary">
+                <div className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                  <SettingsIcon />
+                </div>
+              </Tooltip>
+              <Tooltip content={"Adjustments"} color="primary">
+                <div className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                  <FilterIcon />
+                </div>
+              </Tooltip>
+              <Tooltip content={"Profile"} color="primary">
+                <div className="w-8 h-8 rounded-lg overflow-hidden hover:bg-white/10 transition-colors cursor-pointer">
+                  <Avatar
+                    src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+                    size="sm"
+                    className="w-full h-full"
+                  />
+                </div>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </div>
