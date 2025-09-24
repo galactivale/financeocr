@@ -371,7 +371,7 @@ const TaxManagerMonitoring = () => {
   }
 
   return (
-    <div className="w-full h-full flex bg-blue-600">
+    <div className="w-full h-screen flex bg-blue-600 overflow-hidden">
       {/* Left Pane - World-Class Nexus Monitoring */}
       <div className="w-1/4 p-1 bg-black flex flex-col">
         {/* Premium Header */}
