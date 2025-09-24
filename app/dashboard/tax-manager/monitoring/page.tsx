@@ -358,6 +358,11 @@ const TaxManagerMonitoring = () => {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-white text-lg font-semibold">Live Nexus monitoring</h1>
           <div className="flex items-center space-x-3">
+            {/* Live Status Indicator */}
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-lime-400 rounded-full animate-pulse"></div>
+              <span className="text-lime-400 text-sm font-medium">Live</span>
+            </div>
             <Button isIconOnly size="sm" variant="light" className="text-white">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -369,12 +374,6 @@ const TaxManagerMonitoring = () => {
               </svg>
             </Button>
           </div>
-        </div>
-
-        {/* Live Status Indicator */}
-        <div className="flex items-center space-x-2 mb-6">
-          <div className="w-3 h-3 bg-lime-400 rounded-full animate-pulse"></div>
-          <span className="text-lime-400 text-sm font-medium">Live</span>
         </div>
 
         {/* Search Box */}
@@ -391,16 +390,6 @@ const TaxManagerMonitoring = () => {
           />
         </div>
 
-        {/* Filter Button */}
-        <Button
-          variant="bordered"
-          className="w-full bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          Filter
-        </Button>
 
         {/* Rest of left pane content can go here */}
         <div className="flex-1">
