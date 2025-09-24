@@ -153,42 +153,6 @@ const TaxManagerMonitoring = () => {
           onHover: () => {},
           onLeave: () => {},
           label: labelConfig,
-          tooltip: {
-            enabled: true,
-            render: (stateAbbr: USAStateAbbreviation) => (
-              <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600">
-                <h4 className="font-bold text-lg mb-2">{stateAbbr}</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span>Clients:</span>
-                    <span className="font-semibold">{data.clients}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Revenue:</span>
-                    <span className="font-semibold">${(data.revenue / 1000).toFixed(0)}K</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Alerts:</span>
-                    <span className={`font-semibold ${data.alerts > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                      {data.alerts}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className={`font-semibold ${
-                      data.status === 'critical' ? 'text-red-400' :
-                      data.status === 'warning' ? 'text-amber-400' :
-                      data.status === 'pending' ? 'text-blue-400' :
-                      data.status === 'transit' ? 'text-cyan-400' :
-                      'text-green-400'
-                    }`}>
-                      {data.status.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
         };
       } else {
         // Default styling for states without nexus data
@@ -621,54 +585,6 @@ const TaxManagerMonitoring = () => {
                   />
                 </div>
 
-                {/* State Info Panel */}
-                {selectedState && nexusData[selectedState as keyof typeof nexusData] && (
-                  <div className="absolute top-4 right-4 bg-gray-800/90 border border-gray-600 rounded-lg shadow-lg p-4 min-w-[250px] backdrop-blur-sm">
-                    {(() => {
-                      const stateData = nexusData[selectedState as keyof typeof nexusData];
-                      
-                      return (
-                        <div>
-                          <h4 className="font-bold text-lg text-white mb-2">{selectedState}</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-400">Clients:</span>
-                              <span className="font-semibold text-white">{stateData.clients}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-400">Revenue:</span>
-                              <span className="font-semibold text-white">${(stateData.revenue / 1000).toFixed(0)}K</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-400">Alerts:</span>
-                              <span className={`font-semibold ${stateData.alerts > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                                {stateData.alerts}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-400">Status:</span>
-                              <span className={`font-semibold ${
-                                stateData.status === 'critical' ? 'text-red-400' :
-                                stateData.status === 'warning' ? 'text-amber-400' :
-                                stateData.status === 'pending' ? 'text-blue-400' :
-                                stateData.status === 'transit' ? 'text-cyan-400' :
-                                'text-green-400'
-                              }`}>
-                                {stateData.status.toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="mt-3">
-                              <p className="text-xs text-gray-500 mb-1">Companies:</p>
-                              {stateData.companies.map((company, index) => (
-                                <p key={index} className="text-xs text-gray-300">• {company}</p>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
 
                 {/* Legend */}
                 <div className="absolute bottom-4 left-4 bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
