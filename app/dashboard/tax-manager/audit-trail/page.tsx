@@ -556,5 +556,6 @@ export default function AuditTrailPage() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
