@@ -554,7 +554,34 @@ const TaxManagerMonitoring = () => {
             <div className="h-full flex flex-col">
               {/* Interactive US Map */}
               <div className="flex-1 relative bg-gray-800/50 rounded-lg overflow-hidden">
-                <div className="w-full h-full">
+                {/* Cool Background Pattern */}
+                <div className="absolute inset-0 opacity-20">
+                  {/* Grid Pattern */}
+                  <div className="absolute inset-0" style={{
+                    backgroundImage: `
+                      linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '40px 40px'
+                  }}></div>
+                  
+                  {/* Radial Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-radial from-blue-500/5 via-transparent to-transparent"></div>
+                  
+                  {/* Geometric Shapes */}
+                  <div className="absolute top-10 left-10 w-20 h-20 border border-blue-400/20 rounded-full"></div>
+                  <div className="absolute top-32 right-16 w-16 h-16 border border-cyan-400/20 rotate-45"></div>
+                  <div className="absolute bottom-20 left-20 w-12 h-12 border border-indigo-400/20 rounded-full"></div>
+                  <div className="absolute bottom-32 right-32 w-24 h-24 border border-purple-400/20 rotate-12"></div>
+                  
+                  {/* Subtle Lines */}
+                  <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent"></div>
+                  <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"></div>
+                  <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-indigo-400/30 to-transparent"></div>
+                  <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
+                </div>
+                
+                <div className="w-full h-full relative z-10">
                   <USAMap 
                     customStates={customStates}
                     hiddenStates={['AK', 'HI']}

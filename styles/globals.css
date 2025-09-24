@@ -34,3 +34,8 @@ body {
 .scrollbar-thin:hover::-webkit-scrollbar-thumb {
   background-color: rgba(107, 114, 128, 0.5);
 }
+
+/* Custom gradient utilities */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
