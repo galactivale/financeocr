@@ -351,9 +351,9 @@ const TaxManagerMonitoring = () => {
   }
 
   return (
-    <div className="w-full h-screen flex bg-blue-600">
+    <div className="w-full h-full flex bg-blue-600">
       {/* Left Pane - World-Class Nexus Monitoring */}
-      <div className="w-1/4 p-1 overflow-hidden bg-black flex flex-col">
+      <div className="w-1/4 p-1 bg-black flex flex-col">
         {/* Premium Header */}
         <div className="flex items-center justify-between mb-2 px-2 py-1">
           <div className="flex items-center space-x-2">
@@ -412,7 +412,7 @@ const TaxManagerMonitoring = () => {
         </div>
 
         {/* Ultra-Compact Client Cards */}
-        <div className="flex-1 space-y-1 overflow-y-auto px-2">
+        <div className="flex-1 space-y-1 overflow-y-auto px-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
           {/* Card 1 - Critical */}
           <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
             <div className="flex justify-between items-center mb-1">
