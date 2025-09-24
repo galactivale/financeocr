@@ -320,100 +320,102 @@ const TaxManagerMonitoring = () => {
         
         {/* Main Content */}
         <div className="flex-1 flex">
-          {/* Left Pane - World-Class Nexus Monitoring */}
-          <div className="w-1/4 p-1 bg-black flex flex-col">
-            {/* Premium Header */}
-            <div className="flex items-center justify-between mb-2 px-2 py-1">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
-                <h1 className="text-white text-sm font-medium tracking-wide">NEXUS MONITOR</h1>
+          {/* Left Pane - Modern Nexus Monitoring */}
+          <div className="w-1/4 pt-5 px-3 bg-black flex flex-col">
+            {/* Modern Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
+                  <h1 className="text-white text-lg font-semibold tracking-tight">Nexus Monitor</h1>
+                </div>
                 {mapFocusState && (
-                  <div className="flex items-center space-x-1">
-                    <span className="text-blue-400 text-xs">•</span>
+                  <div className="flex items-center space-x-2 bg-blue-500/20 rounded-full px-2 py-1">
                     <span className="text-blue-400 text-xs font-medium">{mapFocusState}</span>
                     <button 
                       onClick={() => setMapFocusState(null)}
-                      className="text-blue-400 hover:text-blue-300 text-xs"
+                      className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
                     >
                       ×
                     </button>
                   </div>
                 )}
               </div>
-              <div className="flex items-center space-x-1">
-                <button className="p-1 text-gray-400 hover:text-white transition-colors">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center space-x-2">
+                <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
                 </button>
-                <button className="p-1 text-gray-400 hover:text-white transition-colors">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                   </svg>
                 </button>
               </div>
             </div>
 
-            {/* Ultra-Compact Search */}
-            <div className="relative mb-2 px-2">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Modern Search */}
+            <div className="relative mb-4">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <input
                 type="text"
-                placeholder="Client ID..."
-                className="w-full pl-8 pr-3 py-1.5 bg-gray-900/80 text-white placeholder-gray-500 rounded text-xs border border-gray-800 focus:outline-none focus:ring-1 focus:ring-lime-400/50 focus:border-lime-400/50"
+                placeholder="Search clients..."
+                className="w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-sm text-white placeholder-gray-400 rounded-xl text-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
               />
             </div>
 
-            {/* Status Summary Bar */}
-            <div className="flex items-center justify-between mb-2 px-2 py-1 bg-gray-900/50 rounded">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  <span className="text-red-400 text-xs font-medium">
+            {/* Modern Status Summary */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white text-sm font-semibold">Status Overview</h3>
+                <span className="text-gray-400 text-xs">{filteredClients.length} Total</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span className="text-white text-sm font-medium">Critical</span>
+                  <span className="text-red-400 text-sm font-semibold ml-auto">
                     {filteredClients.filter(c => c.nexusStatus === 'critical').length}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
-                  <span className="text-amber-400 text-xs font-medium">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                  <span className="text-white text-sm font-medium">Warning</span>
+                  <span className="text-orange-400 text-sm font-semibold ml-auto">
                     {filteredClients.filter(c => c.nexusStatus === 'warning').length}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                  <span className="text-blue-400 text-xs font-medium">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-white text-sm font-medium">Pending</span>
+                  <span className="text-blue-400 text-sm font-semibold ml-auto">
                     {filteredClients.filter(c => c.nexusStatus === 'pending').length}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
-                  <span className="text-cyan-400 text-xs font-medium">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
+                  <span className="text-white text-sm font-medium">In Transit</span>
+                  <span className="text-cyan-400 text-sm font-semibold ml-auto">
                     {filteredClients.filter(c => c.nexusStatus === 'transit').length}
                   </span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-green-400 text-xs font-medium">
+                <div className="flex items-center space-x-2 col-span-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-white text-sm font-medium">Compliant</span>
+                  <span className="text-green-400 text-sm font-semibold ml-auto">
                     {filteredClients.filter(c => c.nexusStatus === 'compliant').length}
                   </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="text-gray-400 text-xs">{filteredClients.length} Total</div>
-                <div className="w-3 h-3 flex items-center justify-center">
-                  <svg className="w-2 h-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                  </svg>
                 </div>
               </div>
             </div>
 
             {/* Apple-Style Client Cards */}
-            <div className="flex-1 space-y-2 overflow-y-auto px-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
+            <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
               {filteredClients.length > 0 ? (
                 filteredClients.map((client) => {
                   const getStatusColor = (status: string) => {
