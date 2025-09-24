@@ -141,8 +141,8 @@ const USStatesMap = () => {
             strokeWidth={(stateName: string) => 1.5}
             onClick={(stateName: string) => handleStateClick(stateName)}
             tooltip={(stateName: string) => getStateTooltip(stateName)}
-            width="100%"
-            height="100%"
+            width={800}
+            height={400}
             style={{
               filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))',
               borderRadius: '12px'

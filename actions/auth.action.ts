@@ -3,9 +3,11 @@
 import { cookies } from "next/headers";
 
 export const createAuthCookie = async () => {
-  cookies().set("userAuth", "myToken", { secure: true });
+  const cookieStore = await cookies();
+  cookieStore.set("userAuth", "myToken", { secure: true });
 };
 
 export const deleteAuthCookie = async () => {
-  cookies().delete("userAuth");
+  const cookieStore = await cookies();
+  cookieStore.delete("userAuth");
 };
