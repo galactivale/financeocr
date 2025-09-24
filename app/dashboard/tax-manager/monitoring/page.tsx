@@ -147,7 +147,7 @@ const TaxManagerMonitoring = () => {
         
         settings[state] = {
           fill: fillColor,
-          stroke: mapFocusState === state ? '#3b82f6' : 'white',
+          stroke: mapFocusState === state ? '#60a5fa' : 'white',
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
           onHover: () => {},
@@ -158,7 +158,7 @@ const TaxManagerMonitoring = () => {
         // Default styling for states without nexus data
         settings[state] = {
           fill: '#374151',
-          stroke: mapFocusState === state ? '#3b82f6' : 'white',
+          stroke: mapFocusState === state ? '#60a5fa' : 'white',
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
           label: labelConfig,
