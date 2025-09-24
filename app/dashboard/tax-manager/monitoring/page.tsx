@@ -247,8 +247,8 @@ const TaxManagerMonitoring = () => {
         
         settings[state] = {
           fill: fillColor,
-          stroke: strokeColor,
-          strokeWidth: selectedState === state ? 3 : 1,
+          stroke: selectedState === state ? '#3b82f6' : 'white',
+          strokeWidth: selectedState === state ? 3 : 2,
           onClick: () => setSelectedState(selectedState === state ? null : state),
           onHover: () => {},
           onLeave: () => {},
@@ -256,11 +256,14 @@ const TaxManagerMonitoring = () => {
             enabled: true,
             render: (stateAbbr: USAStateAbbreviation) => (
               <text 
-                fontSize="12" 
+                fontSize="14" 
                 fill="white" 
                 fontWeight="bold"
                 textAnchor="middle"
                 dominantBaseline="middle"
+                stroke="black"
+                strokeWidth="0.5"
+                paintOrder="stroke fill"
               >
                 {stateAbbr}
               </text>
@@ -307,18 +310,21 @@ const TaxManagerMonitoring = () => {
         // Default styling for states without nexus data
         settings[state] = {
           fill: '#374151',
-          stroke: '#6b7280',
-          strokeWidth: 1,
+          stroke: selectedState === state ? '#3b82f6' : 'white',
+          strokeWidth: selectedState === state ? 3 : 2,
           onClick: () => setSelectedState(selectedState === state ? null : state),
           label: {
             enabled: true,
             render: (stateAbbr: USAStateAbbreviation) => (
               <text 
-                fontSize="12" 
+                fontSize="14" 
                 fill="white" 
                 fontWeight="bold"
                 textAnchor="middle"
                 dominantBaseline="middle"
+                stroke="black"
+                strokeWidth="0.5"
+                paintOrder="stroke fill"
               >
                 {stateAbbr}
               </text>
@@ -811,22 +817,6 @@ const TaxManagerMonitoring = () => {
       {/* Right Pane - US Nexus Map */}
       <div className="w-3/4 bg-black/90 backdrop-blur-sm p-4">
         <div className="h-full flex flex-col">
-          {/* Map Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-white text-lg font-semibold">US NEXUS GRID</h2>
-              <p className="text-gray-400 text-sm">Live geographical nexus monitoring</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-400 hover:text-white transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-              </button>
-              <button className="px-3 py-1 bg-gray-700 text-white text-xs rounded hover:bg-gray-600 transition-colors">2D</button>
-              <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">3D</button>
-            </div>
-          </div>
 
           {/* Interactive US Map */}
           <div className="flex-1 relative bg-gray-800/50 rounded-lg overflow-hidden">
