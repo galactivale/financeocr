@@ -12,13 +12,7 @@ import {
   TableCell, 
   Button, 
   Chip, 
-  Textarea,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure
+  Textarea
 } from "@nextui-org/react";
 
 // Alert data structure
