@@ -582,6 +582,7 @@ export default function TaxManagerClients() {
               </Table>
             </div>
           )}
+          </div>
         </div>
       </div>
 
