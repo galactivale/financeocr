@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Card, 
   CardBody, 
@@ -20,153 +21,372 @@ import {
 interface Client {
   id: string;
   name: string;
+  avatar: string;
   industry: string;
-  revenue: string;
+  revenue: number;
+  founded: number;
+  employees: number;
   riskLevel: 'critical' | 'high' | 'warning' | 'low';
-  totalExposure: string;
+  penaltyExposure: number;
   assignedSince: string;
   lastReview: string;
   nextReview: string;
   activeAlerts: number;
   states: {
-    state: string;
-    amount: string;
-    threshold: string;
-    status: 'exceeded' | 'approaching' | 'monitoring' | 'compliant';
+    code: string;
+    name: string;
+    revenue: number;
+    threshold: number;
+    percentage: number;
+    status: 'critical' | 'warning' | 'monitoring' | 'compliant';
+    daysSinceThreshold?: number;
+    penaltyRange?: { min: number; max: number };
     transactions?: number;
+    transactionThreshold?: number;
+    projectedCrossover?: string;
   }[];
   decisions: {
+    id: number;
     date: string;
-    decision: string;
-    reasoning: string;
+    type: string;
+    outcome: string;
+    manager: string;
+    rationale: string;
+    documentation: string;
+    clientCommunication: string;
+    followUp: string;
   }[];
-  actionItems: {
-    task: string;
-    dueDate: string;
-    status: 'pending' | 'in-progress' | 'completed';
+  communications: {
+    id: number;
+    type: string;
+    subject: string;
+    participants: string[];
+    date: string;
+    duration?: string;
+    status: string;
+    followUp: string;
   }[];
+  performance: {
+    responseTime: string;
+    satisfaction: number;
+    complianceRate: number;
+    penaltyPrevention: number;
+    timeSpent: string;
+  };
 }
 
 // Sample client data
 const clients: Client[] = [
   {
-    id: "1",
+    id: "techcorp-saas",
     name: "TechCorp SaaS",
-    industry: "Technology",
-    revenue: "$2.1M",
+    avatar: "T",
+    industry: "Technology SaaS",
+    revenue: 2100000,
+    founded: 2019,
+    employees: 24,
     riskLevel: "critical",
-    totalExposure: "$85K",
+    penaltyExposure: 85000,
     assignedSince: "Jan 2024",
     lastReview: "Nov 15, 2024",
     nextReview: "Dec 15, 2024",
     activeAlerts: 3,
     states: [
-      { state: "CA", amount: "$525K", threshold: "$500K", status: "exceeded" },
-      { state: "NY", amount: "$89K", threshold: "$500K", status: "approaching", transactions: 95 },
-      { state: "TX", amount: "$67K", threshold: "$500K", status: "monitoring" },
-      { state: "FL", amount: "$28K", threshold: "$500K", status: "compliant" }
+      { 
+        code: "CA", 
+        name: "California", 
+        revenue: 525000, 
+        threshold: 500000, 
+        percentage: 105, 
+        status: "critical",
+        daysSinceThreshold: 15,
+        penaltyRange: { min: 25000, max: 45000 }
+      },
+      { 
+        code: "NY", 
+        name: "New York", 
+        revenue: 89500, 
+        threshold: 500000, 
+        percentage: 18, 
+        status: "warning",
+        transactions: 95,
+        transactionThreshold: 100,
+        projectedCrossover: "Q1 2025"
+      },
+      { 
+        code: "TX", 
+        name: "Texas", 
+        revenue: 67200, 
+        threshold: 500000, 
+        percentage: 13, 
+        status: "monitoring" 
+      }
     ],
     decisions: [
       {
-        date: "Nov 15, 2024",
-        decision: "CA nexus exceeded - Registration recommended",
-        reasoning: "Client exceeded $500K threshold in California. Immediate registration required to avoid penalties."
-      },
-      {
-        date: "Oct 1, 2024",
-        decision: "Quarterly risk assessment - Elevated to high risk",
-        reasoning: "Multiple state activities and approaching thresholds in NY and TX."
+        id: 1,
+        date: "2024-11-13",
+        type: "Threshold Analysis",
+        outcome: "Registration Required",
+        manager: "Jane Doe, CPA",
+        rationale: "California economic nexus threshold exceeded by $25,000 in Q4 2024",
+        documentation: "Complete",
+        clientCommunication: "Pending",
+        followUp: "Schedule client consultation"
       }
     ],
-    actionItems: [
-      { task: "Document CA registration decision", dueDate: "Today", status: "pending" },
-      { task: "Schedule client advisory call", dueDate: "Dec 1, 2024", status: "pending" },
-      { task: "Review Q4 data validation from staff", dueDate: "Dec 5, 2024", status: "in-progress" }
-    ]
+    communications: [
+      {
+        id: 1,
+        type: "email",
+        subject: "California Nexus Update",
+        participants: ["Jane Doe", "TechCorp CFO"],
+        date: "2024-11-28",
+        status: "Sent",
+        followUp: "Awaiting response"
+      }
+    ],
+    performance: {
+      responseTime: "2.3 hours",
+      satisfaction: 4.8,
+      complianceRate: 96,
+      penaltyPrevention: 125000,
+      timeSpent: "18.5 hours"
+    }
   },
   {
-    id: "2",
+    id: "retailchain-llc",
     name: "RetailChain LLC",
+    avatar: "R",
     industry: "E-commerce",
-    revenue: "$1.8M",
+    revenue: 1800000,
+    founded: 2018,
+    employees: 45,
     riskLevel: "warning",
-    totalExposure: "$42K",
+    penaltyExposure: 42000,
     assignedSince: "Mar 2024",
     lastReview: "Nov 1, 2024",
     nextReview: "Dec 1, 2024",
     activeAlerts: 2,
     states: [
-      { state: "NY", amount: "$485K", threshold: "$500K", status: "approaching" },
-      { state: "TX", amount: "$220K", threshold: "$500K", status: "monitoring" },
-      { state: "CA", amount: "$180K", threshold: "$500K", status: "monitoring" }
+      { 
+        code: "NY", 
+        name: "New York", 
+        revenue: 485000, 
+        threshold: 500000, 
+        percentage: 97, 
+        status: "warning",
+        transactions: 95,
+        transactionThreshold: 100,
+        projectedCrossover: "Q4 2024"
+      },
+      { 
+        code: "TX", 
+        name: "Texas", 
+        revenue: 220000, 
+        threshold: 500000, 
+        percentage: 44, 
+        status: "monitoring" 
+      },
+      { 
+        code: "CA", 
+        name: "California", 
+        revenue: 180000, 
+        threshold: 500000, 
+        percentage: 36, 
+        status: "monitoring" 
+      }
     ],
     decisions: [
       {
-        date: "Nov 1, 2024",
-        decision: "NY threshold advisory - Monitor Q4 closely",
-        reasoning: "Approaching both revenue and transaction thresholds in New York."
+        id: 1,
+        date: "2024-11-01",
+        type: "Threshold Advisory",
+        outcome: "Monitor Q4 Closely",
+        manager: "Jane Doe, CPA",
+        rationale: "Approaching both revenue and transaction thresholds in New York",
+        documentation: "Complete",
+        clientCommunication: "Complete",
+        followUp: "Next review scheduled"
       }
     ],
-    actionItems: [
-      { task: "Monitor NY threshold progress", dueDate: "Dec 1, 2024", status: "in-progress" },
-      { task: "Prepare NY registration materials", dueDate: "Dec 10, 2024", status: "pending" }
-    ]
+    communications: [
+      {
+        id: 1,
+        type: "call",
+        subject: "NY Threshold Discussion",
+        participants: ["Jane Doe", "RetailChain CEO"],
+        date: "2024-11-25",
+        duration: "30 minutes",
+        status: "Completed",
+        followUp: "Action items documented"
+      }
+    ],
+    performance: {
+      responseTime: "1.8 hours",
+      satisfaction: 4.6,
+      complianceRate: 94,
+      penaltyPrevention: 78000,
+      timeSpent: "12.3 hours"
+    }
   },
   {
-    id: "3",
+    id: "manufacturingco",
     name: "ManufacturingCo",
+    avatar: "M",
     industry: "Manufacturing",
-    revenue: "$3.2M",
+    revenue: 3200000,
+    founded: 2015,
+    employees: 120,
     riskLevel: "high",
-    totalExposure: "$65K",
+    penaltyExposure: 65000,
     assignedSince: "Feb 2024",
     lastReview: "Oct 15, 2024",
     nextReview: "Jan 15, 2025",
     activeAlerts: 1,
     states: [
-      { state: "TX", amount: "$465K", threshold: "$500K", status: "approaching" },
-      { state: "CA", amount: "$320K", threshold: "$500K", status: "monitoring" },
-      { state: "IL", amount: "$280K", threshold: "$500K", status: "monitoring" }
+      { 
+        code: "TX", 
+        name: "Texas", 
+        revenue: 465000, 
+        threshold: 500000, 
+        percentage: 93, 
+        status: "warning",
+        projectedCrossover: "Q1 2025"
+      },
+      { 
+        code: "CA", 
+        name: "California", 
+        revenue: 320000, 
+        threshold: 500000, 
+        percentage: 64, 
+        status: "monitoring" 
+      },
+      { 
+        code: "IL", 
+        name: "Illinois", 
+        revenue: 280000, 
+        threshold: 500000, 
+        percentage: 56, 
+        status: "monitoring" 
+      }
     ],
     decisions: [
       {
-        date: "Oct 15, 2024",
-        decision: "TX threshold monitoring - Prepare for registration",
-        reasoning: "At 93% of Texas threshold. Track Q1 2025 projections."
+        id: 1,
+        date: "2024-10-15",
+        type: "Threshold Monitoring",
+        outcome: "Prepare for Registration",
+        manager: "Jane Doe, CPA",
+        rationale: "At 93% of Texas threshold. Track Q1 2025 projections",
+        documentation: "Complete",
+        clientCommunication: "Complete",
+        followUp: "Next review scheduled"
       }
     ],
-    actionItems: [
-      { task: "Track Q1 2025 projections", dueDate: "Jan 1, 2025", status: "pending" },
-      { task: "Prepare TX registration materials", dueDate: "Jan 10, 2025", status: "pending" }
-    ]
+    communications: [
+      {
+        id: 1,
+        type: "meeting",
+        subject: "Q4 Review Meeting",
+        participants: ["Jane Doe", "ManufacturingCo CFO"],
+        date: "2024-10-20",
+        duration: "60 minutes",
+        status: "Completed",
+        followUp: "Action items documented"
+      }
+    ],
+    performance: {
+      responseTime: "3.1 hours",
+      satisfaction: 4.7,
+      complianceRate: 92,
+      penaltyPrevention: 95000,
+      timeSpent: "22.1 hours"
+    }
   },
   {
-    id: "4",
+    id: "servicescorp",
     name: "ServicesCorp",
+    avatar: "S",
     industry: "Professional Services",
-    revenue: "$950K",
+    revenue: 950000,
+    founded: 2020,
+    employees: 12,
     riskLevel: "low",
-    totalExposure: "$15K",
+    penaltyExposure: 15000,
     assignedSince: "Jun 2024",
     lastReview: "Nov 10, 2024",
     nextReview: "Feb 10, 2025",
     activeAlerts: 0,
     states: [
-      { state: "WA", amount: "$320K", threshold: "$500K", status: "monitoring" },
-      { state: "OR", amount: "$180K", threshold: "$500K", status: "monitoring" }
+      { 
+        code: "WA", 
+        name: "Washington", 
+        revenue: 320000, 
+        threshold: 500000, 
+        percentage: 64, 
+        status: "monitoring" 
+      },
+      { 
+        code: "OR", 
+        name: "Oregon", 
+        revenue: 180000, 
+        threshold: 500000, 
+        percentage: 36, 
+        status: "monitoring" 
+      }
     ],
     decisions: [
       {
-        date: "Nov 10, 2024",
-        decision: "WA B&O tax review - Monitor business activities",
-        reasoning: "Review specific activities and prepare compliance plan."
+        id: 1,
+        date: "2024-11-10",
+        type: "B&O Tax Review",
+        outcome: "Monitor Business Activities",
+        manager: "Jane Doe, CPA",
+        rationale: "Review specific activities and prepare compliance plan",
+        documentation: "Complete",
+        clientCommunication: "Complete",
+        followUp: "Next review scheduled"
       }
     ],
-    actionItems: [
-      { task: "Review B&O tax requirements", dueDate: "Dec 15, 2024", status: "pending" }
-    ]
+    communications: [
+      {
+        id: 1,
+        type: "email",
+        subject: "B&O Tax Requirements",
+        participants: ["Jane Doe", "ServicesCorp Owner"],
+        date: "2024-11-12",
+        status: "Sent",
+        followUp: "Awaiting response"
+      }
+    ],
+    performance: {
+      responseTime: "1.2 hours",
+      satisfaction: 4.9,
+      complianceRate: 98,
+      penaltyPrevention: 25000,
+      timeSpent: "8.7 hours"
+    }
   }
 ];
+
+// Utility functions
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
 
 // Risk level colors
 const getRiskColor = (risk: string) => {
@@ -182,8 +402,8 @@ const getRiskColor = (risk: string) => {
 // Status colors
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'exceeded': return 'danger';
-    case 'approaching': return 'warning';
+    case 'critical': return 'danger';
+    case 'warning': return 'warning';
     case 'monitoring': return 'primary';
     case 'compliant': return 'success';
     default: return 'default';
@@ -191,9 +411,10 @@ const getStatusColor = (status: string) => {
 };
 
 export default function TaxManagerClients() {
+  const router = useRouter();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [riskFilter, setRiskFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
@@ -207,8 +428,7 @@ export default function TaxManagerClients() {
   });
 
   const handleClientSelect = (client: Client) => {
-    setSelectedClient(client);
-    setIsPanelOpen(true);
+    router.push(`/dashboard/tax-manager/clients/${client.id}`);
   };
 
   const handleClosePanel = () => {
@@ -441,7 +661,7 @@ export default function TaxManagerClients() {
                       </div>
                       <div>
                         <h4 className="text-white font-semibold text-lg tracking-tight">{client.name}</h4>
-                        <p className="text-gray-400 text-sm font-medium">{client.industry} • {client.revenue}</p>
+                        <p className="text-gray-400 text-sm font-medium">{client.industry} • {formatCurrency(client.revenue)}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -453,7 +673,7 @@ export default function TaxManagerClients() {
                       } rounded-full mb-2`}>
                         <span className="text-white text-xs font-semibold">{client.riskLevel.toUpperCase()}</span>
                       </div>
-                      <p className="text-white text-sm font-semibold">{client.totalExposure} Risk</p>
+                      <p className="text-white text-sm font-semibold">{formatCurrency(client.penaltyExposure)} Risk</p>
                     </div>
                   </div>
 
@@ -465,11 +685,11 @@ export default function TaxManagerClients() {
                         <div key={index} className="flex justify-between items-center">
                           <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                            <span className="text-white text-sm font-medium">{state.state}: {state.amount}</span>
+                            <span className="text-white text-sm font-medium">{state.code}: {formatCurrency(state.revenue)}</span>
                           </div>
                           <div className={`px-2 py-1 ${
-                            state.status === 'exceeded' ? 'bg-red-500/20 text-red-400' :
-                            state.status === 'approaching' ? 'bg-orange-500/20 text-orange-400' :
+                            state.status === 'critical' ? 'bg-red-500/20 text-red-400' :
+                            state.status === 'warning' ? 'bg-orange-500/20 text-orange-400' :
                             state.status === 'monitoring' ? 'bg-blue-500/20 text-blue-400' :
                             'bg-green-500/20 text-green-400'
                           } rounded-lg`}>
@@ -502,6 +722,7 @@ export default function TaxManagerClients() {
                       <Button 
                         size="sm" 
                         className="flex-1 bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg font-medium transition-all duration-200"
+                        onClick={() => handleClientSelect(client)}
                       >
                         Details
                       </Button>
@@ -537,7 +758,7 @@ export default function TaxManagerClients() {
                         <span className="text-gray-300">{client.industry}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-white font-medium">{client.revenue}</span>
+                        <span className="text-white font-medium">{formatCurrency(client.revenue)}</span>
                       </TableCell>
                       <TableCell>
                         <div className={`px-2 py-1 ${
@@ -550,7 +771,7 @@ export default function TaxManagerClients() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-white font-semibold">{client.totalExposure}</span>
+                        <span className="text-white font-semibold">{formatCurrency(client.penaltyExposure)}</span>
                       </TableCell>
                       <TableCell>
                         <div className={`px-2 py-1 ${
@@ -573,6 +794,7 @@ export default function TaxManagerClients() {
                           <Button 
                             size="sm" 
                             className="bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg font-medium transition-all duration-200"
+                            onClick={() => handleClientSelect(client)}
                           >
                             Details
                           </Button>
