@@ -1,17 +1,213 @@
 "use client";
-import React from "react";
-import dynamic from "next/dynamic";
+import React, { useState, useMemo } from "react";
 import { TableWrapper } from "@/components/table/table";
 import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
+import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 
-const USStatesMap = dynamic(
-  () => import("@/components/charts/us-states-map").then((mod) => mod.default),
-  {
-    ssr: false,
-  }
-);
+// Nexus data for states
+const nexusData = {
+  'CA': { status: 'critical', clients: 15, revenue: 2850000, alerts: 3 },
+  'TX': { status: 'warning', clients: 8, revenue: 1200000, alerts: 2 },
+  'NY': { status: 'pending', clients: 12, revenue: 1800000, alerts: 1 },
+  'FL': { status: 'compliant', clients: 6, revenue: 800000, alerts: 0 },
+  'IL': { status: 'warning', clients: 4, revenue: 600000, alerts: 1 },
+  'PA': { status: 'compliant', clients: 3, revenue: 450000, alerts: 0 },
+  'OH': { status: 'pending', clients: 2, revenue: 300000, alerts: 0 },
+  'GA': { status: 'warning', clients: 3, revenue: 400000, alerts: 1 },
+  'NC': { status: 'compliant', clients: 2, revenue: 250000, alerts: 0 },
+  'MI': { status: 'pending', clients: 1, revenue: 150000, alerts: 0 },
+  'NJ': { status: 'warning', clients: 2, revenue: 350000, alerts: 1 },
+  'VA': { status: 'compliant', clients: 1, revenue: 200000, alerts: 0 },
+  'WA': { status: 'pending', clients: 2, revenue: 300000, alerts: 0 },
+  'AZ': { status: 'warning', clients: 1, revenue: 180000, alerts: 0 },
+  'MA': { status: 'compliant', clients: 1, revenue: 120000, alerts: 0 },
+  'TN': { status: 'pending', clients: 1, revenue: 100000, alerts: 0 },
+  'IN': { status: 'compliant', clients: 1, revenue: 80000, alerts: 0 },
+  'MO': { status: 'warning', clients: 1, revenue: 90000, alerts: 0 },
+  'MD': { status: 'compliant', clients: 1, revenue: 70000, alerts: 0 },
+  'WI': { status: 'pending', clients: 1, revenue: 60000, alerts: 0 },
+  'CO': { status: 'compliant', clients: 1, revenue: 50000, alerts: 0 },
+  'MN': { status: 'warning', clients: 1, revenue: 40000, alerts: 0 },
+  'SC': { status: 'compliant', clients: 1, revenue: 30000, alerts: 0 },
+  'AL': { status: 'pending', clients: 1, revenue: 25000, alerts: 0 },
+  'LA': { status: 'compliant', clients: 1, revenue: 20000, alerts: 0 },
+  'KY': { status: 'warning', clients: 1, revenue: 15000, alerts: 0 },
+  'OR': { status: 'compliant', clients: 1, revenue: 10000, alerts: 0 },
+  'OK': { status: 'pending', clients: 1, revenue: 8000, alerts: 0 },
+  'CT': { status: 'compliant', clients: 1, revenue: 5000, alerts: 0 },
+  'UT': { status: 'warning', clients: 1, revenue: 3000, alerts: 0 },
+  'IA': { status: 'compliant', clients: 1, revenue: 2000, alerts: 0 },
+  'NV': { status: 'pending', clients: 1, revenue: 1000, alerts: 0 },
+  'AR': { status: 'compliant', clients: 1, revenue: 500, alerts: 0 },
+  'MS': { status: 'warning', clients: 1, revenue: 300, alerts: 0 },
+  'KS': { status: 'compliant', clients: 1, revenue: 200, alerts: 0 },
+  'NM': { status: 'pending', clients: 1, revenue: 100, alerts: 0 },
+  'NE': { status: 'compliant', clients: 1, revenue: 50, alerts: 0 },
+  'WV': { status: 'warning', clients: 1, revenue: 25, alerts: 0 },
+  'ID': { status: 'compliant', clients: 1, revenue: 10, alerts: 0 },
+  'HI': { status: 'pending', clients: 1, revenue: 5, alerts: 0 },
+  'NH': { status: 'compliant', clients: 1, revenue: 2, alerts: 0 },
+  'ME': { status: 'warning', clients: 1, revenue: 1, alerts: 0 },
+  'RI': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
+  'MT': { status: 'pending', clients: 1, revenue: 1, alerts: 0 },
+  'DE': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
+  'SD': { status: 'warning', clients: 1, revenue: 1, alerts: 0 },
+  'ND': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
+  'AK': { status: 'pending', clients: 1, revenue: 1, alerts: 0 },
+  'VT': { status: 'compliant', clients: 1, revenue: 1, alerts: 0 },
+  'WY': { status: 'warning', clients: 1, revenue: 1, alerts: 0 }
+};
+
+// Enhanced US Map Component
+const EnhancedUSMap = () => {
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+
+  const handleMapStateClick = (stateCode: string) => {
+    if (selectedState === stateCode) {
+      setSelectedState(null);
+    } else {
+      setSelectedState(stateCode);
+    }
+  };
+
+  const customStates = useMemo(() => {
+    const settings: any = {};
+
+    StateAbbreviations.forEach((state) => {
+      const data = nexusData[state as keyof typeof nexusData];
+      
+      // Always set label configuration for all states
+      const labelConfig = {
+        enabled: true,
+        render: (stateAbbr: USAStateAbbreviation) => (
+          <text 
+            fontSize="14" 
+            fill="white" 
+            fontWeight="bold"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            stroke="black"
+            strokeWidth="0.5"
+            paintOrder="stroke fill"
+          >
+            {stateAbbr}
+          </text>
+        ),
+      };
+      
+      if (data) {
+        let fillColor = '#374151';
+        let strokeColor = '#6b7280';
+        
+        switch (data.status) {
+          case 'critical':
+            fillColor = '#ef4444';
+            strokeColor = '#dc2626';
+            break;
+          case 'warning':
+            fillColor = '#f59e0b';
+            strokeColor = '#d97706';
+            break;
+          case 'pending':
+            fillColor = '#3b82f6';
+            strokeColor = '#2563eb';
+            break;
+          case 'compliant':
+            fillColor = '#10b981';
+            strokeColor = '#059669';
+            break;
+          case 'transit':
+            fillColor = '#06b6d4';
+            strokeColor = '#0891b2';
+            break;
+        }
+        
+        if (selectedState === state) {
+          strokeColor = '#3b82f6';
+        }
+        
+        settings[state] = {
+          fill: fillColor,
+          stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
+          strokeWidth: selectedState === state ? 4 : 2,
+          onClick: () => handleMapStateClick(state),
+          onHover: () => {},
+          onLeave: () => {},
+          label: labelConfig,
+        };
+      } else {
+        // Default styling for states without nexus data
+        settings[state] = {
+          fill: '#374151',
+          stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
+          strokeWidth: selectedState === state ? 4 : 2,
+          onClick: () => handleMapStateClick(state),
+          label: labelConfig,
+        };
+      }
+    });
+
+    return settings;
+  }, [selectedState]);
+
+  return (
+    <div className="w-full h-full relative">
+      <USAMap 
+        customStates={customStates}
+        hiddenStates={['AK', 'HI']}
+        mapSettings={{
+          width: '100%',
+          height: '100%'
+        }}
+        className="w-full h-full"
+        defaultState={{
+          label: {
+            enabled: true,
+            render: (stateAbbr: USAStateAbbreviation) => (
+              <text 
+                fontSize="14" 
+                fill="white" 
+                fontWeight="bold"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                stroke="black"
+                strokeWidth="0.5"
+                paintOrder="stroke fill"
+              >
+                {stateAbbr}
+              </text>
+            ),
+          },
+        }}
+      />
+      
+      {/* Legend */}
+      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-xl border border-white/10 p-4">
+        <h4 className="text-white font-medium text-sm mb-3">Status Legend</h4>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-white text-xs">Critical</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+            <span className="text-white text-xs">Warning</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-white text-xs">Pending</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-white text-xs">Compliant</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Tax Manager specific cards with Apple design
 const CardActiveAlerts = () => (
@@ -416,7 +612,7 @@ export default function TaxManagerDashboard() {
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Client Distribution Map</h2>
               </div>
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <USStatesMap />
+                <EnhancedUSMap />
               </div>
             </div>
           </div>
