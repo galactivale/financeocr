@@ -214,6 +214,25 @@ const TaxManagerMonitoring = () => {
     StateAbbreviations.forEach((state) => {
       const data = nexusData[state as keyof typeof nexusData];
       
+      // Always set label configuration for all states
+      const labelConfig = {
+        enabled: true,
+        render: (stateAbbr: USAStateAbbreviation) => (
+          <text 
+            fontSize="14" 
+            fill="white" 
+            fontWeight="bold"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            stroke="black"
+            strokeWidth="0.5"
+            paintOrder="stroke fill"
+          >
+            {stateAbbr}
+          </text>
+        ),
+      };
+      
       if (data) {
         let fillColor = '#374151';
         let strokeColor = '#6b7280';
@@ -252,23 +271,7 @@ const TaxManagerMonitoring = () => {
           onClick: () => setSelectedState(selectedState === state ? null : state),
           onHover: () => {},
           onLeave: () => {},
-          label: {
-            enabled: true,
-            render: (stateAbbr: USAStateAbbreviation) => (
-              <text 
-                fontSize="14" 
-                fill="white" 
-                fontWeight="bold"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                stroke="black"
-                strokeWidth="0.5"
-                paintOrder="stroke fill"
-              >
-                {stateAbbr}
-              </text>
-            ),
-          },
+          label: labelConfig,
           tooltip: {
             enabled: true,
             render: (stateAbbr: USAStateAbbreviation) => (
@@ -313,23 +316,7 @@ const TaxManagerMonitoring = () => {
           stroke: selectedState === state ? '#3b82f6' : 'white',
           strokeWidth: selectedState === state ? 3 : 2,
           onClick: () => setSelectedState(selectedState === state ? null : state),
-          label: {
-            enabled: true,
-            render: (stateAbbr: USAStateAbbreviation) => (
-              <text 
-                fontSize="14" 
-                fill="white" 
-                fontWeight="bold"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                stroke="black"
-                strokeWidth="0.5"
-                paintOrder="stroke fill"
-              >
-                {stateAbbr}
-              </text>
-            ),
-          },
+          label: labelConfig,
         };
       }
     });
@@ -829,6 +816,25 @@ const TaxManagerMonitoring = () => {
                   height: '100%'
                 }}
                 className="w-full h-full"
+                defaultState={{
+                  label: {
+                    enabled: true,
+                    render: (stateAbbr: USAStateAbbreviation) => (
+                      <text 
+                        fontSize="14" 
+                        fill="white" 
+                        fontWeight="bold"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        stroke="black"
+                        strokeWidth="0.5"
+                        paintOrder="stroke fill"
+                      >
+                        {stateAbbr}
+                      </text>
+                    ),
+                  },
+                }}
               />
             </div>
 
