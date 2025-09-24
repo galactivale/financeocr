@@ -116,17 +116,9 @@ const TaxManagerMonitoring = () => {
     StateAbbreviations.forEach((state) => {
       const data = nexusData[state as keyof typeof nexusData];
       
-      // If a state is focused (from client card click), hide other states
-      if (mapFocusState && mapFocusState !== state) {
-        settings[state] = {
-          fill: 'transparent',
-          stroke: 'transparent',
-          strokeWidth: 0,
-          onClick: () => handleMapStateClick(state),
-          label: { enabled: false },
-        };
-        return;
-      }
+      // If a state is focused (from client card click), make other states partially visible
+      const isFocusedState = mapFocusState === state;
+      const isPartiallyVisible = mapFocusState && !isFocusedState;
       
       // Always set label configuration for all states
       const labelConfig = {
@@ -174,13 +166,19 @@ const TaxManagerMonitoring = () => {
             break;
         }
         
+        // Make colors lighter for partially visible states
+        if (isPartiallyVisible) {
+          fillColor = '#4b5563'; // Lighter gray
+          strokeColor = '#6b7280'; // Lighter stroke
+        }
+        
         if (selectedState === state) {
           strokeColor = '#3b82f6';
         }
         
         settings[state] = {
           fill: fillColor,
-          stroke: mapFocusState === state ? '#60a5fa' : '#9ca3af',
+          stroke: mapFocusState === state ? '#60a5fa' : (isPartiallyVisible ? '#6b7280' : '#9ca3af'),
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
           onHover: () => {},
@@ -189,9 +187,12 @@ const TaxManagerMonitoring = () => {
         };
       } else {
         // Default styling for states without nexus data
+        const defaultFillColor = isPartiallyVisible ? '#4b5563' : '#374151';
+        const defaultStrokeColor = isPartiallyVisible ? '#6b7280' : '#9ca3af';
+        
         settings[state] = {
-          fill: '#374151',
-          stroke: mapFocusState === state ? '#60a5fa' : '#9ca3af',
+          fill: defaultFillColor,
+          stroke: mapFocusState === state ? '#60a5fa' : defaultStrokeColor,
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
           label: labelConfig,
