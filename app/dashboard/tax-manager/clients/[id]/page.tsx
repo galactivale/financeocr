@@ -990,9 +990,23 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                   <div className="w-1 h-6 bg-red-500 rounded-full"></div>
                   <h2 className="text-2xl font-semibold text-white tracking-tight">Active Alerts</h2>
                 </div>
-                <Badge content={clientData.alerts.length} color="danger" size="sm">
-                  <AlertTriangle className="w-5 h-5 text-red-400" />
-                </Badge>
+                <div className="flex items-center space-x-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-red-400">5</div>
+                    <div className="text-gray-400 text-xs">High Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-yellow-400">5</div>
+                    <div className="text-gray-400 text-xs">Medium Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">12</div>
+                    <div className="text-gray-400 text-xs">Total Alerts</div>
+                  </div>
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                    <div className="text-red-400 text-sm font-semibold">12 alerts need attention</div>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4">
