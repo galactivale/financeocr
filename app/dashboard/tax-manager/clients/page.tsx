@@ -257,35 +257,37 @@ export default function TaxManagerClients() {
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Client Portfolio</h2>
               </div>
               
-              {/* Portfolio Stats Card */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-white font-semibold text-lg tracking-tight">Jane Doe, Tax Manager</h3>
-                    <p className="text-gray-400 text-sm font-medium">Professional Nexus Compliance Oversight</p>
+              {/* Minimal Portfolio Stats */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <h3 className="text-white font-semibold text-sm tracking-tight">Jane Doe, Tax Manager</h3>
+                      <p className="text-gray-400 text-xs font-medium">Professional Nexus Compliance Oversight</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 text-xs font-medium">Active</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-sm font-medium">Active</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white">{portfolioStats.totalClients}</div>
-                    <div className="text-gray-400 text-xs font-medium">Assigned Clients</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-500">{portfolioStats.highRisk}</div>
-                    <div className="text-gray-400 text-xs font-medium">High Risk</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-500">{portfolioStats.criticalAlerts}</div>
-                    <div className="text-gray-400 text-xs font-medium">Critical Alerts</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white">${portfolioStats.totalExposure}K</div>
-                    <div className="text-gray-400 text-xs font-medium">Total Exposure</div>
+                  
+                  <div className="flex items-center space-x-6">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">{portfolioStats.totalClients}</div>
+                      <div className="text-gray-400 text-xs font-medium">Assigned Clients</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-orange-500">{portfolioStats.highRisk}</div>
+                      <div className="text-gray-400 text-xs font-medium">High Risk</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-red-500">{portfolioStats.criticalAlerts}</div>
+                      <div className="text-gray-400 text-xs font-medium">Critical Alerts</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">${portfolioStats.totalExposure}K</div>
+                      <div className="text-gray-400 text-xs font-medium">Total Exposure</div>
+                    </div>
                   </div>
                 </div>
               </div>
