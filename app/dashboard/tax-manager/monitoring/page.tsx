@@ -189,7 +189,7 @@ const TaxManagerMonitoring = () => {
       
       // If a state is focused (from client card click), reduce opacity of other states
       const isFocusedState = mapFocusState === state;
-      const opacity = isFocusedState ? 1 : (mapFocusState ? 0.5 : 1);
+      const opacity = isFocusedState ? 1 : (mapFocusState ? 0.3 : 1);
       
       // Always set label configuration for all states
       const labelConfig = {
