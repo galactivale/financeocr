@@ -54,6 +54,7 @@ const TaxManagerMonitoring = () => {
   const [activeTab, setActiveTab] = useState("nexus");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mapFocusState, setMapFocusState] = useState<string | null>(null);
+  const [isStatusOverviewOpen, setIsStatusOverviewOpen] = useState(false);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -369,49 +370,67 @@ const TaxManagerMonitoring = () => {
               />
             </div>
 
-            {/* Modern Status Summary */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-white text-sm font-semibold">Status Overview</h3>
-                <span className="text-gray-400 text-xs">{filteredClients.length} Total</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-white text-sm font-medium">Critical</span>
-                  <span className="text-red-400 text-sm font-semibold ml-auto">
-                    {filteredClients.filter(c => c.nexusStatus === 'critical').length}
-                  </span>
+            {/* Modern Status Overview Dropdown */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 mb-4 overflow-hidden">
+              <button 
+                onClick={() => setIsStatusOverviewOpen(!isStatusOverviewOpen)}
+                className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors duration-200"
+              >
+                <div className="flex items-center space-x-3">
+                  <h3 className="text-white text-sm font-semibold">Status Overview</h3>
+                  <span className="text-gray-400 text-xs">{filteredClients.length} Total</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-white text-sm font-medium">Warning</span>
-                  <span className="text-orange-400 text-sm font-semibold ml-auto">
-                    {filteredClients.filter(c => c.nexusStatus === 'warning').length}
-                  </span>
+                <svg 
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isStatusOverviewOpen ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isStatusOverviewOpen && (
+                <div className="px-4 pb-4 border-t border-white/10">
+                  <div className="grid grid-cols-2 gap-3 pt-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="text-white text-sm font-medium">Critical</span>
+                      <span className="text-red-400 text-sm font-semibold ml-auto">
+                        {filteredClients.filter(c => c.nexusStatus === 'critical').length}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <span className="text-white text-sm font-medium">Warning</span>
+                      <span className="text-orange-400 text-sm font-semibold ml-auto">
+                        {filteredClients.filter(c => c.nexusStatus === 'warning').length}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-white text-sm font-medium">Pending</span>
+                      <span className="text-blue-400 text-sm font-semibold ml-auto">
+                        {filteredClients.filter(c => c.nexusStatus === 'pending').length}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
+                      <span className="text-white text-sm font-medium">In Transit</span>
+                      <span className="text-cyan-400 text-sm font-semibold ml-auto">
+                        {filteredClients.filter(c => c.nexusStatus === 'transit').length}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 col-span-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-white text-sm font-medium">Compliant</span>
+                      <span className="text-green-400 text-sm font-semibold ml-auto">
+                        {filteredClients.filter(c => c.nexusStatus === 'compliant').length}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-white text-sm font-medium">Pending</span>
-                  <span className="text-blue-400 text-sm font-semibold ml-auto">
-                    {filteredClients.filter(c => c.nexusStatus === 'pending').length}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
-                  <span className="text-white text-sm font-medium">In Transit</span>
-                  <span className="text-cyan-400 text-sm font-semibold ml-auto">
-                    {filteredClients.filter(c => c.nexusStatus === 'transit').length}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 col-span-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-white text-sm font-medium">Compliant</span>
-                  <span className="text-green-400 text-sm font-semibold ml-auto">
-                    {filteredClients.filter(c => c.nexusStatus === 'compliant').length}
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Apple-Style Client Cards */}
