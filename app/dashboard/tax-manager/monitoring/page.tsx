@@ -352,9 +352,60 @@ const TaxManagerMonitoring = () => {
 
   return (
     <div className="w-full h-screen flex bg-blue-600">
-      {/* Left Pane - Blank */}
-      <div className="w-1/4 p-6 overflow-hidden bg-black">
-        {/* Blank left pane with deep black background */}
+      {/* Left Pane - Live Monitoring */}
+      <div className="w-1/4 p-6 overflow-hidden bg-black flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-white text-lg font-semibold">Live Nexus monitoring</h1>
+          <div className="flex items-center space-x-3">
+            <Button isIconOnly size="sm" variant="light" className="text-white">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+            </Button>
+            <Button isIconOnly size="sm" variant="light" className="text-white">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </Button>
+          </div>
+        </div>
+
+        {/* Live Status Indicator */}
+        <div className="flex items-center space-x-2 mb-6">
+          <div className="w-3 h-3 bg-lime-400 rounded-full animate-pulse"></div>
+          <span className="text-lime-400 text-sm font-medium">Live</span>
+        </div>
+
+        {/* Search Box */}
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Client ID..."
+            className="w-full pl-10 pr-4 py-3 bg-gray-700 text-white placeholder-gray-400 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:ring-opacity-50"
+          />
+        </div>
+
+        {/* Filter Button */}
+        <Button
+          variant="bordered"
+          className="w-full bg-gray-800 border-gray-600 text-white hover:bg-gray-700"
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          Filter
+        </Button>
+
+        {/* Rest of left pane content can go here */}
+        <div className="flex-1">
+          {/* Additional content area */}
+        </div>
       </div>
 
       {/* Right Pane - Interactive US Map */}
