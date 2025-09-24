@@ -106,6 +106,63 @@ const TaxManagerMonitoring = () => {
     }
   };
 
+  // Get approximate center position for each state for better scaling
+  const getStateCenter = (stateCode: string) => {
+    const stateCenters: { [key: string]: { x: number; y: number } } = {
+      'CA': { x: 15, y: 35 },
+      'TX': { x: 45, y: 55 },
+      'FL': { x: 75, y: 70 },
+      'NY': { x: 80, y: 25 },
+      'IL': { x: 55, y: 30 },
+      'PA': { x: 75, y: 30 },
+      'OH': { x: 65, y: 35 },
+      'GA': { x: 70, y: 50 },
+      'NC': { x: 75, y: 45 },
+      'MI': { x: 60, y: 25 },
+      'NJ': { x: 80, y: 30 },
+      'VA': { x: 75, y: 40 },
+      'WA': { x: 15, y: 15 },
+      'AZ': { x: 25, y: 50 },
+      'MA': { x: 85, y: 25 },
+      'TN': { x: 60, y: 45 },
+      'IN': { x: 60, y: 35 },
+      'MO': { x: 50, y: 40 },
+      'MD': { x: 80, y: 35 },
+      'WI': { x: 55, y: 25 },
+      'CO': { x: 35, y: 40 },
+      'MN': { x: 50, y: 20 },
+      'SC': { x: 75, y: 50 },
+      'AL': { x: 65, y: 55 },
+      'LA': { x: 50, y: 60 },
+      'KY': { x: 65, y: 40 },
+      'OR': { x: 10, y: 25 },
+      'OK': { x: 45, y: 50 },
+      'CT': { x: 85, y: 30 },
+      'UT': { x: 25, y: 40 },
+      'IA': { x: 50, y: 30 },
+      'NV': { x: 20, y: 35 },
+      'AR': { x: 55, y: 50 },
+      'MS': { x: 60, y: 60 },
+      'KS': { x: 45, y: 40 },
+      'NM': { x: 30, y: 55 },
+      'NE': { x: 45, y: 35 },
+      'WV': { x: 70, y: 40 },
+      'ID': { x: 20, y: 25 },
+      'HI': { x: 25, y: 80 },
+      'NH': { x: 85, y: 20 },
+      'ME': { x: 85, y: 15 },
+      'RI': { x: 85, y: 30 },
+      'MT': { x: 30, y: 20 },
+      'DE': { x: 80, y: 35 },
+      'SD': { x: 45, y: 25 },
+      'ND': { x: 45, y: 15 },
+      'AK': { x: 15, y: 5 },
+      'VT': { x: 80, y: 20 },
+      'WY': { x: 35, y: 30 }
+    };
+    return stateCenters[stateCode] || { x: 50, y: 50 };
+  };
+
   // Nexus data for states
   const nexusData = {
     "CA": { status: "critical", revenue: 525000, clients: 2, alerts: 3, companies: ["TechCorp SaaS", "RetailChain LLC"] },
@@ -130,17 +187,9 @@ const TaxManagerMonitoring = () => {
     StateAbbreviations.forEach((state) => {
       const data = nexusData[state as keyof typeof nexusData];
       
-      // If a state is focused (from client card click), only show that state
-      if (mapFocusState && mapFocusState !== state) {
-        settings[state] = {
-          fill: 'transparent',
-          stroke: 'transparent',
-          strokeWidth: 0,
-          onClick: () => handleMapStateClick(state),
-          label: { enabled: false },
-        };
-        return;
-      }
+      // If a state is focused (from client card click), reduce opacity of other states
+      const isFocusedState = mapFocusState === state;
+      const opacity = isFocusedState ? 1 : (mapFocusState ? 0.5 : 1);
       
       // Always set label configuration for all states
       const labelConfig = {
@@ -200,6 +249,7 @@ const TaxManagerMonitoring = () => {
           onHover: () => {},
           onLeave: () => {},
           label: labelConfig,
+          opacity: opacity,
         };
       } else {
         // Default styling for states without nexus data
@@ -209,6 +259,7 @@ const TaxManagerMonitoring = () => {
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
           label: labelConfig,
+          opacity: opacity,
         };
       }
     });
@@ -698,7 +749,14 @@ const TaxManagerMonitoring = () => {
                   <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
                 </div>
                 
-                <div className="w-full h-full relative z-10">
+                <div 
+                  className="w-full h-full relative z-10"
+                  style={{
+                    transformOrigin: isZoomedIn && mapFocusState 
+                      ? `${getStateCenter(mapFocusState).x}% ${getStateCenter(mapFocusState).y}%`
+                      : 'center center'
+                  }}
+                >
                   <USAMap 
                     customStates={customStates}
                     hiddenStates={['AK', 'HI']}
