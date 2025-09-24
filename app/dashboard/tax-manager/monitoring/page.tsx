@@ -57,6 +57,7 @@ const TaxManagerMonitoring = () => {
   const [isStatusOverviewOpen, setIsStatusOverviewOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
+  const [isZoomedIn, setIsZoomedIn] = useState(false);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -69,6 +70,7 @@ const TaxManagerMonitoring = () => {
     if (client.states && client.states.length > 0) {
       setMapFocusState(client.states[0]);
       setSelectedState(client.states[0]);
+      setIsZoomedIn(true);
     }
   };
 
@@ -78,6 +80,7 @@ const TaxManagerMonitoring = () => {
     // Clear map focus when closing the details panel
     setMapFocusState(null);
     setSelectedState(null);
+    setIsZoomedIn(false);
   };
 
   const handleMapStateClick = (stateCode: string) => {
@@ -85,10 +88,21 @@ const TaxManagerMonitoring = () => {
       // If clicking the same state, clear the filter
       setMapFocusState(null);
       setSelectedState(null);
+      setIsZoomedIn(false);
     } else {
       // Set new focus state
       setMapFocusState(stateCode);
       setSelectedState(stateCode);
+      setIsZoomedIn(true);
+    }
+  };
+
+  const handleMapBackgroundClick = () => {
+    // Zoom out when clicking on the map background
+    if (isZoomedIn) {
+      setMapFocusState(null);
+      setSelectedState(null);
+      setIsZoomedIn(false);
     }
   };
 
@@ -653,7 +667,10 @@ const TaxManagerMonitoring = () => {
           <div className="flex-1 bg-black/95 backdrop-blur-sm p-4">
             <div className="h-full flex flex-col">
               {/* Interactive US Map */}
-              <div className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out">
+              <div 
+                className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out cursor-pointer"
+                onClick={handleMapBackgroundClick}
+              >
                 {/* Cool Background Pattern */}
                 <div className="absolute inset-0 opacity-20">
                   {/* Grid Pattern */}
@@ -689,7 +706,9 @@ const TaxManagerMonitoring = () => {
                       width: '100%',
                       height: '100%'
                     }}
-                    className="w-full h-full"
+                    className={`w-full h-full transition-transform duration-500 ease-in-out ${
+                      isZoomedIn && mapFocusState ? 'scale-150' : 'scale-100'
+                    }`}
                     defaultState={{
                       label: {
                         enabled: true,
@@ -846,6 +865,7 @@ const TaxManagerMonitoring = () => {
                     onClick={() => {
                       setMapFocusState(state);
                       setSelectedState(state);
+                      setIsZoomedIn(true);
                     }}
                     className={`rounded-lg px-3 py-1 transition-all duration-200 ${
                       mapFocusState === state 
