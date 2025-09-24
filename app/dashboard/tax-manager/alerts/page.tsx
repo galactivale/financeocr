@@ -307,24 +307,22 @@ export default function TaxManagerAlerts() {
               <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Alerts</h2>
             </div>
             
-            {/* Minimal KPI Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-500">{filteredAlerts.filter(a => a.priority === 'high').length}</div>
-                  <div className="text-gray-400 text-xs font-medium">High Priority</div>
-                </div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-500">{filteredAlerts.filter(a => a.priority === 'medium').length}</div>
-                  <div className="text-gray-400 text-xs font-medium">Medium Priority</div>
-                </div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">{filteredAlerts.length}</div>
-                  <div className="text-gray-400 text-xs font-medium">Total Alerts</div>
+            {/* Minimal KPI Stats */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-red-500">{filteredAlerts.filter(a => a.priority === 'high').length}</div>
+                    <div className="text-gray-400 text-xs font-medium">High Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-orange-500">{filteredAlerts.filter(a => a.priority === 'medium').length}</div>
+                    <div className="text-gray-400 text-xs font-medium">Medium Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">{filteredAlerts.length}</div>
+                    <div className="text-gray-400 text-xs font-medium">Total Alerts</div>
+                  </div>
                 </div>
               </div>
             </div>
