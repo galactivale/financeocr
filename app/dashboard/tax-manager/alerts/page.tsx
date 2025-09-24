@@ -295,320 +295,378 @@ export default function TaxManagerAlerts() {
   };
 
   return (
-    <div className="h-full lg:px-6 relative">
-      <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-        
-        {/* Main Content - Full Width Table */}
-        <div className="mt-6 gap-6 flex flex-col w-full">
-          {/* Header */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-semibold">Nexus Alerts</h3>
-                <p className="text-default-500">Jane Doe, Tax Manager | {filteredAlerts.length} alerts need attention</p>
+    <div className="min-h-screen bg-black">
+      <div className="h-full lg:px-6 relative">
+        <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
+          
+          {/* Main Content - Full Width Table */}
+          <div className="mt-6 gap-6 flex flex-col w-full">
+            {/* Minimal KPI Section */}
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-1 h-8 bg-red-500 rounded-full"></div>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Alerts</h2>
+            </div>
+            
+            {/* Minimal KPI Cards */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-500">{filteredAlerts.filter(a => a.priority === 'high').length}</div>
+                  <div className="text-gray-400 text-xs font-medium">High Priority</div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  color={priorityFilter === "high" ? "danger" : "default"}
-                  variant={priorityFilter === "high" ? "solid" : "bordered"}
-                  onPress={() => setPriorityFilter(priorityFilter === "high" ? "all" : "high")}
-                >
-                  High Priority
-                </Button>
-                <Button
-                  size="sm"
-                  color="default"
-                  variant="bordered"
-                  onPress={() => setPriorityFilter("all")}
-                >
-                  All Alerts
-                </Button>
-                <Button
-                  size="sm"
-                  color="success"
-                  variant="bordered"
-                  onPress={() => setStatusFilter("resolved")}
-                >
-                  Completed
-                </Button>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-500">{filteredAlerts.filter(a => a.priority === 'medium').length}</div>
+                  <div className="text-gray-400 text-xs font-medium">Medium Priority</div>
+                </div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-white">{filteredAlerts.length}</div>
+                  <div className="text-gray-400 text-xs font-medium">Total Alerts</div>
+                </div>
               </div>
             </div>
-          </div>
+
+            {/* Controls */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-white text-sm font-medium">{filteredAlerts.length} alerts need attention</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      priorityFilter === "high" 
+                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setPriorityFilter(priorityFilter === "high" ? "all" : "high")}
+                  >
+                    High Priority
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      priorityFilter === "all" 
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setPriorityFilter("all")}
+                  >
+                    All Alerts
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      statusFilter === "resolved" 
+                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setStatusFilter("resolved")}
+                  >
+                    Completed
+                  </Button>
+                </div>
+              </div>
+            </div>
 
           {/* Alerts Table */}
-          <Card className="w-full">
-            <CardBody className="p-0">
-              <Table aria-label="Nexus Alerts">
-                <TableHeader>
-                  <TableColumn>CLIENT</TableColumn>
-                  <TableColumn>ISSUE</TableColumn>
-                  <TableColumn>STATE</TableColumn>
-                  <TableColumn>AMOUNT</TableColumn>
-                  <TableColumn>DEADLINE</TableColumn>
-                  <TableColumn>PRIORITY</TableColumn>
-                  <TableColumn>STATUS</TableColumn>
-                  <TableColumn>ACTIONS</TableColumn>
-                </TableHeader>
-                <TableBody>
-                  {filteredAlerts.map((alert) => (
-                    <TableRow 
-                      key={alert.id}
-                      className={`cursor-pointer hover:bg-default-50 transition-colors duration-200 ${
-                        selectedAlert?.id === alert.id ? 'bg-primary-50 border-l-4 border-l-primary' : ''
-                      }`}
-                      onClick={() => handleAlertSelect(alert)}
-                    >
-                      <TableCell>
-                        <div className="font-semibold text-default-900">
-                          {alert.client}
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+            <Table aria-label="Nexus Alerts" className="text-white">
+              <TableHeader>
+                <TableColumn className="text-white font-semibold">CLIENT</TableColumn>
+                <TableColumn className="text-white font-semibold">ISSUE</TableColumn>
+                <TableColumn className="text-white font-semibold">STATE</TableColumn>
+                <TableColumn className="text-white font-semibold">AMOUNT</TableColumn>
+                <TableColumn className="text-white font-semibold">DEADLINE</TableColumn>
+                <TableColumn className="text-white font-semibold">PRIORITY</TableColumn>
+                <TableColumn className="text-white font-semibold">STATUS</TableColumn>
+                <TableColumn className="text-white font-semibold">ACTIONS</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {filteredAlerts.map((alert) => (
+                  <TableRow 
+                    key={alert.id}
+                    className={`cursor-pointer hover:bg-white/5 transition-colors duration-200 ${
+                      selectedAlert?.id === alert.id ? 'bg-blue-500/10 border-l-4 border-l-blue-500' : ''
+                    }`}
+                    onClick={() => handleAlertSelect(alert)}
+                  >
+                    <TableCell>
+                      <div className="text-white font-semibold">
+                        {alert.client}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <div className="text-white font-medium text-sm">
+                          {alert.issue}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs">
-                          <div className="font-medium text-default-900 text-sm">
-                            {alert.issue}
-                          </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                        {alert.state}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="text-white font-medium">
+                          {alert.currentAmount}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                          {alert.state}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-default-900">
-                            {alert.currentAmount}
-                          </div>
-                          <div className="text-xs text-default-500">
-                            of {alert.threshold}
-                          </div>
+                        <div className="text-gray-400 text-xs">
+                          of {alert.threshold}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm font-medium text-default-600">
-                          {alert.deadline}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="sm"
-                          color={getPriorityColor(alert.priority)}
-                          variant="flat"
-                        >
-                          {alert.priority.toUpperCase()}
-                        </Chip>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="sm"
-                          color={getStatusColor(alert.status)}
-                          variant="flat"
-                        >
-                          {alert.status.replace('-', ' ').toUpperCase()}
-                        </Chip>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          color="primary"
-                          variant="light"
-                          onPress={() => handleAlertSelect(alert)}
-                        >
-                          Review Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardBody>
-          </Card>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-white text-sm font-medium">
+                        {alert.deadline}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className={`px-2 py-1 ${
+                        alert.priority === 'high' ? 'bg-red-500' :
+                        alert.priority === 'medium' ? 'bg-orange-500' :
+                        'bg-green-500'
+                      } rounded-full`}>
+                        <span className="text-white text-xs font-semibold">{alert.priority.toUpperCase()}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className={`px-2 py-1 ${
+                        alert.status === 'new' ? 'bg-blue-500' :
+                        alert.status === 'in-progress' ? 'bg-orange-500' :
+                        'bg-green-500'
+                      } rounded-full`}>
+                        <span className="text-white text-xs font-semibold">{alert.status.replace('-', ' ').toUpperCase()}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg font-medium transition-all duration-200"
+                        onPress={() => handleAlertSelect(alert)}
+                      >
+                        Review Details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
       {/* Sliding Alert Panel */}
       <div
         ref={panelRef}
-        className={`fixed top-0 right-0 h-full w-1/2 bg-background border-l border-divider shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 right-0 h-full w-1/2 bg-black/95 backdrop-blur-xl border-l border-white/10 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
           isPanelOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="h-full flex flex-col">
           {/* Panel Header */}
-          <div className="flex items-center justify-between p-4 border-b border-divider">
-            <h3 className="text-lg font-semibold">Alert Details</h3>
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <div className="flex items-center space-x-3">
+              <div className="w-1 h-6 bg-red-500 rounded-full"></div>
+              <h3 className="text-white text-lg font-semibold tracking-tight">Alert Details</h3>
+            </div>
             <Button
               isIconOnly
               size="sm"
-              variant="light"
               onPress={handleClosePanel}
-              className="text-default-500 hover:text-default-700"
+              className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
             >
-              ✕
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </Button>
           </div>
 
           {/* Panel Content */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-6">
             {selectedAlert ? (
               <div className="space-y-6">
                 {/* Alert Details Card */}
-                <Card className="w-full">
-                  <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                    <h4 className="font-bold text-large">{selectedAlert.client} Alert</h4>
-                    <Chip
-                      size="sm"
-                      color={getPriorityColor(selectedAlert.priority)}
-                      variant="flat"
-                      className="mt-2"
-                    >
-                      {selectedAlert.priority.toUpperCase()} PRIORITY
-                    </Chip>
-                  </CardHeader>
-                  <CardBody className="overflow-visible py-2">
-                    <div className="space-y-4">
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-white text-xl font-bold tracking-tight">{selectedAlert.client} Alert</h4>
+                    <div className={`px-3 py-1 ${
+                      selectedAlert.priority === 'high' ? 'bg-red-500' :
+                      selectedAlert.priority === 'medium' ? 'bg-orange-500' :
+                      'bg-green-500'
+                    } rounded-full`}>
+                      <span className="text-white text-xs font-semibold">{selectedAlert.priority.toUpperCase()} PRIORITY</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="text-white font-semibold mb-2">Problem:</h5>
+                      <p className="text-gray-400 text-sm">{selectedAlert.issue}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <h5 className="font-semibold text-default-900 mb-2">Problem:</h5>
-                        <p className="text-sm text-default-600">{selectedAlert.issue}</p>
+                        <h5 className="text-white font-semibold mb-1">Current Amount:</h5>
+                        <p className="text-gray-400 text-sm">{selectedAlert.currentAmount}</p>
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h5 className="font-semibold text-default-900 mb-1">Current Amount:</h5>
-                          <p className="text-sm text-default-600">{selectedAlert.currentAmount}</p>
-                        </div>
-                        <div>
-                          <h5 className="font-semibold text-default-900 mb-1">Deadline:</h5>
-                          <p className="text-sm text-default-600">{selectedAlert.deadline}</p>
-                        </div>
-                      </div>
-                      
                       <div>
-                        <h5 className="font-semibold text-default-900 mb-1">Penalty Risk:</h5>
-                        <p className="text-sm text-danger">{selectedAlert.penaltyRisk}</p>
-                      </div>
-                      
-                      <div>
-                        <h5 className="font-semibold text-default-900 mb-2">What to do:</h5>
-                        <ul className="text-sm text-default-600 space-y-1">
-                          {selectedAlert.actions.map((action, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="mr-2">{index + 1}.</span>
-                              <span>{action}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div className="flex gap-2 pt-2">
-                        <Button size="sm" color="primary" variant="solid">
-                          Make Decision
-                        </Button>
-                        <Button size="sm" color="default" variant="bordered">
-                          Need Help
-                        </Button>
-                        <Button size="sm" color="default" variant="bordered">
-                          Talk to Client
-                        </Button>
+                        <h5 className="text-white font-semibold mb-1">Deadline:</h5>
+                        <p className="text-gray-400 text-sm">{selectedAlert.deadline}</p>
                       </div>
                     </div>
-                  </CardBody>
-                </Card>
+                    
+                    <div>
+                      <h5 className="text-white font-semibold mb-1">Penalty Risk:</h5>
+                      <p className="text-red-400 text-sm font-medium">{selectedAlert.penaltyRisk}</p>
+                    </div>
+                    
+                    <div>
+                      <h5 className="text-white font-semibold mb-2">What to do:</h5>
+                      <ul className="text-gray-400 text-sm space-y-1">
+                        {selectedAlert.actions.map((action, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="mr-2 text-blue-400">{index + 1}.</span>
+                            <span>{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all duration-200">
+                        Make Decision
+                      </Button>
+                      <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg font-medium transition-all duration-200">
+                        Need Help
+                      </Button>
+                      <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg font-medium transition-all duration-200">
+                        Talk to Client
+                      </Button>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Decision Form */}
-                <Card className="w-full">
-                  <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                    <h4 className="font-bold text-large">Decision for {selectedAlert.client}</h4>
-                  </CardHeader>
-                  <CardBody className="overflow-visible py-2">
-                    <div className="space-y-4">
-                      <div>
-                        <h5 className="font-semibold text-default-900 mb-2">My recommendation:</h5>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            size="sm"
-                            color={decision === "register-immediately" ? "primary" : "default"}
-                            variant={decision === "register-immediately" ? "solid" : "bordered"}
-                            onPress={() => setDecision("register-immediately")}
-                          >
-                            Register immediately
-                          </Button>
-                          <Button
-                            size="sm"
-                            color={decision === "monitor-closely" ? "primary" : "default"}
-                            variant={decision === "monitor-closely" ? "solid" : "bordered"}
-                            onPress={() => setDecision("monitor-closely")}
-                          >
-                            Monitor closely
-                          </Button>
-                          <Button
-                            size="sm"
-                            color={decision === "schedule-review" ? "primary" : "default"}
-                            variant={decision === "schedule-review" ? "solid" : "bordered"}
-                            onPress={() => setDecision("schedule-review")}
-                          >
-                            Schedule review
-                          </Button>
-                          <Button
-                            size="sm"
-                            color={decision === "escalate-partner" ? "primary" : "default"}
-                            variant={decision === "escalate-partner" ? "solid" : "bordered"}
-                            onPress={() => setDecision("escalate-partner")}
-                          >
-                            Escalate to partner
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h5 className="font-semibold text-default-900 mb-2">Why this decision:</h5>
-                        <Textarea
-                          placeholder="Explain your reasoning..."
-                          value={reasoning}
-                          onValueChange={setReasoning}
-                          minRows={3}
-                        />
-                      </div>
-                      
-                      <div>
-                        <h5 className="font-semibold text-default-900 mb-2">Next steps:</h5>
-                        <div className="flex gap-2 flex-wrap">
-                          <Button size="sm" color="default" variant="bordered">
-                            Schedule client call
-                          </Button>
-                          <Button size="sm" color="default" variant="bordered">
-                            Prepare registration docs
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2 pt-2">
-                        <Button 
-                          size="sm" 
-                          color="success" 
-                          variant="solid"
-                          onPress={handleSaveDecision}
-                          isDisabled={!decision || !reasoning}
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                    <h4 className="text-white text-lg font-semibold tracking-tight">Decision for {selectedAlert.client}</h4>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="text-white font-semibold mb-2">My recommendation:</h5>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                            decision === "register-immediately" 
+                              ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' 
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                          onPress={() => setDecision("register-immediately")}
                         >
-                          Save Decision
+                          Register immediately
                         </Button>
-                        <Button size="sm" color="primary" variant="bordered">
-                          Send to Managing Partner
+                        <Button
+                          size="sm"
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                            decision === "monitor-closely" 
+                              ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' 
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                          onPress={() => setDecision("monitor-closely")}
+                        >
+                          Monitor closely
+                        </Button>
+                        <Button
+                          size="sm"
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                            decision === "schedule-review" 
+                              ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                          onPress={() => setDecision("schedule-review")}
+                        >
+                          Schedule review
+                        </Button>
+                        <Button
+                          size="sm"
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                            decision === "escalate-partner" 
+                              ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25' 
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                          onPress={() => setDecision("escalate-partner")}
+                        >
+                          Escalate to partner
                         </Button>
                       </div>
                     </div>
-                  </CardBody>
-                </Card>
+                    
+                    <div>
+                      <h5 className="text-white font-semibold mb-2">Why this decision:</h5>
+                      <Textarea
+                        placeholder="Explain your reasoning..."
+                        value={reasoning}
+                        onValueChange={setReasoning}
+                        minRows={3}
+                        className="bg-white/5 border-white/10 text-white placeholder-gray-400"
+                        classNames={{
+                          input: "text-white",
+                          inputWrapper: "bg-white/5 border-white/10 hover:border-white/20 focus-within:border-blue-500/50"
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <h5 className="text-white font-semibold mb-2">Next steps:</h5>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg font-medium transition-all duration-200">
+                          Schedule client call
+                        </Button>
+                        <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg font-medium transition-all duration-200">
+                          Prepare registration docs
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        size="sm" 
+                        className="bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all duration-200 shadow-lg shadow-green-500/25"
+                        onPress={handleSaveDecision}
+                        isDisabled={!decision || !reasoning}
+                      >
+                        Save Decision
+                      </Button>
+                      <Button size="sm" className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg font-medium transition-all duration-200">
+                        Send to Managing Partner
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <h4 className="text-lg font-semibold text-default-500 mb-2">
+                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-white text-lg font-semibold mb-2">
                     Select an Alert
                   </h4>
-                  <p className="text-sm text-default-400">
+                  <p className="text-gray-400 text-sm">
                     Choose an alert from the table to view details and make decisions
                   </p>
                 </div>
@@ -621,7 +679,7 @@ export default function TaxManagerAlerts() {
       {/* Backdrop overlay when panel is open */}
       {isPanelOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
           onClick={handleClosePanel}
         />
       )}
