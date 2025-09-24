@@ -18,6 +18,7 @@ import { AdvisoryIcon } from "../icons/sidebar/advisory-icon";
 import { LiabilityIcon } from "../icons/sidebar/liability-icon";
 import { RegulatoryIcon } from "../icons/sidebar/regulatory-icon";
 import { NexusIcon } from "../icons/sidebar/nexus-icon";
+import { AuditTrailIcon } from "../icons/sidebar/audit-trail-icon";
 import { CollapseItems } from "./collapse-items";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
@@ -149,6 +150,12 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
                 title="Regulatory"
                 icon={<RegulatoryIcon />}
                 href="/dashboard/tax-manager/regulatory"
+              />
+              <SidebarItem
+                isActive={pathname === "/dashboard/tax-manager/audit-trail"}
+                title="Audit Trail"
+                icon={<AuditTrailIcon />}
+                href="/dashboard/tax-manager/audit-trail"
               />
             </SidebarMenu>
             <SidebarMenu title="Settings">
