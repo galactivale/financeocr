@@ -65,11 +65,19 @@ const TaxManagerMonitoring = () => {
   const handleClientCardClick = (client: Client) => {
     setSelectedClient(client);
     setIsDetailsPanelOpen(true);
+    // Focus the primary state (first state in the array) on the map
+    if (client.states && client.states.length > 0) {
+      setMapFocusState(client.states[0]);
+      setSelectedState(client.states[0]);
+    }
   };
 
   const handleCloseDetailsPanel = () => {
     setIsDetailsPanelOpen(false);
     setSelectedClient(null);
+    // Clear map focus when closing the details panel
+    setMapFocusState(null);
+    setSelectedState(null);
   };
 
   const handleMapStateClick = (stateCode: string) => {
@@ -821,11 +829,25 @@ const TaxManagerMonitoring = () => {
               <h3 className="text-white font-medium mb-3">State Coverage</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedClient.states.map((state, index) => (
-                  <div key={index} className="bg-white/10 rounded-lg px-3 py-1">
-                    <span className="text-white text-sm font-medium">{state}</span>
-                  </div>
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setMapFocusState(state);
+                      setSelectedState(state);
+                    }}
+                    className={`rounded-lg px-3 py-1 transition-all duration-200 ${
+                      mapFocusState === state 
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{state}</span>
+                  </button>
                 ))}
               </div>
+              <p className="text-gray-400 text-xs mt-2">
+                Click a state to focus it on the map
+              </p>
             </div>
 
             {/* Alerts & Updates */}
