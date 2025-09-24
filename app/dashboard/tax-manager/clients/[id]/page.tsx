@@ -408,6 +408,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               Communications
             </button>
             <button
+              onClick={() => setSelectedTab("documents")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "documents"
+                  ? "border-indigo-500 text-indigo-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Documents
+            </button>
+            <button
               onClick={() => setSelectedTab("analytics")}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 selectedTab === "analytics"
@@ -1227,6 +1237,267 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {selectedTab === "documents" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-6 bg-indigo-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Client Documents</h2>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-indigo-500/20 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/30"
+                  startContent={<FileText className="w-3 h-3" />}
+                >
+                  Upload Document
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Document Categories */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                        <FileText className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-sm">Legal Documents</h3>
+                        <p className="text-gray-400 text-xs">12 files</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Engagement Letter</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Entity Formation</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Operating Agreement</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <BarChart3 className="w-4 h-4 text-green-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-sm">Financial Records</h3>
+                        <p className="text-gray-400 text-xs">8 files</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Tax Returns</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Financial Statements</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Bank Statements</span>
+                        <span className="text-yellow-400">⚠</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                        <Shield className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-semibold text-sm">Compliance</h3>
+                        <p className="text-gray-400 text-xs">15 files</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Nexus Analysis</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Registration Docs</span>
+                        <span className="text-yellow-400">⚠</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-400">Audit Trail</span>
+                        <span className="text-green-400">✓</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Documents */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                  <h3 className="text-lg font-semibold text-white tracking-tight mb-4">Recent Documents</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-sm">CA Sales Tax Registration Application</h4>
+                          <p className="text-gray-400 text-xs">Legal Documents • Uploaded Dec 1, 2024</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Chip color="warning" size="sm" className="text-xs">Pending Review</Chip>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-white/10 text-gray-300 hover:bg-white/20"
+                          startContent={<Eye className="w-3 h-3" />}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <BarChart3 className="w-4 h-4 text-green-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-sm">Q4 2024 Financial Statements</h4>
+                          <p className="text-gray-400 text-xs">Financial Records • Uploaded Nov 28, 2024</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Chip color="success" size="sm" className="text-xs">Approved</Chip>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-white/10 text-gray-300 hover:bg-white/20"
+                          startContent={<Download className="w-3 h-3" />}
+                        >
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                          <Shield className="w-4 h-4 text-purple-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-sm">Nexus Threshold Analysis Report</h4>
+                          <p className="text-gray-400 text-xs">Compliance • Generated Nov 25, 2024</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Chip color="success" size="sm" className="text-xs">Complete</Chip>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-white/10 text-gray-300 hover:bg-white/20"
+                          startContent={<Eye className="w-3 h-3" />}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                          <MessageSquare className="w-4 h-4 text-orange-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-sm">Client Advisory Letter - CA Registration</h4>
+                          <p className="text-gray-400 text-xs">Communications • Generated Nov 20, 2024</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Chip color="success" size="sm" className="text-xs">Delivered</Chip>
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className="bg-white/10 text-gray-300 hover:bg-white/20"
+                          startContent={<Eye className="w-3 h-3" />}
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Actions */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+                  <h3 className="text-lg font-semibold text-white tracking-tight mb-4">Document Actions</h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <Button
+                        fullWidth
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
+                        startContent={<FileText className="w-4 h-4" />}
+                      >
+                        Generate Nexus Report
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
+                        startContent={<Shield className="w-4 h-4" />}
+                      >
+                        Create Compliance Package
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
+                        startContent={<MessageSquare className="w-4 h-4" />}
+                      >
+                        Generate Advisory Letter
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Button
+                        fullWidth
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
+                        startContent={<Download className="w-4 h-4" />}
+                      >
+                        Export All Documents
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
+                        startContent={<Archive className="w-4 h-4" />}
+                      >
+                        Archive Old Documents
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
+                        startContent={<ExternalLink className="w-4 h-4" />}
+                      >
+                        Share with Client
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
