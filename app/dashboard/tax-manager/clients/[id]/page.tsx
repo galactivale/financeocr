@@ -319,32 +319,31 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         {/* Action Toolbar */}
         <div className="flex items-center space-x-4 mb-8">
           <Button
-            className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
+            className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
             startContent={<Calendar className="w-4 h-4" />}
           >
             Schedule Consultation
           </Button>
           <Button
-            className="bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30"
+            className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
             startContent={<FileText className="w-4 h-4" />}
           >
             Generate Advisory
           </Button>
           <Button
-            className="bg-purple-500/20 border-purple-500/30 text-purple-400 hover:bg-purple-500/30"
+            className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
             startContent={<Edit className="w-4 h-4" />}
           >
             Document Decision
           </Button>
           <Button
-            className="bg-orange-500/20 border-orange-500/30 text-orange-400 hover:bg-orange-500/30"
+            className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
             startContent={<Phone className="w-4 h-4" />}
           >
             Contact Client
           </Button>
           <Button
-            variant="flat"
-            className="bg-white/10 text-gray-300 hover:bg-white/20"
+            className="bg-slate-500/20 border-slate-500/30 text-slate-400 hover:bg-slate-500/30"
             startContent={<Download className="w-4 h-4" />}
           >
             Export Records
