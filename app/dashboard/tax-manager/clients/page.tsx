@@ -460,7 +460,7 @@ export default function TaxManagerClients() {
     totalClients: clients.length,
     highRisk: clients.filter(c => c.riskLevel === 'critical' || c.riskLevel === 'high').length,
     criticalAlerts: clients.reduce((sum, c) => sum + c.activeAlerts, 0),
-    totalExposure: clients.reduce((sum, c) => sum + parseInt(c.totalExposure.replace('$', '').replace('K', '')), 0)
+    totalExposure: clients.reduce((sum, c) => sum + c.penaltyExposure, 0)
   };
 
   return (
@@ -505,7 +505,7 @@ export default function TaxManagerClients() {
                       <div className="text-gray-400 text-xs font-medium">Critical Alerts</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-white">${portfolioStats.totalExposure}K</div>
+                      <div className="text-lg font-bold text-white">{formatCurrency(portfolioStats.totalExposure)}</div>
                       <div className="text-gray-400 text-xs font-medium">Total Exposure</div>
                     </div>
                   </div>
