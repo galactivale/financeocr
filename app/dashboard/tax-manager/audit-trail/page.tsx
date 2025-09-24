@@ -356,52 +356,43 @@ export default function AuditTrailPage() {
             <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Decision Chronology</h2>
           </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {auditTrailData.recentDecisions.map((decision) => (
             <div
               key={decision.id}
-              className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6 hover:bg-white/10 transition-all duration-200"
+              className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start space-x-4">
-                  <div className={`w-3 h-3 rounded-full mt-2 ${
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-2 h-2 rounded-full ${
                     decision.status === "high" ? "bg-red-500" :
                     decision.status === "medium" ? "bg-yellow-500" : "bg-green-500"
                   }`}></div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <span className="text-blue-400 text-sm font-mono">{decision.id}</span>
-                      <Chip
-                        color={getStatusColor(decision.status)}
-                        size="sm"
-                        className="text-xs"
-                      >
-                        {decision.status.toUpperCase()} EXPOSURE
-                      </Chip>
-                      <Chip
-                        color="success"
-                        size="sm"
-                        className="text-xs"
-                      >
-                        {decision.legalStatus}
-                      </Chip>
-                    </div>
-                    <h3 className="text-white font-semibold text-lg mb-1">{decision.client}</h3>
-                    <p className="text-gray-300 text-sm mb-2">{decision.decisionType}</p>
-                    <p className="text-gray-400 text-xs">
-                      {formatDateTime(decision.date, decision.time)} • {decision.taxManager}
-                    </p>
+                  <div>
+                    <h3 className="text-white font-medium text-sm">{decision.client}</h3>
+                    <p className="text-gray-400 text-xs">{decision.decisionType}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                
+                <div className="flex items-center space-x-4">
                   <div className="text-right">
-                    <div className="text-lg font-bold text-red-400">{formatCurrency(decision.exposureLevel)}</div>
+                    <div className="text-sm font-medium text-white">{formatCurrency(decision.exposureLevel)}</div>
                     <div className="text-gray-400 text-xs">Exposure</div>
                   </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                      <CheckCircle className="w-3 h-3 text-green-400" />
+                    </div>
+                    <span className="text-green-400 text-xs font-medium">Verified</span>
+                  </div>
+                  
                   <Button
                     size="sm"
-                    variant="flat"
-                    className="bg-white/10 text-gray-300 hover:bg-white/20"
+                    variant="light"
+                    className="text-gray-400 hover:text-white min-w-0 p-2"
                     onClick={() => setExpandedDecision(expandedDecision === decision.id ? null : decision.id)}
                   >
                     {expandedDecision === decision.id ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -409,54 +400,6 @@ export default function AuditTrailPage() {
                 </div>
               </div>
 
-              {/* Legal Status Indicators */}
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 text-xs">Professional reasoning</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 text-xs">Statutory citations</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 text-xs">Peer review</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 text-xs">Client communication</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  <span className="text-green-400 text-xs">Standards met</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center space-x-3">
-                <Button
-                  size="sm"
-                  className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
-                  startContent={<Eye className="w-3 h-3" />}
-                >
-                  View Complete Record
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30"
-                  startContent={<Download className="w-3 h-3" />}
-                >
-                  Legal Export
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-purple-500/20 border-purple-500/30 text-purple-400 hover:bg-purple-500/30"
-                  startContent={<Lock className="w-3 h-3" />}
-                >
-                  Verify Integrity
-                </Button>
-              </div>
 
               {/* Expanded Decision Details */}
               {expandedDecision === decision.id && (
