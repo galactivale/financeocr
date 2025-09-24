@@ -352,247 +352,311 @@ const TaxManagerMonitoring = () => {
 
   return (
     <div className="w-full h-screen flex bg-blue-600">
-      {/* Left Pane - Live Monitoring */}
-      <div className="w-1/4 p-6 overflow-hidden bg-black flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-white text-lg font-semibold">Live Nexus monitoring</h1>
-          <div className="flex items-center space-x-3">
-            {/* Live Status Indicator */}
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-lime-400 rounded-full animate-pulse"></div>
-              <span className="text-lime-400 text-sm font-medium">Live</span>
-            </div>
-            <Button isIconOnly size="sm" variant="light" className="text-white">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Left Pane - World-Class Nexus Monitoring */}
+      <div className="w-1/4 p-1 overflow-hidden bg-black flex flex-col">
+        {/* Premium Header */}
+        <div className="flex items-center justify-between mb-2 px-2 py-1">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
+            <h1 className="text-white text-sm font-medium tracking-wide">NEXUS MONITOR</h1>
+          </div>
+          <div className="flex items-center space-x-1">
+            <button className="p-1 text-gray-400 hover:text-white transition-colors">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
-            </Button>
-            <Button isIconOnly size="sm" variant="light" className="text-white">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            </button>
+            <button className="p-1 text-gray-400 hover:text-white transition-colors">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
               </svg>
-            </Button>
+            </button>
           </div>
         </div>
 
-        {/* Search Box */}
-        <div className="relative mb-6">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Ultra-Compact Search */}
+        <div className="relative mb-2 px-2">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
           <input
             type="text"
             placeholder="Client ID..."
-            className="w-full pl-10 pr-4 py-3 bg-gray-700 text-white placeholder-gray-400 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:ring-opacity-50"
+            className="w-full pl-8 pr-3 py-1.5 bg-gray-900/80 text-white placeholder-gray-500 rounded text-xs border border-gray-800 focus:outline-none focus:ring-1 focus:ring-lime-400/50 focus:border-lime-400/50"
           />
         </div>
 
+        {/* Status Summary Bar */}
+        <div className="flex items-center justify-between mb-2 px-2 py-1 bg-gray-900/50 rounded">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+              <span className="text-red-400 text-xs font-medium">3</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+              <span className="text-amber-400 text-xs font-medium">2</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+              <span className="text-blue-400 text-xs font-medium">1</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              <span className="text-green-400 text-xs font-medium">1</span>
+            </div>
+          </div>
+          <div className="text-gray-400 text-xs">7 Total</div>
+        </div>
 
-                    {/* Client Nexus Status Cards */}
-                    <div className="flex-1 space-y-4 overflow-y-auto">
-                      {/* Card 1 - Critical Status */}
-                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/30">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-white font-bold text-sm">TC2043892CA</h3>
-                          <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">CRITICAL</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">CA</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">California, USA</p>
-                            <p className="text-gray-400 text-xs">OCT 15, 2024</p>
-                          </div>
-                          
-                          <div className="flex items-center mx-3">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                              <div className="w-12 h-0.5 border-t-2 border-dashed border-gray-500 mx-1.5"></div>
-                              <div className="bg-gray-600/50 rounded px-1.5 py-0.5">
-                                <span className="text-white text-xs">$525K</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 text-right">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">NY</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">New York, USA</p>
-                            <p className="text-gray-400 text-xs">DEC 20, 2024</p>
-                          </div>
-                        </div>
-                      </div>
+        {/* Ultra-Compact Client Cards */}
+        <div className="flex-1 space-y-1 overflow-y-auto px-2">
+          {/* Card 1 - Critical */}
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">TC2043892CA</h3>
+              <span className="bg-red-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">CRIT</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">CA</span>
+                </div>
+                <p className="text-gray-300 text-xs">California</p>
+                <p className="text-gray-500 text-xs">OCT 15</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$525K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">NY</span>
+                </div>
+                <p className="text-gray-300 text-xs">New York</p>
+                <p className="text-gray-500 text-xs">DEC 20</p>
+              </div>
+            </div>
+          </div>
 
-                      {/* Card 2 - Warning Status */}
-                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/30">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-white font-bold text-sm">RC3840291TX</h3>
-                          <span className="bg-amber-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">WARNING</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">TX</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Texas, USA</p>
-                            <p className="text-gray-400 text-xs">SEP 18, 2024</p>
-                          </div>
-                          
-                          <div className="flex items-center mx-3">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                              <div className="w-12 h-0.5 border-t-2 border-dashed border-gray-500 mx-1.5"></div>
-                              <div className="bg-gray-600/50 rounded px-1.5 py-0.5">
-                                <span className="text-white text-xs">$485K</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 text-right">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">CA</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">California, USA</p>
-                            <p className="text-gray-400 text-xs">NOV 20, 2024</p>
-                          </div>
-                        </div>
-                      </div>
+          {/* Card 2 - Warning */}
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">RC3840291TX</h3>
+              <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">WARN</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">TX</span>
+                </div>
+                <p className="text-gray-300 text-xs">Texas</p>
+                <p className="text-gray-500 text-xs">SEP 18</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-amber-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$485K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">CA</span>
+                </div>
+                <p className="text-gray-300 text-xs">California</p>
+                <p className="text-gray-500 text-xs">NOV 20</p>
+              </div>
+            </div>
+          </div>
 
-                      {/* Card 3 - Pending Status */}
-                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/30">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-white font-bold text-sm">GF9982736FL</h3>
-                          <span className="bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">PENDING</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">FL</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Florida, USA</p>
-                            <p className="text-gray-400 text-xs">OCT 2, 2024</p>
-                          </div>
-                          
-                          <div className="flex items-center mx-3">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-blue-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                              <div className="w-12 h-0.5 border-t-2 border-dashed border-gray-500 mx-1.5"></div>
-                              <div className="bg-gray-600/50 rounded px-1.5 py-0.5">
-                                <span className="text-white text-xs">$28K</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 text-right">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">GA</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Georgia, USA</p>
-                            <p className="text-gray-400 text-xs">DEC 2, 2024</p>
-                          </div>
-                        </div>
-                      </div>
+          {/* Card 3 - Pending */}
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">GF9982736FL</h3>
+              <span className="bg-blue-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">PEND</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">FL</span>
+                </div>
+                <p className="text-gray-300 text-xs">Florida</p>
+                <p className="text-gray-500 text-xs">OCT 2</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$28K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">GA</span>
+                </div>
+                <p className="text-gray-300 text-xs">Georgia</p>
+                <p className="text-gray-500 text-xs">DEC 2</p>
+              </div>
+            </div>
+          </div>
 
-                      {/* Card 4 - Compliant Status */}
-                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/30">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-white font-bold text-sm">HC5678920IL</h3>
-                          <span className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">COMPLIANT</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">IL</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Illinois, USA</p>
-                            <p className="text-gray-400 text-xs">AUG 10, 2024</p>
-                          </div>
-                          
-                          <div className="flex items-center mx-3">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                              <div className="w-12 h-0.5 border-t-2 border-dashed border-gray-500 mx-1.5"></div>
-                              <div className="bg-gray-600/50 rounded px-1.5 py-0.5">
-                                <span className="text-white text-xs">$18K</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 text-right">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">PA</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Pennsylvania, USA</p>
-                            <p className="text-gray-400 text-xs">OCT 15, 2024</p>
-                          </div>
-                        </div>
-                      </div>
+          {/* Card 4 - Compliant */}
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">HC5678920IL</h3>
+              <span className="bg-green-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">OK</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">IL</span>
+                </div>
+                <p className="text-gray-300 text-xs">Illinois</p>
+                <p className="text-gray-500 text-xs">AUG 10</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$18K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">PA</span>
+                </div>
+                <p className="text-gray-300 text-xs">Pennsylvania</p>
+                <p className="text-gray-500 text-xs">OCT 15</p>
+              </div>
+            </div>
+          </div>
 
-                      {/* Card 5 - In Transit Status */}
-                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/30">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-white font-bold text-sm">MC8495732WA</h3>
-                          <span className="bg-cyan-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold">IN TRANSIT</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <div className="flex-1">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">WA</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Washington, USA</p>
-                            <p className="text-gray-400 text-xs">SEP 22, 2024</p>
-                          </div>
-                          
-                          <div className="flex items-center mx-3">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 bg-cyan-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                                </svg>
-                              </div>
-                              <div className="w-12 h-0.5 border-t-2 border-dashed border-gray-500 mx-1.5"></div>
-                              <div className="bg-gray-600/50 rounded px-1.5 py-0.5">
-                                <span className="text-white text-xs">$16K</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 text-right">
-                            <div className="bg-gray-600/50 rounded px-1.5 py-0.5 mb-1 inline-block">
-                              <span className="text-white text-xs font-medium">OR</span>
-                            </div>
-                            <p className="text-gray-300 text-xs">Oregon, USA</p>
-                            <p className="text-gray-400 text-xs">NOV 18, 2024</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+          {/* Card 5 - In Transit */}
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">MC8495732WA</h3>
+              <span className="bg-cyan-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">TRANS</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">WA</span>
+                </div>
+                <p className="text-gray-300 text-xs">Washington</p>
+                <p className="text-gray-500 text-xs">SEP 22</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$16K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">OR</span>
+                </div>
+                <p className="text-gray-300 text-xs">Oregon</p>
+                <p className="text-gray-500 text-xs">NOV 18</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Cards for World-Class Feel */}
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">BT1234567AZ</h3>
+              <span className="bg-green-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">OK</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">AZ</span>
+                </div>
+                <p className="text-gray-300 text-xs">Arizona</p>
+                <p className="text-gray-500 text-xs">NOV 5</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$12K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">NV</span>
+                </div>
+                <p className="text-gray-300 text-xs">Nevada</p>
+                <p className="text-gray-500 text-xs">DEC 10</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-white font-semibold text-xs tracking-wide">FT9876543CO</h3>
+              <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">WARN</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">CO</span>
+                </div>
+                <p className="text-gray-300 text-xs">Colorado</p>
+                <p className="text-gray-500 text-xs">OCT 28</p>
+              </div>
+              <div className="flex items-center mx-2">
+                <div className="w-4 h-4 bg-amber-500/20 rounded-full flex items-center justify-center">
+                  <svg className="w-2 h-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                  <span className="text-white text-xs">$89K</span>
+                </div>
+              </div>
+              <div className="flex-1 text-right">
+                <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                  <span className="text-white text-xs font-medium">UT</span>
+                </div>
+                <p className="text-gray-300 text-xs">Utah</p>
+                <p className="text-gray-500 text-xs">NOV 25</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Right Pane - Dark Glass */}
