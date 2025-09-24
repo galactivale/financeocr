@@ -262,10 +262,10 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center space-x-6">
             <div className="w-20 h-20 bg-blue-500/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
-              <span className="text-3xl font-light text-blue-400">{clientData.avatar}</span>
+              <span className="text-3xl font-semibold text-blue-400">{clientData.avatar}</span>
             </div>
             <div>
-              <h1 className="text-4xl font-light text-white mb-2">{clientData.name}</h1>
+              <h1 className="text-4xl font-semibold text-white mb-2 tracking-tight">{clientData.name}</h1>
               <div className="flex items-center space-x-6 text-gray-400">
                 <span className="flex items-center space-x-2">
                   <Building className="w-4 h-4" />
@@ -360,7 +360,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                <h2 className="text-xl font-light text-white">Multi-State Nexus Dashboard</h2>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Multi-State Nexus Dashboard</h2>
               </div>
               <Button
                 size="sm"
@@ -388,7 +388,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                         <Flag className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-white font-medium">{state.name}</h3>
+                        <h3 className="text-white font-semibold text-sm tracking-tight">{state.name}</h3>
                         <p className="text-gray-400 text-xs">{state.code}</p>
                       </div>
                     </div>
@@ -478,7 +478,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-6 bg-red-500 rounded-full"></div>
-                <h2 className="text-xl font-light text-white">Active Alerts</h2>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Active Alerts</h2>
               </div>
               <Badge content={clientData.alerts.length} color="danger" size="sm">
                 <AlertTriangle className="w-5 h-5 text-red-400" />
@@ -502,7 +502,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                          <CheckCircle className="w-4 h-4 text-blue-400" />}
                       </div>
                       <div>
-                        <h3 className="text-white font-medium">{alert.title}</h3>
+                        <h3 className="text-white font-semibold text-sm tracking-tight">{alert.title}</h3>
                         <p className="text-gray-400 text-sm">{alert.description}</p>
                       </div>
                     </div>
@@ -579,17 +579,17 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                <h2 className="text-xl font-light text-white">Performance Analytics</h2>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Performance Analytics</h2>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">Response Time</span>
-                  <span className="text-white text-sm font-medium">{clientData.performance.responseTime}</span>
+                  <span className="text-white text-sm font-semibold">{clientData.performance.responseTime}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">Client Satisfaction</span>
                   <div className="flex items-center space-x-2">
-                    <span className="text-white text-sm font-medium">{clientData.performance.satisfaction}/5</span>
+                    <span className="text-white text-sm font-semibold">{clientData.performance.satisfaction}/5</span>
                     <div className="flex space-x-1">
                       {[...Array(5)].map((_, i) => (
                         <div
@@ -604,15 +604,15 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">Compliance Rate</span>
-                  <span className="text-white text-sm font-medium">{clientData.performance.complianceRate}%</span>
+                  <span className="text-white text-sm font-semibold">{clientData.performance.complianceRate}%</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">Penalty Prevention</span>
-                  <span className="text-green-400 text-sm font-medium">{formatCurrency(clientData.performance.penaltyPrevention)}</span>
+                  <span className="text-green-400 text-sm font-semibold">{formatCurrency(clientData.performance.penaltyPrevention)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">Time Spent</span>
-                  <span className="text-white text-sm font-medium">{clientData.performance.timeSpent}</span>
+                  <span className="text-white text-sm font-semibold">{clientData.performance.timeSpent}</span>
                 </div>
               </div>
             </div>
@@ -621,13 +621,13 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
-                <h2 className="text-xl font-light text-white">Data Processing</h2>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Data Processing</h2>
               </div>
               <div className="space-y-3">
                 {clientData.dataProcessing.currentQueue.map((item, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
                     <div>
-                      <p className="text-white text-sm">{item.file}</p>
+                      <p className="text-white text-sm font-semibold">{item.file}</p>
                       <p className="text-gray-400 text-xs">{item.status}</p>
                     </div>
                     {item.quality && (
@@ -648,7 +648,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                <h2 className="text-xl font-light text-white">Quick Actions</h2>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Quick Actions</h2>
               </div>
               <div className="space-y-3">
                 <Button
