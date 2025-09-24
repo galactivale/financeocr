@@ -412,62 +412,62 @@ const TaxManagerMonitoring = () => {
               </div>
             </div>
 
-            {/* Ultra-Compact Client Cards */}
-            <div className="flex-1 space-y-1 overflow-y-auto px-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
+            {/* Apple-Style Client Cards */}
+            <div className="flex-1 space-y-3 overflow-y-auto px-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
               {filteredClients.length > 0 ? (
                 filteredClients.map((client) => {
                   const getStatusColor = (status: string) => {
                     switch (status) {
-                      case 'critical': return 'bg-red-500/90';
-                      case 'warning': return 'bg-amber-500/90';
-                      case 'pending': return 'bg-blue-500/90';
-                      case 'transit': return 'bg-cyan-500/90';
-                      case 'compliant': return 'bg-green-500/90';
-                      default: return 'bg-gray-500/90';
+                      case 'critical': return 'bg-red-500';
+                      case 'warning': return 'bg-orange-500';
+                      case 'pending': return 'bg-blue-500';
+                      case 'transit': return 'bg-cyan-500';
+                      case 'compliant': return 'bg-green-500';
+                      default: return 'bg-gray-500';
                     }
                   };
 
                   const getStatusText = (status: string) => {
                     switch (status) {
-                      case 'critical': return 'CRIT';
-                      case 'warning': return 'WARN';
-                      case 'pending': return 'PEND';
-                      case 'transit': return 'TRANS';
-                      case 'compliant': return 'OK';
-                      default: return 'UNK';
+                      case 'critical': return 'Critical';
+                      case 'warning': return 'Warning';
+                      case 'pending': return 'Pending';
+                      case 'transit': return 'In Transit';
+                      case 'compliant': return 'Compliant';
+                      default: return 'Unknown';
                     }
                   };
 
                   const getStatusTextColor = (status: string) => {
                     switch (status) {
-                      case 'critical': return 'text-red-400';
-                      case 'warning': return 'text-amber-400';
-                      case 'pending': return 'text-blue-400';
-                      case 'transit': return 'text-cyan-400';
-                      case 'compliant': return 'text-green-400';
-                      default: return 'text-gray-400';
+                      case 'critical': return 'text-red-500';
+                      case 'warning': return 'text-orange-500';
+                      case 'pending': return 'text-blue-500';
+                      case 'transit': return 'text-cyan-500';
+                      case 'compliant': return 'text-green-500';
+                      default: return 'text-gray-500';
                     }
                   };
 
                   const getIconColor = (status: string) => {
                     switch (status) {
-                      case 'critical': return 'text-red-400';
-                      case 'warning': return 'text-amber-400';
-                      case 'pending': return 'text-blue-400';
-                      case 'transit': return 'text-cyan-400';
-                      case 'compliant': return 'text-green-400';
-                      default: return 'text-gray-400';
+                      case 'critical': return 'text-red-500';
+                      case 'warning': return 'text-orange-500';
+                      case 'pending': return 'text-blue-500';
+                      case 'transit': return 'text-cyan-500';
+                      case 'compliant': return 'text-green-500';
+                      default: return 'text-gray-500';
                     }
                   };
 
                   const getIconBgColor = (status: string) => {
                     switch (status) {
-                      case 'critical': return 'bg-red-500/20';
-                      case 'warning': return 'bg-amber-500/20';
-                      case 'pending': return 'bg-blue-500/20';
-                      case 'transit': return 'bg-cyan-500/20';
-                      case 'compliant': return 'bg-green-500/20';
-                      default: return 'bg-gray-500/20';
+                      case 'critical': return 'bg-red-500/10';
+                      case 'warning': return 'bg-orange-500/10';
+                      case 'pending': return 'bg-blue-500/10';
+                      case 'transit': return 'bg-cyan-500/10';
+                      case 'compliant': return 'bg-green-500/10';
+                      default: return 'bg-gray-500/10';
                     }
                   };
 
@@ -476,30 +476,12 @@ const TaxManagerMonitoring = () => {
                   const secondaryState = client.states[1];
 
                   return (
-                    <div key={client.id} className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                      <div className="flex justify-between items-center mb-1">
-                        <h3 className="text-white font-semibold text-xs tracking-wide">{client.name}</h3>
-                        <span className={`${getStatusColor(client.nexusStatus)} text-white px-1.5 py-0.5 rounded text-xs font-medium`}>
-                          {getStatusText(client.nexusStatus)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex-1">
-                          <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                            <span className="text-white text-xs font-medium">{primaryState}</span>
-                          </div>
-                          <p className="text-gray-300 text-xs">{client.revenue} Revenue</p>
-                          <p className={`text-xs ${getStatusTextColor(client.nexusStatus)}`}>
-                            {client.nexusStatus === 'critical' ? 'Exceeded $500K' :
-                             client.nexusStatus === 'warning' ? 'Approaching $500K' :
-                             client.nexusStatus === 'pending' ? 'Under Review' :
-                             client.nexusStatus === 'transit' ? 'Active Monitoring' :
-                             'Compliant'}
-                          </p>
-                        </div>
-                        <div className="flex items-center mx-2">
-                          <div className={`w-4 h-4 ${getIconBgColor(client.nexusStatus)} rounded-full flex items-center justify-center`}>
-                            <svg className={`w-2 h-2 ${getIconColor(client.nexusStatus)}`} fill="currentColor" viewBox="0 0 20 20">
+                    <div key={client.id} className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 ${getIconBgColor(client.nexusStatus)} rounded-xl flex items-center justify-center`}>
+                            <svg className={`w-5 h-5 ${getIconColor(client.nexusStatus)}`} fill="currentColor" viewBox="0 0 20 20">
                               {client.nexusStatus === 'critical' || client.nexusStatus === 'warning' ? (
                                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                               ) : client.nexusStatus === 'pending' ? (
@@ -511,35 +493,88 @@ const TaxManagerMonitoring = () => {
                               )}
                             </svg>
                           </div>
-                          <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                          <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                            <span className="text-white text-xs">{client.alerts} Alert{client.alerts !== 1 ? 's' : ''}</span>
+                          <div>
+                            <h3 className="text-white font-semibold text-sm tracking-tight">{client.name}</h3>
+                            <p className="text-gray-400 text-xs font-medium">{client.industry}</p>
                           </div>
                         </div>
-                        <div className="flex-1 text-right">
-                          {secondaryState && (
-                            <>
-                              <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                                <span className="text-white text-xs font-medium">{secondaryState}</span>
+                        <div className={`px-3 py-1.5 ${getStatusColor(client.nexusStatus)} rounded-full`}>
+                          <span className="text-white text-xs font-semibold">{getStatusText(client.nexusStatus)}</span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="space-y-3">
+                        {/* Revenue and States */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                            <span className="text-white text-sm font-medium">{client.revenue}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-white/10 rounded-lg px-2 py-1">
+                              <span className="text-white text-xs font-medium">{primaryState}</span>
+                            </div>
+                            {secondaryState && (
+                              <div className="bg-white/5 rounded-lg px-2 py-1">
+                                <span className="text-gray-300 text-xs font-medium">{secondaryState}</span>
                               </div>
-                              <p className="text-gray-300 text-xs">Secondary State</p>
-                              <p className="text-gray-400 text-xs">Monitoring</p>
-                            </>
-                          )}
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Status Description */}
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm font-medium ${getStatusTextColor(client.nexusStatus)}`}>
+                            {client.nexusStatus === 'critical' ? 'Exceeded $500K threshold' :
+                             client.nexusStatus === 'warning' ? 'Approaching $500K threshold' :
+                             client.nexusStatus === 'pending' ? 'Under review process' :
+                             client.nexusStatus === 'transit' ? 'Active monitoring' :
+                             'Fully compliant'}
+                          </p>
+                          <div className="flex items-center space-x-1">
+                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                            <span className="text-gray-400 text-xs">{client.alerts} alert{client.alerts !== 1 ? 's' : ''}</span>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-gray-400">Threshold Progress</span>
+                            <span className="text-white font-medium">{client.thresholdProgress}%</span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-1.5">
+                            <div 
+                              className={`h-1.5 rounded-full transition-all duration-500 ${
+                                client.nexusStatus === 'critical' ? 'bg-red-500' :
+                                client.nexusStatus === 'warning' ? 'bg-orange-500' :
+                                client.nexusStatus === 'pending' ? 'bg-blue-500' :
+                                client.nexusStatus === 'transit' ? 'bg-cyan-500' :
+                                'bg-green-500'
+                              }`}
+                              style={{ width: `${client.thresholdProgress}%` }}
+                            ></div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 text-sm">
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="text-gray-400 text-sm font-medium mb-2">
                     {mapFocusState ? `No clients found in ${mapFocusState}` : 'No clients match your search'}
                   </div>
                   {mapFocusState && (
                     <button 
                       onClick={() => setMapFocusState(null)}
-                      className="mt-2 text-blue-400 text-xs hover:text-blue-300 underline"
+                      className="text-blue-400 text-sm hover:text-blue-300 font-medium transition-colors"
                     >
                       Clear filter
                     </button>
