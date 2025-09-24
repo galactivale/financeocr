@@ -53,9 +53,22 @@ const TaxManagerMonitoring = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("nexus");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mapFocusState, setMapFocusState] = useState<string | null>(null);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleMapStateClick = (stateCode: string) => {
+    if (mapFocusState === stateCode) {
+      // If clicking the same state, clear the filter
+      setMapFocusState(null);
+      setSelectedState(null);
+    } else {
+      // Set new focus state
+      setMapFocusState(stateCode);
+      setSelectedState(stateCode);
+    }
   };
 
   // Nexus data for states
@@ -134,9 +147,9 @@ const TaxManagerMonitoring = () => {
         
         settings[state] = {
           fill: fillColor,
-          stroke: selectedState === state ? '#3b82f6' : 'white',
-          strokeWidth: selectedState === state ? 3 : 2,
-          onClick: () => setSelectedState(selectedState === state ? null : state),
+          stroke: mapFocusState === state ? '#3b82f6' : 'white',
+          strokeWidth: mapFocusState === state ? 4 : 2,
+          onClick: () => handleMapStateClick(state),
           onHover: () => {},
           onLeave: () => {},
           label: labelConfig,
@@ -181,16 +194,16 @@ const TaxManagerMonitoring = () => {
         // Default styling for states without nexus data
         settings[state] = {
           fill: '#374151',
-          stroke: selectedState === state ? '#3b82f6' : 'white',
-          strokeWidth: selectedState === state ? 3 : 2,
-          onClick: () => setSelectedState(selectedState === state ? null : state),
+          stroke: mapFocusState === state ? '#3b82f6' : 'white',
+          strokeWidth: mapFocusState === state ? 4 : 2,
+          onClick: () => handleMapStateClick(state),
           label: labelConfig,
         };
       }
     });
 
     return settings;
-  }, [selectedState]);
+  }, [selectedState, mapFocusState]);
 
   // Sample client data
   const clients: Client[] = [
@@ -302,6 +315,7 @@ const TaxManagerMonitoring = () => {
   useEffect(() => {
     let filtered = clients;
     
+    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(client => 
         client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -309,8 +323,15 @@ const TaxManagerMonitoring = () => {
       );
     }
     
+    // Filter by map focus state
+    if (mapFocusState) {
+      filtered = filtered.filter(client => 
+        client.states.includes(mapFocusState)
+      );
+    }
+    
     setFilteredClients(filtered);
-  }, [searchQuery]);
+  }, [searchQuery, mapFocusState]);
 
   if (!isMounted) {
     return (
@@ -342,6 +363,18 @@ const TaxManagerMonitoring = () => {
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
                 <h1 className="text-white text-sm font-medium tracking-wide">NEXUS MONITOR</h1>
+                {mapFocusState && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-blue-400 text-xs">•</span>
+                    <span className="text-blue-400 text-xs font-medium">{mapFocusState}</span>
+                    <button 
+                      onClick={() => setMapFocusState(null)}
+                      className="text-blue-400 hover:text-blue-300 text-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center space-x-1">
                 <button className="p-1 text-gray-400 hover:text-white transition-colors">
@@ -376,23 +409,37 @@ const TaxManagerMonitoring = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-1">
                   <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  <span className="text-red-400 text-xs font-medium">3</span>
+                  <span className="text-red-400 text-xs font-medium">
+                    {filteredClients.filter(c => c.nexusStatus === 'critical').length}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
-                  <span className="text-amber-400 text-xs font-medium">2</span>
+                  <span className="text-amber-400 text-xs font-medium">
+                    {filteredClients.filter(c => c.nexusStatus === 'warning').length}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                  <span className="text-blue-400 text-xs font-medium">1</span>
+                  <span className="text-blue-400 text-xs font-medium">
+                    {filteredClients.filter(c => c.nexusStatus === 'pending').length}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div>
+                  <span className="text-cyan-400 text-xs font-medium">
+                    {filteredClients.filter(c => c.nexusStatus === 'transit').length}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-green-400 text-xs font-medium">1</span>
+                  <span className="text-green-400 text-xs font-medium">
+                    {filteredClients.filter(c => c.nexusStatus === 'compliant').length}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="text-gray-400 text-xs">7 Total</div>
+                <div className="text-gray-400 text-xs">{filteredClients.length} Total</div>
                 <div className="w-3 h-3 flex items-center justify-center">
                   <svg className="w-2 h-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
@@ -403,249 +450,138 @@ const TaxManagerMonitoring = () => {
 
             {/* Ultra-Compact Client Cards */}
             <div className="flex-1 space-y-1 overflow-y-auto px-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
-              {/* Card 1 - Critical */}
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">TechCorp SaaS</h3>
-                  <span className="bg-red-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">CRIT</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">CA</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$525K Revenue</p>
-                    <p className="text-red-400 text-xs">Exceeded $500K</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-red-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">3 Alerts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">NY</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$89K Revenue</p>
-                    <p className="text-amber-400 text-xs">95 Transactions</p>
-                  </div>
-                </div>
-              </div>
+              {filteredClients.length > 0 ? (
+                filteredClients.map((client) => {
+                  const getStatusColor = (status: string) => {
+                    switch (status) {
+                      case 'critical': return 'bg-red-500/90';
+                      case 'warning': return 'bg-amber-500/90';
+                      case 'pending': return 'bg-blue-500/90';
+                      case 'transit': return 'bg-cyan-500/90';
+                      case 'compliant': return 'bg-green-500/90';
+                      default: return 'bg-gray-500/90';
+                    }
+                  };
 
-              {/* Card 2 - Warning */}
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">RetailChain LLC</h3>
-                  <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">WARN</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">TX</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$485K Revenue</p>
-                    <p className="text-amber-400 text-xs">Approaching $500K</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-amber-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">2 Alerts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">CA</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$220K Revenue</p>
-                    <p className="text-gray-400 text-xs">Monitoring</p>
-                  </div>
-                </div>
-              </div>
+                  const getStatusText = (status: string) => {
+                    switch (status) {
+                      case 'critical': return 'CRIT';
+                      case 'warning': return 'WARN';
+                      case 'pending': return 'PEND';
+                      case 'transit': return 'TRANS';
+                      case 'compliant': return 'OK';
+                      default: return 'UNK';
+                    }
+                  };
 
-              {/* Card 3 - Pending */}
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">GlobalFin Solutions</h3>
-                  <span className="bg-blue-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">PEND</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">FL</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$28K Revenue</p>
-                    <p className="text-blue-400 text-xs">Under Review</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">0 Alerts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">GA</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$15K Revenue</p>
-                    <p className="text-gray-400 text-xs">Monitoring</p>
-                  </div>
-                </div>
-              </div>
+                  const getStatusTextColor = (status: string) => {
+                    switch (status) {
+                      case 'critical': return 'text-red-400';
+                      case 'warning': return 'text-amber-400';
+                      case 'pending': return 'text-blue-400';
+                      case 'transit': return 'text-cyan-400';
+                      case 'compliant': return 'text-green-400';
+                      default: return 'text-gray-400';
+                    }
+                  };
 
-              {/* Card 4 - Compliant */}
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">HealthCare Inc.</h3>
-                  <span className="bg-green-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">OK</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">IL</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$18K Revenue</p>
-                    <p className="text-green-400 text-xs">Compliant</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">0 Alerts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">PA</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$12K Revenue</p>
-                    <p className="text-gray-400 text-xs">Monitoring</p>
-                  </div>
-                </div>
-              </div>
+                  const getIconColor = (status: string) => {
+                    switch (status) {
+                      case 'critical': return 'text-red-400';
+                      case 'warning': return 'text-amber-400';
+                      case 'pending': return 'text-blue-400';
+                      case 'transit': return 'text-cyan-400';
+                      case 'compliant': return 'text-green-400';
+                      default: return 'text-gray-400';
+                    }
+                  };
 
-              {/* Card 5 - In Transit */}
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">Manufacturing Co.</h3>
-                  <span className="bg-cyan-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">TRANS</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">WA</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$16K Revenue</p>
-                    <p className="text-cyan-400 text-xs">Active Monitoring</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-cyan-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">2 Alerts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">OR</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$8K Revenue</p>
-                    <p className="text-gray-400 text-xs">Monitoring</p>
-                  </div>
-                </div>
-              </div>
+                  const getIconBgColor = (status: string) => {
+                    switch (status) {
+                      case 'critical': return 'bg-red-500/20';
+                      case 'warning': return 'bg-amber-500/20';
+                      case 'pending': return 'bg-blue-500/20';
+                      case 'transit': return 'bg-cyan-500/20';
+                      case 'compliant': return 'bg-green-500/20';
+                      default: return 'bg-gray-500/20';
+                    }
+                  };
 
-              {/* Additional Cards for World-Class Feel */}
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">E-commerce Hub</h3>
-                  <span className="bg-green-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">OK</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">AZ</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$12K Revenue</p>
-                    <p className="text-green-400 text-xs">Compliant</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-green-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">0 Alerts</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">NV</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$8K Revenue</p>
-                    <p className="text-gray-400 text-xs">Monitoring</p>
-                  </div>
-                </div>
-              </div>
+                  // Get the primary state (first in the array)
+                  const primaryState = client.states[0];
+                  const secondaryState = client.states[1];
 
-              <div className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-white font-semibold text-xs tracking-wide">Logistics Corp</h3>
-                  <span className="bg-amber-500/90 text-white px-1.5 py-0.5 rounded text-xs font-medium">WARN</span>
+                  return (
+                    <div key={client.id} className="bg-gray-900/60 backdrop-blur-sm rounded border border-gray-800/50 p-2 hover:bg-gray-800/60 transition-colors">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-white font-semibold text-xs tracking-wide">{client.name}</h3>
+                        <span className={`${getStatusColor(client.nexusStatus)} text-white px-1.5 py-0.5 rounded text-xs font-medium`}>
+                          {getStatusText(client.nexusStatus)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                            <span className="text-white text-xs font-medium">{primaryState}</span>
+                          </div>
+                          <p className="text-gray-300 text-xs">{client.revenue} Revenue</p>
+                          <p className={`text-xs ${getStatusTextColor(client.nexusStatus)}`}>
+                            {client.nexusStatus === 'critical' ? 'Exceeded $500K' :
+                             client.nexusStatus === 'warning' ? 'Approaching $500K' :
+                             client.nexusStatus === 'pending' ? 'Under Review' :
+                             client.nexusStatus === 'transit' ? 'Active Monitoring' :
+                             'Compliant'}
+                          </p>
+                        </div>
+                        <div className="flex items-center mx-2">
+                          <div className={`w-4 h-4 ${getIconBgColor(client.nexusStatus)} rounded-full flex items-center justify-center`}>
+                            <svg className={`w-2 h-2 ${getIconColor(client.nexusStatus)}`} fill="currentColor" viewBox="0 0 20 20">
+                              {client.nexusStatus === 'critical' || client.nexusStatus === 'warning' ? (
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              ) : client.nexusStatus === 'pending' ? (
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                              ) : client.nexusStatus === 'transit' ? (
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                              ) : (
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              )}
+                            </svg>
+                          </div>
+                          <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
+                          <div className="bg-gray-700/50 rounded px-1 py-0.5">
+                            <span className="text-white text-xs">{client.alerts} Alert{client.alerts !== 1 ? 's' : ''}</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 text-right">
+                          {secondaryState && (
+                            <>
+                              <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
+                                <span className="text-white text-xs font-medium">{secondaryState}</span>
+                              </div>
+                              <p className="text-gray-300 text-xs">Secondary State</p>
+                              <p className="text-gray-400 text-xs">Monitoring</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-sm">
+                    {mapFocusState ? `No clients found in ${mapFocusState}` : 'No clients match your search'}
+                  </div>
+                  {mapFocusState && (
+                    <button 
+                      onClick={() => setMapFocusState(null)}
+                      className="mt-2 text-blue-400 text-xs hover:text-blue-300 underline"
+                    >
+                      Clear filter
+                    </button>
+                  )}
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">CO</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$89K Revenue</p>
-                    <p className="text-amber-400 text-xs">Approaching $100K</p>
-                  </div>
-                  <div className="flex items-center mx-2">
-                    <div className="w-4 h-4 bg-amber-500/20 rounded-full flex items-center justify-center">
-                      <svg className="w-2 h-2 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="w-8 h-0.5 border-t border-dashed border-gray-600 mx-1"></div>
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5">
-                      <span className="text-white text-xs">1 Alert</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="bg-gray-700/50 rounded px-1 py-0.5 mb-0.5 inline-block">
-                      <span className="text-white text-xs font-medium">UT</span>
-                    </div>
-                    <p className="text-gray-300 text-xs">$45K Revenue</p>
-                    <p className="text-gray-400 text-xs">Monitoring</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
