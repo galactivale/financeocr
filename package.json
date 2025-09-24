@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mirawision/usa-map-react": "^2.0.2",
     "@nextui-org/react": "^2.6.11",
     "angular-us-map": "^1.2.0",
     "apexcharts": "^3.35.5",

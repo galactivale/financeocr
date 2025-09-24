@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Card, 
   CardBody, 
@@ -16,6 +16,7 @@ import {
   Progress,
   Badge
 } from "@nextui-org/react";
+import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 
 // Client data structure for monitoring
 interface Client {
@@ -189,25 +190,146 @@ const TaxManagerMonitoring = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("nexus");
 
-  // Helper function to get state center positions
-  const getStateCenter = (stateCode: string) => {
-    const centers: { [key: string]: { x: number; y: number } } = {
-      "CA": { x: 125, y: 300 },
-      "TX": { x: 375, y: 350 },
-      "FL": { x: 550, y: 150 },
-      "IL": { x: 450, y: 175 },
-      "WA": { x: 125, y: 75 },
-      "NY": { x: 650, y: 100 },
-      "PA": { x: 600, y: 125 },
-      "GA": { x: 550, y: 225 },
-      "AZ": { x: 250, y: 350 },
-      "NV": { x: 200, y: 275 },
-      "CO": { x: 400, y: 225 },
-      "UT": { x: 350, y: 275 },
-      "OR": { x: 100, y: 125 }
-    };
-    return centers[stateCode] || { x: 400, y: 250 };
+  // Nexus data for states
+  const nexusData = {
+    "CA": { status: "critical", revenue: 525000, clients: 2, alerts: 3, companies: ["TechCorp SaaS", "RetailChain LLC"] },
+    "TX": { status: "warning", revenue: 485000, clients: 1, alerts: 2, companies: ["RetailChain LLC"] },
+    "FL": { status: "pending", revenue: 28000, clients: 1, alerts: 0, companies: ["GlobalFin Solutions"] },
+    "IL": { status: "compliant", revenue: 18000, clients: 1, alerts: 0, companies: ["HealthCare Inc."] },
+    "WA": { status: "transit", revenue: 16000, clients: 1, alerts: 2, companies: ["Manufacturing Co."] },
+    "NY": { status: "warning", revenue: 89000, clients: 1, alerts: 0, companies: ["TechCorp SaaS"] },
+    "PA": { status: "compliant", revenue: 12000, clients: 1, alerts: 0, companies: ["HealthCare Inc."] },
+    "GA": { status: "compliant", revenue: 15000, clients: 1, alerts: 0, companies: ["GlobalFin Solutions"] },
+    "AZ": { status: "compliant", revenue: 12000, clients: 1, alerts: 0, companies: ["E-commerce Hub"] },
+    "NV": { status: "compliant", revenue: 8000, clients: 1, alerts: 0, companies: ["E-commerce Hub"] },
+    "CO": { status: "warning", revenue: 89000, clients: 1, alerts: 1, companies: ["Logistics Corp"] },
+    "UT": { status: "compliant", revenue: 45000, clients: 1, alerts: 0, companies: ["Logistics Corp"] },
+    "OR": { status: "compliant", revenue: 8000, clients: 1, alerts: 0, companies: ["Manufacturing Co."] }
   };
+
+  // Custom states configuration for the map
+  const customStates = useMemo(() => {
+    const settings: any = {};
+
+    StateAbbreviations.forEach((state) => {
+      const data = nexusData[state as keyof typeof nexusData];
+      
+      if (data) {
+        let fillColor = '#374151';
+        let strokeColor = '#6b7280';
+        
+        switch (data.status) {
+          case 'critical':
+            fillColor = '#ef4444';
+            strokeColor = '#dc2626';
+            break;
+          case 'warning':
+            fillColor = '#f59e0b';
+            strokeColor = '#d97706';
+            break;
+          case 'pending':
+            fillColor = '#3b82f6';
+            strokeColor = '#2563eb';
+            break;
+          case 'compliant':
+            fillColor = '#10b981';
+            strokeColor = '#059669';
+            break;
+          case 'transit':
+            fillColor = '#06b6d4';
+            strokeColor = '#0891b2';
+            break;
+        }
+        
+        if (selectedState === state) {
+          strokeColor = '#3b82f6';
+        }
+        
+        settings[state] = {
+          fill: fillColor,
+          stroke: strokeColor,
+          strokeWidth: selectedState === state ? 3 : 1,
+          onClick: () => setSelectedState(selectedState === state ? null : state),
+          onHover: () => {},
+          onLeave: () => {},
+          label: {
+            enabled: true,
+            render: (stateAbbr: USAStateAbbreviation) => (
+              <text 
+                fontSize="12" 
+                fill="white" 
+                fontWeight="bold"
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {stateAbbr}
+              </text>
+            ),
+          },
+          tooltip: {
+            enabled: true,
+            render: (stateAbbr: USAStateAbbreviation) => (
+              <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600">
+                <h4 className="font-bold text-lg mb-2">{stateAbbr}</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Clients:</span>
+                    <span className="font-semibold">{data.clients}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Revenue:</span>
+                    <span className="font-semibold">${(data.revenue / 1000).toFixed(0)}K</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Alerts:</span>
+                    <span className={`font-semibold ${data.alerts > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                      {data.alerts}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Status:</span>
+                    <span className={`font-semibold ${
+                      data.status === 'critical' ? 'text-red-400' :
+                      data.status === 'warning' ? 'text-amber-400' :
+                      data.status === 'pending' ? 'text-blue-400' :
+                      data.status === 'transit' ? 'text-cyan-400' :
+                      'text-green-400'
+                    }`}>
+                      {data.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+        };
+      } else {
+        // Default styling for states without nexus data
+        settings[state] = {
+          fill: '#374151',
+          stroke: '#6b7280',
+          strokeWidth: 1,
+          onClick: () => setSelectedState(selectedState === state ? null : state),
+          label: {
+            enabled: true,
+            render: (stateAbbr: USAStateAbbreviation) => (
+              <text 
+                fontSize="12" 
+                fill="white" 
+                fontWeight="bold"
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {stateAbbr}
+              </text>
+            ),
+          },
+        };
+      }
+    });
+
+    return settings;
+  }, [selectedState]);
 
   // Sample client data
   const clients: Client[] = [
@@ -708,77 +830,88 @@ const TaxManagerMonitoring = () => {
 
           {/* Interactive US Map */}
           <div className="flex-1 relative bg-gray-800/50 rounded-lg overflow-hidden">
-            <svg viewBox="0 0 800 500" className="w-full h-full">
-              {/* US States with Nexus Data */}
-              {Object.entries({
-                "CA": { path: "M 50 200 L 200 200 L 200 400 L 50 400 Z", status: "critical", revenue: 525000, clients: 2, alerts: 3 },
-                "TX": { path: "M 300 300 L 450 300 L 450 400 L 300 400 Z", status: "warning", revenue: 485000, clients: 1, alerts: 2 },
-                "FL": { path: "M 500 100 L 600 100 L 600 200 L 500 200 Z", status: "pending", revenue: 28000, clients: 1, alerts: 0 },
-                "IL": { path: "M 400 150 L 500 150 L 500 200 L 400 200 Z", status: "compliant", revenue: 18000, clients: 1, alerts: 0 },
-                "WA": { path: "M 50 50 L 200 50 L 200 100 L 50 100 Z", status: "transit", revenue: 16000, clients: 1, alerts: 2 }
-              }).map(([code, data]) => {
-                const isSelected = selectedState === code;
-                
-                let fillColor = '#374151';
-                let strokeColor = '#6b7280';
-                
-                switch (data.status) {
-                  case 'critical': fillColor = '#ef4444'; strokeColor = '#dc2626'; break;
-                  case 'warning': fillColor = '#f59e0b'; strokeColor = '#d97706'; break;
-                  case 'pending': fillColor = '#3b82f6'; strokeColor = '#2563eb'; break;
-                  case 'compliant': fillColor = '#10b981'; strokeColor = '#059669'; break;
-                  case 'transit': fillColor = '#06b6d4'; strokeColor = '#0891b2'; break;
-                }
-                
-                if (isSelected) strokeColor = '#3b82f6';
-                
-                return (
-                  <g key={code}>
-                    <path
-                      d={data.path}
-                      fill={fillColor}
-                      stroke={strokeColor}
-                      strokeWidth={isSelected ? 3 : 1}
-                      className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                      onClick={() => setSelectedState(selectedState === code ? null : code)}
-                    />
-                    <text
-                      x={getStateCenter(code).x}
-                      y={getStateCenter(code).y}
-                      textAnchor="middle"
-                      className="text-xs font-semibold fill-white pointer-events-none"
-                    >
-                      {code}
-                    </text>
-                    {data.clients > 0 && (
-                      <circle
-                        cx={getStateCenter(code).x}
-                        cy={getStateCenter(code).y - 10}
-                        r="6"
-                        fill="white"
-                        stroke={strokeColor}
-                        strokeWidth="2"
-                        className="animate-pulse"
-                      />
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
+            <div className="w-full h-full">
+              <USAMap 
+                customStates={customStates}
+                hiddenStates={['AK', 'HI']}
+                mapSettings={{
+                  width: '100%',
+                  height: '100%'
+                }}
+                className="w-full h-full"
+              />
+            </div>
+
+            {/* State Info Panel */}
+            {selectedState && nexusData[selectedState as keyof typeof nexusData] && (
+              <div className="absolute top-4 right-4 bg-gray-800/90 border border-gray-600 rounded-lg shadow-lg p-4 min-w-[250px] backdrop-blur-sm">
+                {(() => {
+                  const stateData = nexusData[selectedState as keyof typeof nexusData];
+                  
+                  return (
+                    <div>
+                      <h4 className="font-bold text-lg text-white mb-2">{selectedState}</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Clients:</span>
+                          <span className="font-semibold text-white">{stateData.clients}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Revenue:</span>
+                          <span className="font-semibold text-white">${(stateData.revenue / 1000).toFixed(0)}K</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Alerts:</span>
+                          <span className={`font-semibold ${stateData.alerts > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                            {stateData.alerts}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-400">Status:</span>
+                          <span className={`font-semibold ${
+                            stateData.status === 'critical' ? 'text-red-400' :
+                            stateData.status === 'warning' ? 'text-amber-400' :
+                            stateData.status === 'pending' ? 'text-blue-400' :
+                            stateData.status === 'transit' ? 'text-cyan-400' :
+                            'text-green-400'
+                          }`}>
+                            {stateData.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="mt-3">
+                          <p className="text-xs text-gray-500 mb-1">Companies:</p>
+                          {stateData.companies.map((company, index) => (
+                            <p key={index} className="text-xs text-gray-300">• {company}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Legend */}
             <div className="absolute bottom-4 left-4 bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
               <div className="flex flex-wrap gap-3">
                 <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
                   <span className="text-xs text-gray-300">Critical</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-amber-500 shadow-sm"></div>
                   <span className="text-xs text-gray-300">Warning</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></div>
+                  <span className="text-xs text-gray-300">Pending</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-3 h-3 rounded-full bg-cyan-500 shadow-sm"></div>
+                  <span className="text-xs text-gray-300">Transit</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm"></div>
                   <span className="text-xs text-gray-300">Compliant</span>
                 </div>
               </div>
