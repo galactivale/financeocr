@@ -391,10 +391,208 @@ const TaxManagerMonitoring = () => {
         </div>
 
 
-        {/* Rest of left pane content can go here */}
-        <div className="flex-1">
-          {/* Additional content area */}
-        </div>
+                    {/* Client Nexus Status Cards */}
+                    <div className="flex-1 space-y-4 overflow-y-auto">
+                      {/* Card 1 - Critical Status */}
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-white font-bold text-lg">TC2043892CA</h3>
+                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">CRITICAL</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">CA</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">California, USA</p>
+                            <p className="text-gray-400 text-xs">OCT 15, 2024</p>
+                          </div>
+                          
+                          <div className="flex items-center mx-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <div className="w-16 h-0.5 border-t-2 border-dashed border-gray-500 mx-2"></div>
+                              <div className="bg-gray-600/50 rounded px-2 py-1">
+                                <span className="text-white text-xs">$525K</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 text-right">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">NY</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">New York, USA</p>
+                            <p className="text-gray-400 text-xs">DEC 20, 2024</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 2 - Warning Status */}
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-white font-bold text-lg">RC3840291TX</h3>
+                          <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold">WARNING</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">TX</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Texas, USA</p>
+                            <p className="text-gray-400 text-xs">SEP 18, 2024</p>
+                          </div>
+                          
+                          <div className="flex items-center mx-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <div className="w-16 h-0.5 border-t-2 border-dashed border-gray-500 mx-2"></div>
+                              <div className="bg-gray-600/50 rounded px-2 py-1">
+                                <span className="text-white text-xs">$485K</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 text-right">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">CA</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">California, USA</p>
+                            <p className="text-gray-400 text-xs">NOV 20, 2024</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 3 - Pending Status */}
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-white font-bold text-lg">GF9982736FL</h3>
+                          <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold">PENDING</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">FL</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Florida, USA</p>
+                            <p className="text-gray-400 text-xs">OCT 2, 2024</p>
+                          </div>
+                          
+                          <div className="flex items-center mx-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <div className="w-16 h-0.5 border-t-2 border-dashed border-gray-500 mx-2"></div>
+                              <div className="bg-gray-600/50 rounded px-2 py-1">
+                                <span className="text-white text-xs">$28K</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 text-right">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">GA</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Georgia, USA</p>
+                            <p className="text-gray-400 text-xs">DEC 2, 2024</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 4 - Compliant Status */}
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-white font-bold text-lg">HC5678920IL</h3>
+                          <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">COMPLIANT</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">IL</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Illinois, USA</p>
+                            <p className="text-gray-400 text-xs">AUG 10, 2024</p>
+                          </div>
+                          
+                          <div className="flex items-center mx-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <div className="w-16 h-0.5 border-t-2 border-dashed border-gray-500 mx-2"></div>
+                              <div className="bg-gray-600/50 rounded px-2 py-1">
+                                <span className="text-white text-xs">$18K</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 text-right">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">PA</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Pennsylvania, USA</p>
+                            <p className="text-gray-400 text-xs">OCT 15, 2024</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 5 - In Transit Status */}
+                      <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-white font-bold text-lg">MC8495732WA</h3>
+                          <span className="bg-cyan-500 text-white px-3 py-1 rounded-full text-xs font-semibold">IN TRANSIT</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">WA</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Washington, USA</p>
+                            <p className="text-gray-400 text-xs">SEP 22, 2024</p>
+                          </div>
+                          
+                          <div className="flex items-center mx-4">
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                                </svg>
+                              </div>
+                              <div className="w-16 h-0.5 border-t-2 border-dashed border-gray-500 mx-2"></div>
+                              <div className="bg-gray-600/50 rounded px-2 py-1">
+                                <span className="text-white text-xs">$16K</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 text-right">
+                            <div className="bg-gray-600/50 rounded px-2 py-1 mb-2 inline-block">
+                              <span className="text-white text-sm font-medium">OR</span>
+                            </div>
+                            <p className="text-gray-300 text-sm">Oregon, USA</p>
+                            <p className="text-gray-400 text-xs">NOV 18, 2024</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
       </div>
 
       {/* Right Pane - Dark Glass */}
