@@ -13,146 +13,207 @@ const USStatesMap = dynamic(
   }
 );
 
-// Tax Manager specific cards
+// Tax Manager specific cards with Apple design
 const CardActiveAlerts = () => (
-  <Card className="xl:max-w-sm bg-default-50 flex flex-col w-full">
-    <CardHeader className="flex flex-row !items-start !space-x-3 !space-y-0">
-      <div className="flex flex-col">
-        <p className="text-xs font-medium uppercase text-danger">Active Alerts</p>
-        <p className="text-2xl font-bold">8</p>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Active Alerts</h3>
+          <p className="text-gray-400 text-xs font-medium">Critical notifications</p>
+        </div>
       </div>
-      <div className="text-danger">🚨</div>
-    </CardHeader>
-    <CardBody className="pt-0">
-      <div className="flex gap-2">
-        <span className="text-xs text-danger">+2</span>
-        <span className="text-xs text-default-500">new today</span>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">8</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <span className="text-red-400 text-sm font-medium">+2 new</span>
+        </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-red-500 h-1 rounded-full" style={{width: '75%'}}></div>
+      </div>
+    </div>
+  </div>
 );
 
 const CardThresholdMonitoring = () => (
-  <Card className="xl:max-w-sm bg-default-50 flex flex-col w-full">
-    <CardHeader className="flex flex-row !items-start !space-x-3 !space-y-0">
-      <div className="flex flex-col">
-        <p className="text-xs font-medium uppercase text-warning">Threshold Monitoring</p>
-        <p className="text-2xl font-bold">23</p>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Threshold Monitoring</h3>
+          <p className="text-gray-400 text-xs font-medium">Approaching limits</p>
+        </div>
       </div>
-      <div className="text-warning">⏰</div>
-    </CardHeader>
-    <CardBody className="pt-0">
-      <div className="flex gap-2">
-        <span className="text-xs text-warning">+5</span>
-        <span className="text-xs text-default-500">approaching limits</span>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">23</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+          <span className="text-orange-400 text-sm font-medium">+5 approaching</span>
+        </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-orange-500 h-1 rounded-full" style={{width: '60%'}}></div>
+      </div>
+    </div>
+  </div>
 );
 
 const CardResolvedToday = () => (
-  <Card className="xl:max-w-sm bg-default-50 flex flex-col w-full">
-    <CardHeader className="flex flex-row !items-start !space-x-3 !space-y-0">
-      <div className="flex flex-col">
-        <p className="text-xs font-medium uppercase text-success">Resolved Today</p>
-        <p className="text-2xl font-bold">15</p>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Resolved Today</h3>
+          <p className="text-gray-400 text-xs font-medium">Completed tasks</p>
+        </div>
       </div>
-      <div className="text-success">✅</div>
-    </CardHeader>
-    <CardBody className="pt-0">
-      <div className="flex gap-2">
-        <span className="text-xs text-success">+3</span>
-        <span className="text-xs text-default-500">vs yesterday</span>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">15</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-400 text-sm font-medium">+3 vs yesterday</span>
+        </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-green-500 h-1 rounded-full" style={{width: '85%'}}></div>
+      </div>
+    </div>
+  </div>
 );
 
 const CardPriorityAlerts = () => (
-  <Card className="w-full p-4">
-    <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-      <h4 className="font-bold text-large">Priority Alerts</h4>
-    </CardHeader>
-    <CardBody className="overflow-visible py-2">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between p-3 bg-danger-50 dark:bg-danger-900/20 rounded-lg">
-          <div>
-            <p className="font-medium text-danger">TechCorp Inc - California</p>
-            <p className="text-sm text-danger-600">$850K sales, 15 days to register</p>
+  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-white font-semibold text-lg tracking-tight">Priority Alerts</h3>
+      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+    </div>
+    <div className="space-y-3">
+      <div className="group bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20 p-4 hover:bg-red-500/15 transition-all duration-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">TechCorp Inc - California</p>
+              <p className="text-xs text-red-400">$850K sales, 15 days to register</p>
+            </div>
           </div>
-          <span className="text-xs bg-danger-100 dark:bg-danger-800 text-danger-800 dark:text-danger-200 px-2 py-1 rounded">
+          <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
             CRITICAL
           </span>
         </div>
-        <div className="flex items-center justify-between p-3 bg-warning-50 dark:bg-warning-900/20 rounded-lg">
-          <div>
-            <p className="font-medium text-warning">RetailPlus LLC - Texas</p>
-            <p className="text-sm text-warning-600">$600K sales, approaching threshold</p>
+      </div>
+      <div className="group bg-orange-500/10 backdrop-blur-sm rounded-xl border border-orange-500/20 p-4 hover:bg-orange-500/15 transition-all duration-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">RetailPlus LLC - Texas</p>
+              <p className="text-xs text-orange-400">$600K sales, approaching threshold</p>
+            </div>
           </div>
-          <span className="text-xs bg-warning-100 dark:bg-warning-800 text-warning-800 dark:text-warning-200 px-2 py-1 rounded">
+          <span className="px-2 py-1 bg-orange-500 text-white text-xs font-medium rounded-full">
             HIGH
           </span>
         </div>
-        <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-          <div>
-            <p className="font-medium text-primary">ServiceCo - New York</p>
-            <p className="text-sm text-primary-600">Registration completed, awaiting confirmation</p>
+      </div>
+      <div className="group bg-blue-500/10 backdrop-blur-sm rounded-xl border border-blue-500/20 p-4 hover:bg-blue-500/15 transition-all duration-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">ServiceCo - New York</p>
+              <p className="text-xs text-blue-400">Registration completed, awaiting confirmation</p>
+            </div>
           </div>
-          <span className="text-xs bg-primary-100 dark:bg-primary-800 text-primary-800 dark:text-primary-200 px-2 py-1 rounded">
+          <span className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
             PENDING
           </span>
         </div>
       </div>
-    </CardBody>
-  </Card>
+    </div>
+  </div>
 );
 
 const CardStateAnalysis = () => (
-  <Card className="w-full p-4">
-    <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-      <h4 className="font-bold text-large">State-by-State Analysis</h4>
-    </CardHeader>
-    <CardBody className="overflow-visible py-2">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">California</span>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-danger">3 alerts</span>
-            <div className="w-16 bg-default-200 rounded-full h-2">
-              <div className="bg-danger h-2 rounded-full" style={{width: '75%'}}></div>
-            </div>
-          </div>
+  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-white font-semibold text-lg tracking-tight">State Analysis</h3>
+      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+    </div>
+    <div className="space-y-4">
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">California</span>
+          <span className="text-red-400 text-sm font-medium">3 alerts</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Texas</span>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-warning">2 alerts</span>
-            <div className="w-16 bg-default-200 rounded-full h-2">
-              <div className="bg-warning h-2 rounded-full" style={{width: '50%'}}></div>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">New York</span>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-success">1 alert</span>
-            <div className="w-16 bg-default-200 rounded-full h-2">
-              <div className="bg-success h-2 rounded-full" style={{width: '25%'}}></div>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Florida</span>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-success">0 alerts</span>
-            <div className="w-16 bg-default-200 rounded-full h-2">
-              <div className="bg-success h-2 rounded-full" style={{width: '10%'}}></div>
-            </div>
-          </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-red-500 h-1.5 rounded-full transition-all duration-500" style={{width: '75%'}}></div>
         </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">Texas</span>
+          <span className="text-orange-400 text-sm font-medium">2 alerts</span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-500" style={{width: '50%'}}></div>
+        </div>
+      </div>
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">New York</span>
+          <span className="text-green-400 text-sm font-medium">1 alert</span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '25%'}}></div>
+        </div>
+      </div>
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">Florida</span>
+          <span className="text-green-400 text-sm font-medium">0 alerts</span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '10%'}}></div>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
 // Nexus Activity Table Component
@@ -331,52 +392,70 @@ const NexusActivityTable = () => {
 
 export default function TaxManagerDashboard() {
   return (
-    <div className="h-full lg:px-6">
-      <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-        <div className="mt-6 gap-6 flex flex-col w-full">
-          {/* Card Section Top */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-xl font-semibold">Nexus Monitoring Overview</h3>
-            <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-5 justify-center w-full">
-              <CardActiveAlerts />
-              <CardThresholdMonitoring />
-              <CardResolvedToday />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+      <div className="h-full lg:px-6">
+        <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
+          <div className="mt-6 gap-8 flex flex-col w-full">
+            {/* Card Section Top */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Monitoring Overview</h2>
+              </div>
+              <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
+                <CardActiveAlerts />
+                <CardThresholdMonitoring />
+                <CardResolvedToday />
+              </div>
+            </div>
+
+            {/* U.S. States Map */}
+            <div className="h-full flex flex-col gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Client Distribution Map</h2>
+              </div>
+              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+                <USStatesMap />
+              </div>
             </div>
           </div>
 
-          {/* U.S. States Map */}
-          <div className="h-full flex flex-col gap-2">
-            <h3 className="text-xl font-semibold">Nexus Client Distribution Map</h3>
-            <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
-              <USStatesMap />
+          {/* Right Section */}
+          <div className="mt-4 gap-6 flex flex-col xl:max-w-md w-full">
+            <div className="flex items-center space-x-3">
+              <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">Alert Management</h2>
+            </div>
+            <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
+              <CardPriorityAlerts />
+              <CardStateAnalysis />
             </div>
           </div>
         </div>
 
-        {/* Right Section */}
-        <div className="mt-4 gap-2 flex flex-col xl:max-w-md w-full">
-          <h3 className="text-xl font-semibold">Alert Management</h3>
-          <div className="flex flex-col justify-center gap-4 flex-wrap md:flex-nowrap md:flex-col">
-            <CardPriorityAlerts />
-            <CardStateAnalysis />
+        {/* Table Recent Nexus Activity */}
+        <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
+          <div className="flex flex-wrap justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">Recent Nexus Activity</h2>
+            </div>
+            <Link
+              href="/dashboard/tax-manager/alerts"
+              as={NextLink}
+              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+            >
+              <span className="text-sm font-medium">View All</span>
+              <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+            <NexusActivityTable />
           </div>
         </div>
-      </div>
-
-      {/* Table Recent Nexus Activity */}
-      <div className="flex flex-col justify-center w-full py-5 px-4 lg:px-0 max-w-[90rem] mx-auto gap-3">
-        <div className="flex flex-wrap justify-between">
-          <h3 className="text-center text-xl font-semibold">Recent Nexus Activity</h3>
-          <Link
-            href="/dashboard/tax-manager/alerts"
-            as={NextLink}
-            color="primary"
-            className="cursor-pointer"
-          >
-            View All
-          </Link>
-        </div>
-        <NexusActivityTable />
       </div>
     </div>
   );
