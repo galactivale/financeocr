@@ -352,127 +352,13 @@ const TaxManagerMonitoring = () => {
 
   return (
     <div className="w-full h-screen flex bg-blue-600">
-      {/* Left Pane - Monitoring Data */}
-      <div className="w-1/2 p-6 overflow-y-auto">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-white">NEXUS MONITORING</h1>
-              <div className="flex items-center space-x-2">
-                <Button isIconOnly size="sm" variant="light" className="text-white">
-                  ⚙️
-                </Button>
-                <Button isIconOnly size="sm" variant="light" className="text-white">
-                  🔔
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex items-center space-x-4">
-            <Button
-              size="sm"
-              variant={activeTab === "nexus" ? "solid" : "light"}
-              color={activeTab === "nexus" ? "primary" : "default"}
-              className={activeTab === "nexus" ? "bg-blue-500 text-white" : "text-white"}
-              onPress={() => setActiveTab("nexus")}
-            >
-              👤
-            </Button>
-            <Button
-              size="sm"
-              variant={activeTab === "nexus" ? "solid" : "light"}
-              color={activeTab === "nexus" ? "primary" : "default"}
-              className={activeTab === "nexus" ? "bg-blue-500 text-white" : "text-white"}
-              onPress={() => setActiveTab("nexus")}
-            >
-              ⚡
-            </Button>
-            <Button
-              size="sm"
-              variant="light"
-              className="text-white"
-              onPress={() => setActiveTab("analytics")}
-            >
-              📊
-            </Button>
-            <Button
-              size="sm"
-              variant="light"
-              className="text-white"
-              onPress={() => setActiveTab("alerts")}
-            >
-              🔔
-            </Button>
-          </div>
-
-          {/* Circular Gauges */}
-          <div className="flex justify-between">
-            <CircularGauge value={75} label="THRESHOLD" color="orange" />
-            <CircularGauge value={17} label="COMPLIANCE" color="yellow" />
-            <CircularGauge value={34} label="RISK LEVEL" color="purple" />
-          </div>
-
-          {/* Line Graphs */}
-          <div className="space-y-4">
-            <LineGraph
-              title="FREQUENCY"
-              status="Normal"
-              currentValue="59.450 Hz"
-              change="-0.0043"
-              changePercent="-0.78%"
-              data={frequencyData}
-            />
-            <LineGraph
-              title="THRESHOLD"
-              status="Normal"
-              currentValue="750 Mw"
-              change="-0.0021"
-              changePercent="-0.16%"
-              data={thresholdData}
-            />
-          </div>
-
-          {/* Data Table */}
-          <div className="bg-gray-800 rounded-lg p-4">
-            <Table aria-label="Client monitoring table" className="text-white">
-              <TableHeader>
-                <TableColumn className="text-white">CLIENT</TableColumn>
-                <TableColumn className="text-white">DR</TableColumn>
-                <TableColumn className="text-white">FREQUENCY</TableColumn>
-                <TableColumn className="text-white">MAGNITUDE</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {filteredClients.slice(0, 6).map((client, index) => (
-                  <TableRow key={client.id} className="text-white">
-                    <TableCell>
-                      <span className="font-mono text-sm">Client{index + 1}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`text-sm ${client.thresholdProgress > 90 ? 'text-red-400' : 'text-white'}`}>
-                        {client.thresholdProgress > 90 ? '-' : ''}{client.thresholdProgress.toFixed(2)}%
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-white">0.{client.riskScore.toString().padStart(2, '0')}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`text-sm ${client.alerts > 0 ? 'text-orange-400' : 'text-white'}`}>
-                        {client.alerts > 0 ? (client.alerts * 10).toFixed(1) : '0.0'}M
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+      {/* Left Pane - Blank */}
+      <div className="w-1/4 p-6 overflow-hidden">
+        {/* Blank left pane */}
       </div>
 
       {/* Right Pane - Interactive US Map */}
-      <div className="w-1/2 p-6 bg-gray-900">
+      <div className="w-3/4 p-6 bg-gray-900">
         <div className="h-full flex flex-col">
           {/* Map Header */}
           <div className="flex items-center justify-between mb-4">
