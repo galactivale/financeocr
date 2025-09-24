@@ -55,9 +55,21 @@ const TaxManagerMonitoring = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mapFocusState, setMapFocusState] = useState<string | null>(null);
   const [isStatusOverviewOpen, setIsStatusOverviewOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleClientCardClick = (client: Client) => {
+    setSelectedClient(client);
+    setIsDetailsPanelOpen(true);
+  };
+
+  const handleCloseDetailsPanel = () => {
+    setIsDetailsPanelOpen(false);
+    setSelectedClient(null);
   };
 
   const handleMapStateClick = (stateCode: string) => {
@@ -497,7 +509,12 @@ const TaxManagerMonitoring = () => {
                   const secondaryState = client.states[1];
 
                   return (
-                    <div key={client.id} className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-3 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+                    <div 
+                      key={client.id} 
+                      className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-3 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer select-none"
+                      onClick={() => handleClientCardClick(client)}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
                       {/* Header */}
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
@@ -519,8 +536,15 @@ const TaxManagerMonitoring = () => {
                             <p className="text-gray-400 text-xs font-medium">{client.industry}</p>
                           </div>
                         </div>
-                        <div className={`px-2 py-1 ${getStatusColor(client.nexusStatus)} rounded-full`}>
-                          <span className="text-white text-xs font-semibold">{getStatusText(client.nexusStatus)}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className={`px-2 py-1 ${getStatusColor(client.nexusStatus)} rounded-full`}>
+                            <span className="text-white text-xs font-semibold">{getStatusText(client.nexusStatus)}</span>
+                          </div>
+                          <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                            <svg className="w-3 h-3 text-white group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
                         </div>
                       </div>
 
@@ -699,6 +723,148 @@ const TaxManagerMonitoring = () => {
           </div>
         </div>
       </div>
+
+      {/* Expandable Details Panel */}
+      {isDetailsPanelOpen && selectedClient && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={handleCloseDetailsPanel}
+          />
+          
+          {/* Details Panel */}
+          <div className="relative w-96 max-h-[80vh] bg-black/95 backdrop-blur-xl rounded-2xl border border-white/10 p-6 overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className={`w-10 h-10 ${
+                  selectedClient.nexusStatus === 'critical' ? 'bg-red-500/10' :
+                  selectedClient.nexusStatus === 'warning' ? 'bg-orange-500/10' :
+                  selectedClient.nexusStatus === 'pending' ? 'bg-blue-500/10' :
+                  selectedClient.nexusStatus === 'transit' ? 'bg-cyan-500/10' :
+                  'bg-green-500/10'
+                } rounded-xl flex items-center justify-center`}>
+                  <svg className={`w-5 h-5 ${
+                    selectedClient.nexusStatus === 'critical' ? 'text-red-500' :
+                    selectedClient.nexusStatus === 'warning' ? 'text-orange-500' :
+                    selectedClient.nexusStatus === 'pending' ? 'text-blue-500' :
+                    selectedClient.nexusStatus === 'transit' ? 'text-cyan-500' :
+                    'text-green-500'
+                  }`} fill="currentColor" viewBox="0 0 20 20">
+                    {selectedClient.nexusStatus === 'critical' || selectedClient.nexusStatus === 'warning' ? (
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    ) : selectedClient.nexusStatus === 'pending' ? (
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    ) : selectedClient.nexusStatus === 'transit' ? (
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    ) : (
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    )}
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-white text-lg font-semibold">{selectedClient.name}</h2>
+                  <p className="text-gray-400 text-sm">{selectedClient.industry}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleCloseDetailsPanel}
+                className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Nexus Status */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white font-medium">Nexus Status</h3>
+                <div className={`px-3 py-1 ${
+                  selectedClient.nexusStatus === 'critical' ? 'bg-red-500' :
+                  selectedClient.nexusStatus === 'warning' ? 'bg-orange-500' :
+                  selectedClient.nexusStatus === 'pending' ? 'bg-blue-500' :
+                  selectedClient.nexusStatus === 'transit' ? 'bg-cyan-500' :
+                  'bg-green-500'
+                } rounded-full`}>
+                  <span className="text-white text-sm font-semibold">
+                    {selectedClient.nexusStatus === 'critical' ? 'Critical' :
+                     selectedClient.nexusStatus === 'warning' ? 'Warning' :
+                     selectedClient.nexusStatus === 'pending' ? 'Pending' :
+                     selectedClient.nexusStatus === 'transit' ? 'In Transit' :
+                     'Compliant'}
+                  </span>
+                </div>
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                {selectedClient.nexusStatus === 'critical' ? 'This client has exceeded the $500K threshold and requires immediate registration in the affected states.' :
+                 selectedClient.nexusStatus === 'warning' ? 'This client is approaching the $500K threshold and should be monitored closely for potential registration requirements.' :
+                 selectedClient.nexusStatus === 'pending' ? 'This client is currently under review for nexus determination and compliance requirements.' :
+                 selectedClient.nexusStatus === 'transit' ? 'This client is actively being monitored for nexus compliance across multiple states.' :
+                 'This client is fully compliant with all nexus requirements and thresholds.'}
+              </p>
+            </div>
+
+            {/* Financial Information */}
+            <div className="mb-6">
+              <h3 className="text-white font-medium mb-3">Financial Overview</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Annual Revenue</span>
+                  <span className="text-white font-medium">{selectedClient.revenue}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Threshold Progress</span>
+                  <span className="text-white font-medium">{selectedClient.thresholdProgress}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Risk Score</span>
+                  <span className="text-white font-medium">{selectedClient.riskScore}/100</span>
+                </div>
+              </div>
+            </div>
+
+            {/* State Coverage */}
+            <div className="mb-6">
+              <h3 className="text-white font-medium mb-3">State Coverage</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedClient.states.map((state, index) => (
+                  <div key={index} className="bg-white/10 rounded-lg px-3 py-1">
+                    <span className="text-white text-sm font-medium">{state}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Alerts & Updates */}
+            <div className="mb-6">
+              <h3 className="text-white font-medium mb-3">Alerts & Updates</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Active Alerts</span>
+                  <span className="text-white font-medium">{selectedClient.alerts}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Last Update</span>
+                  <span className="text-white font-medium">{selectedClient.lastUpdate}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                View Details
+              </button>
+              <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                Generate Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </SidebarContext.Provider>
   );
 };
