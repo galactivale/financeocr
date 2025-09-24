@@ -334,7 +334,7 @@ const TaxManagerMonitoring = () => {
         {/* Main Content */}
         <div className="flex-1 flex">
           {/* Left Pane - Modern Nexus Monitoring */}
-          <div className="w-1/4 pt-5 px-3 bg-black flex flex-col">
+          <div className={`${isDetailsPanelOpen ? 'w-80' : 'w-1/4'} pt-5 px-3 bg-black flex flex-col transition-all duration-300 ease-in-out`}>
             {/* Modern Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
@@ -630,7 +630,7 @@ const TaxManagerMonitoring = () => {
           </div>
 
           {/* Right Pane - US Nexus Map */}
-          <div className="w-3/4 bg-black/95 backdrop-blur-sm p-4">
+          <div className="flex-1 bg-black/95 backdrop-blur-sm p-4">
             <div className="h-full flex flex-col">
               {/* Interactive US Map */}
               <div className="flex-1 relative bg-black rounded-lg overflow-hidden">
@@ -721,20 +721,10 @@ const TaxManagerMonitoring = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Expandable Details Panel */}
-      {isDetailsPanelOpen && selectedClient && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={handleCloseDetailsPanel}
-          />
-          
-          {/* Details Panel */}
-          <div className="relative w-96 max-h-[80vh] bg-black/95 backdrop-blur-xl rounded-2xl border border-white/10 p-6 overflow-y-auto">
+          {/* Inline Expandable Details Panel */}
+          {isDetailsPanelOpen && selectedClient && (
+            <div className="w-96 bg-black/95 backdrop-blur-xl border-l border-white/10 p-6 overflow-y-auto transition-all duration-300 ease-in-out">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
@@ -862,9 +852,10 @@ const TaxManagerMonitoring = () => {
                 Generate Report
               </button>
             </div>
-          </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </SidebarContext.Provider>
   );
 };
