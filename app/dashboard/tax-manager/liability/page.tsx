@@ -413,7 +413,7 @@ export default function TaxManagerLiability() {
                                 <span className={decision.documentation.peerReview ? 'text-green-400' : 'text-gray-400'}>
                                   {decision.documentation.peerReview ? '☑' : '☐'}
                                 </span>
-                                <span className="text-gray-300">Peer review (required for >$25K exposure)</span>
+                                <span className="text-gray-300">Peer review (required for &gt;$25K exposure)</span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <span className={decision.documentation.legalReview ? 'text-green-400' : 'text-gray-400'}>
