@@ -57,7 +57,6 @@ const TaxManagerMonitoring = () => {
   const [isStatusOverviewOpen, setIsStatusOverviewOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const [isZoomedIn, setIsZoomedIn] = useState(false);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -70,7 +69,6 @@ const TaxManagerMonitoring = () => {
     if (client.states && client.states.length > 0) {
       setMapFocusState(client.states[0]);
       setSelectedState(client.states[0]);
-      setIsZoomedIn(true);
     }
   };
 
@@ -80,7 +78,6 @@ const TaxManagerMonitoring = () => {
     // Clear map focus when closing the details panel
     setMapFocusState(null);
     setSelectedState(null);
-    setIsZoomedIn(false);
   };
 
   const handleMapStateClick = (stateCode: string) => {
@@ -88,79 +85,11 @@ const TaxManagerMonitoring = () => {
       // If clicking the same state, clear the filter
       setMapFocusState(null);
       setSelectedState(null);
-      setIsZoomedIn(false);
     } else {
       // Set new focus state
       setMapFocusState(stateCode);
       setSelectedState(stateCode);
-      setIsZoomedIn(true);
     }
-  };
-
-  const handleMapBackgroundClick = () => {
-    // Zoom out when clicking on the map background
-    if (isZoomedIn) {
-      setMapFocusState(null);
-      setSelectedState(null);
-      setIsZoomedIn(false);
-    }
-  };
-
-  // Get approximate center position for each state for better scaling
-  const getStateCenter = (stateCode: string) => {
-    const stateCenters: { [key: string]: { x: number; y: number } } = {
-      'CA': { x: 15, y: 35 },
-      'TX': { x: 45, y: 55 },
-      'FL': { x: 75, y: 70 },
-      'NY': { x: 80, y: 25 },
-      'IL': { x: 55, y: 30 },
-      'PA': { x: 75, y: 30 },
-      'OH': { x: 65, y: 35 },
-      'GA': { x: 70, y: 50 },
-      'NC': { x: 75, y: 45 },
-      'MI': { x: 60, y: 25 },
-      'NJ': { x: 80, y: 30 },
-      'VA': { x: 75, y: 40 },
-      'WA': { x: 15, y: 15 },
-      'AZ': { x: 25, y: 50 },
-      'MA': { x: 85, y: 25 },
-      'TN': { x: 60, y: 45 },
-      'IN': { x: 60, y: 35 },
-      'MO': { x: 50, y: 40 },
-      'MD': { x: 80, y: 35 },
-      'WI': { x: 55, y: 25 },
-      'CO': { x: 35, y: 40 },
-      'MN': { x: 50, y: 20 },
-      'SC': { x: 75, y: 50 },
-      'AL': { x: 65, y: 55 },
-      'LA': { x: 50, y: 60 },
-      'KY': { x: 65, y: 40 },
-      'OR': { x: 10, y: 25 },
-      'OK': { x: 45, y: 50 },
-      'CT': { x: 85, y: 30 },
-      'UT': { x: 25, y: 40 },
-      'IA': { x: 50, y: 30 },
-      'NV': { x: 20, y: 35 },
-      'AR': { x: 55, y: 50 },
-      'MS': { x: 60, y: 60 },
-      'KS': { x: 45, y: 40 },
-      'NM': { x: 30, y: 55 },
-      'NE': { x: 45, y: 35 },
-      'WV': { x: 70, y: 40 },
-      'ID': { x: 20, y: 25 },
-      'HI': { x: 25, y: 80 },
-      'NH': { x: 85, y: 20 },
-      'ME': { x: 85, y: 15 },
-      'RI': { x: 85, y: 30 },
-      'MT': { x: 30, y: 20 },
-      'DE': { x: 80, y: 35 },
-      'SD': { x: 45, y: 25 },
-      'ND': { x: 45, y: 15 },
-      'AK': { x: 15, y: 5 },
-      'VT': { x: 80, y: 20 },
-      'WY': { x: 35, y: 30 }
-    };
-    return stateCenters[stateCode] || { x: 50, y: 50 };
   };
 
   // Nexus data for states
@@ -187,9 +116,17 @@ const TaxManagerMonitoring = () => {
     StateAbbreviations.forEach((state) => {
       const data = nexusData[state as keyof typeof nexusData];
       
-      // If a state is focused (from client card click), reduce opacity of other states
-      const isFocusedState = mapFocusState === state;
-      const opacity = isFocusedState ? 1 : (mapFocusState ? 0.3 : 1);
+      // If a state is focused (from client card click), hide other states
+      if (mapFocusState && mapFocusState !== state) {
+        settings[state] = {
+          fill: 'transparent',
+          stroke: 'transparent',
+          strokeWidth: 0,
+          onClick: () => handleMapStateClick(state),
+          label: { enabled: false },
+        };
+        return;
+      }
       
       // Always set label configuration for all states
       const labelConfig = {
@@ -249,7 +186,6 @@ const TaxManagerMonitoring = () => {
           onHover: () => {},
           onLeave: () => {},
           label: labelConfig,
-          opacity: opacity,
         };
       } else {
         // Default styling for states without nexus data
@@ -259,7 +195,6 @@ const TaxManagerMonitoring = () => {
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
           label: labelConfig,
-          opacity: opacity,
         };
       }
     });
@@ -718,10 +653,7 @@ const TaxManagerMonitoring = () => {
           <div className="flex-1 bg-black/95 backdrop-blur-sm p-4">
             <div className="h-full flex flex-col">
               {/* Interactive US Map */}
-              <div 
-                className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out cursor-pointer"
-                onClick={handleMapBackgroundClick}
-              >
+              <div className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out">
                 {/* Cool Background Pattern */}
                 <div className="absolute inset-0 opacity-20">
                   {/* Grid Pattern */}
@@ -749,14 +681,7 @@ const TaxManagerMonitoring = () => {
                   <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
                 </div>
                 
-                <div 
-                  className="w-full h-full relative z-10"
-                  style={{
-                    transformOrigin: isZoomedIn && mapFocusState 
-                      ? `${getStateCenter(mapFocusState).x}% ${getStateCenter(mapFocusState).y}%`
-                      : 'center center'
-                  }}
-                >
+                <div className="w-full h-full relative z-10">
                   <USAMap 
                     customStates={customStates}
                     hiddenStates={['AK', 'HI']}
@@ -764,9 +689,7 @@ const TaxManagerMonitoring = () => {
                       width: '100%',
                       height: '100%'
                     }}
-                    className={`w-full h-full transition-transform duration-500 ease-in-out ${
-                      isZoomedIn && mapFocusState ? 'scale-150' : 'scale-100'
-                    }`}
+                    className="w-full h-full"
                     defaultState={{
                       label: {
                         enabled: true,
@@ -923,7 +846,6 @@ const TaxManagerMonitoring = () => {
                     onClick={() => {
                       setMapFocusState(state);
                       setSelectedState(state);
-                      setIsZoomedIn(true);
                     }}
                     className={`rounded-lg px-3 py-1 transition-all duration-200 ${
                       mapFocusState === state 
