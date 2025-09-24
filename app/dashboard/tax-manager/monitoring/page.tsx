@@ -422,6 +422,14 @@ const TaxManagerMonitoring = () => {
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Prevent body scrolling for full-screen experience
+    document.body.style.overflow = 'hidden';
+    
+    // Cleanup: restore scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, []);
 
   useEffect(() => {
@@ -486,7 +494,7 @@ const TaxManagerMonitoring = () => {
   }
 
   return (
-    <div className="w-full h-screen flex bg-blue-600 overflow-hidden">
+    <div className="fixed inset-0 w-full h-full flex bg-blue-600 overflow-hidden z-50">
       {/* Left Pane - World-Class Nexus Monitoring */}
       <div className="w-1/4 p-1 bg-black flex flex-col">
         {/* Premium Header */}
