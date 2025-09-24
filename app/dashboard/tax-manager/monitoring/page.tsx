@@ -353,8 +353,8 @@ const TaxManagerMonitoring = () => {
   return (
     <div className="w-full h-screen flex bg-blue-600">
       {/* Left Pane - Blank */}
-      <div className="w-1/4 p-6 overflow-hidden">
-        {/* Blank left pane */}
+      <div className="w-1/4 p-6 overflow-hidden bg-black/80 backdrop-blur-md border-r border-gray-700/50">
+        {/* Blank left pane with matted glass effect */}
       </div>
 
       {/* Right Pane - Interactive US Map */}
