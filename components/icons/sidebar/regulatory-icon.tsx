@@ -47,3 +47,7 @@ export const RegulatoryIcon = ({ size = 24, filled = false }: IconProps) => {
 
 
 
+
+
+
+

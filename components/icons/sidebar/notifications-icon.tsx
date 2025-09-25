@@ -18,3 +18,4 @@ export const NotificationsIcon = () => {
     </svg>
   );
 };
+

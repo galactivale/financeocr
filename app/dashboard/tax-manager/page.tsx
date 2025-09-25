@@ -260,7 +260,7 @@ const CardPriorityAlerts = () => (
       <h3 className="text-white font-semibold text-lg tracking-tight">Priority Alerts</h3>
       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
     </div>
-    <div className="space-y-3">
+      <div className="space-y-3">
       <div className="group bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20 p-4 hover:bg-red-500/15 transition-all duration-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -269,7 +269,7 @@ const CardPriorityAlerts = () => (
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
-            <div>
+          <div>
               <p className="font-medium text-white text-sm">TechCorp Inc - California</p>
               <p className="text-xs text-red-400">$850K sales, 15 days to register</p>
             </div>
@@ -287,7 +287,7 @@ const CardPriorityAlerts = () => (
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
-            <div>
+          <div>
               <p className="font-medium text-white text-sm">RetailPlus LLC - Texas</p>
               <p className="text-xs text-orange-400">$600K sales, approaching threshold</p>
             </div>
@@ -305,7 +305,7 @@ const CardPriorityAlerts = () => (
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
             </div>
-            <div>
+          <div>
               <p className="font-medium text-white text-sm">ServiceCo - New York</p>
               <p className="text-xs text-blue-400">Registration completed, awaiting confirmation</p>
             </div>
@@ -333,8 +333,8 @@ const CardStateAnalysis = () => (
         </div>
         <div className="w-full bg-white/10 rounded-full h-1.5">
           <div className="bg-red-500 h-1.5 rounded-full transition-all duration-500" style={{width: '75%'}}></div>
-        </div>
-      </div>
+            </div>
+          </div>
       <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
         <div className="flex items-center justify-between mb-2">
           <span className="text-white font-medium text-sm">Texas</span>
@@ -342,8 +342,8 @@ const CardStateAnalysis = () => (
         </div>
         <div className="w-full bg-white/10 rounded-full h-1.5">
           <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-500" style={{width: '50%'}}></div>
-        </div>
-      </div>
+            </div>
+          </div>
       <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
         <div className="flex items-center justify-between mb-2">
           <span className="text-white font-medium text-sm">New York</span>
@@ -351,8 +351,8 @@ const CardStateAnalysis = () => (
         </div>
         <div className="w-full bg-white/10 rounded-full h-1.5">
           <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '25%'}}></div>
-        </div>
-      </div>
+            </div>
+          </div>
       <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
         <div className="flex items-center justify-between mb-2">
           <span className="text-white font-medium text-sm">Florida</span>
@@ -360,10 +360,10 @@ const CardStateAnalysis = () => (
         </div>
         <div className="w-full bg-white/10 rounded-full h-1.5">
           <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '10%'}}></div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 );
 
 // Nexus Activity Table Component
@@ -543,23 +543,23 @@ const NexusActivityTable = () => {
 export default function TaxManagerDashboard() {
   return (
     <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6">
+    <div className="h-full lg:px-6">
         <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
           <div className="mt-6 gap-8 flex flex-col w-full">
-            {/* Card Section Top */}
+          {/* Card Section Top */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Monitoring Overview</h2>
               </div>
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
-                <CardActiveAlerts />
-                <CardThresholdMonitoring />
-                <CardResolvedToday />
-              </div>
+              <CardActiveAlerts />
+              <CardThresholdMonitoring />
+              <CardResolvedToday />
             </div>
+          </div>
 
-            {/* U.S. States Map */}
+          {/* U.S. States Map */}
             <div className="h-full flex flex-col gap-4">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-green-500 rounded-full"></div>
@@ -568,39 +568,39 @@ export default function TaxManagerDashboard() {
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
                 <EnhancedUSMap />
               </div>
-            </div>
           </div>
+        </div>
 
-          {/* Right Section */}
+        {/* Right Section */}
           <div className="mt-4 gap-6 flex flex-col xl:max-w-md w-full">
             <div className="flex items-center space-x-3">
               <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
               <h2 className="text-2xl font-semibold text-white tracking-tight">Alert Management</h2>
             </div>
             <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
-              <CardPriorityAlerts />
-              <CardStateAnalysis />
-            </div>
+            <CardPriorityAlerts />
+            <CardStateAnalysis />
           </div>
         </div>
+      </div>
 
-        {/* Table Recent Nexus Activity */}
+      {/* Table Recent Nexus Activity */}
         <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
           <div className="flex flex-wrap justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
               <h2 className="text-2xl font-semibold text-white tracking-tight">Recent Nexus Activity</h2>
             </div>
-            <Link
-              href="/dashboard/tax-manager/alerts"
-              as={NextLink}
+          <Link
+            href="/dashboard/tax-manager/alerts"
+            as={NextLink}
               className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
-            >
+          >
               <span className="text-sm font-medium">View All</span>
               <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </Link>
+          </Link>
           </div>
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
             <NexusActivityTable />

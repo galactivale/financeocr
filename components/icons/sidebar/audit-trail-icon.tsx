@@ -34,3 +34,4 @@ export const AuditTrailIcon = ({ size = 24, width, height, fill = "currentColor"
     </svg>
   );
 };
+
