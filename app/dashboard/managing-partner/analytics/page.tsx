@@ -10,6 +10,10 @@ import { ArrowTrendingDownIcon } from '@/components/icons/profile/arrow-trending
 import { ChartBarIcon } from '@/components/icons/profile/chart-bar-icon';
 import { CheckCircleIcon } from '@/components/icons/profile/check-circle-icon';
 import { ClockIcon } from '@/components/icons/profile/clock-icon';
+import { ROITrendChart } from '@/components/charts/roi-trend-chart';
+import { CostBenefitChart } from '@/components/charts/cost-benefit-chart';
+import { BenchmarkingChart } from '@/components/charts/benchmarking-chart';
+import { ScenarioChart } from '@/components/charts/scenario-chart';
 
 // Mock data for analytics dashboard
 const analyticsData = {
@@ -278,30 +282,10 @@ export default function AnalyticsPage() {
                         <h3 className="text-white font-semibold text-lg">Cost-Benefit Analysis</h3>
                       </CardHeader>
                       <CardBody>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="text-white font-medium mb-3">Investment Breakdown</h4>
-                            <div className="space-y-2">
-                              {Object.entries(analyticsData.roiAnalysis.costBreakdown).map(([key, value]) => (
-                                <div key={key} className="flex justify-between items-center">
-                                  <span className="text-gray-400 text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                  <span className="text-white font-semibold">{formatCurrency(value)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="border-t border-white/10 pt-4">
-                            <h4 className="text-white font-medium mb-3">Value Creation</h4>
-                            <div className="space-y-2">
-                              {Object.entries(analyticsData.roiAnalysis.valueBreakdown).map(([key, value]) => (
-                                <div key={key} className="flex justify-between items-center">
-                                  <span className="text-gray-400 text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                  <span className="text-green-400 font-semibold">{formatCurrency(value)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                        <CostBenefitChart 
+                          costData={analyticsData.roiAnalysis.costBreakdown}
+                          valueData={analyticsData.roiAnalysis.valueBreakdown}
+                        />
                       </CardBody>
                     </Card>
 
@@ -317,23 +301,14 @@ export default function AnalyticsPage() {
                             <div className="text-gray-400 text-sm">Industry Percentile</div>
                             <div className="text-green-400 text-xs mt-1">Top 5% Performance</div>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-400 text-sm">Industry Average</span>
-                              <span className="text-gray-300">{analyticsData.roiAnalysis.benchmarking.industryAverage}%</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-400 text-sm">Top Quartile</span>
-                              <span className="text-blue-400">{analyticsData.roiAnalysis.benchmarking.topQuartile}%</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-400 text-sm">Our Performance</span>
-                              <span className="text-green-500 font-bold">{analyticsData.roiAnalysis.benchmarking.ourPerformance}%</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-400 text-sm">Competitive Advantage</span>
-                              <span className="text-purple-500 font-bold">+{analyticsData.roiAnalysis.benchmarking.competitiveAdvantage}%</span>
-                            </div>
+                          <BenchmarkingChart 
+                            industryAverage={analyticsData.roiAnalysis.benchmarking.industryAverage}
+                            topQuartile={analyticsData.roiAnalysis.benchmarking.topQuartile}
+                            ourPerformance={analyticsData.roiAnalysis.benchmarking.ourPerformance}
+                          />
+                          <div className="flex justify-between items-center pt-2">
+                            <span className="text-gray-400 text-sm">Competitive Advantage</span>
+                            <span className="text-purple-500 font-bold">+{analyticsData.roiAnalysis.benchmarking.competitiveAdvantage}%</span>
                           </div>
                         </div>
                       </CardBody>
@@ -348,23 +323,7 @@ export default function AnalyticsPage() {
                         <h3 className="text-white font-semibold text-lg">Monthly ROI Trend Analysis</h3>
                       </CardHeader>
                       <CardBody>
-                        <div className="space-y-4">
-                          {analyticsData.roiAnalysis.trendAnalysis.monthly.map((month, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <div>
-                                  <div className="text-white font-medium">{month.month}</div>
-                                  <div className="text-gray-400 text-xs">ROI: {month.roi}%</div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-green-500 font-semibold">{formatCurrency(month.penalties)}</div>
-                                <div className="text-gray-400 text-xs">Efficiency: {month.efficiency}%</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <ROITrendChart data={analyticsData.roiAnalysis.trendAnalysis.monthly} />
                       </CardBody>
                     </Card>
 
@@ -408,36 +367,7 @@ export default function AnalyticsPage() {
                         <h3 className="text-white font-semibold text-lg">Scenario Modeling</h3>
                       </CardHeader>
                       <CardBody>
-                        <div className="space-y-4">
-                          {Object.entries(analyticsData.roiAnalysis.scenarioModeling).map(([scenario, data]) => (
-                            <div key={scenario} className={`p-4 rounded-xl border ${
-                              scenario === 'realistic' ? 'bg-green-500/10 border-green-500/30' :
-                              scenario === 'optimistic' ? 'bg-blue-500/10 border-blue-500/30' :
-                              'bg-yellow-500/10 border-yellow-500/30'
-                            }`}>
-                              <div className="flex items-center justify-between mb-3">
-                                <h4 className="text-white font-medium capitalize">{scenario} Scenario</h4>
-                                <Chip size="sm" className={`${
-                                  scenario === 'realistic' ? 'bg-green-500/20 text-green-400' :
-                                  scenario === 'optimistic' ? 'bg-blue-500/20 text-blue-400' :
-                                  'bg-yellow-500/20 text-yellow-400'
-                                } border-0`}>
-                                  {data.roi}% ROI
-                                </Chip>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <div className="text-lg font-bold text-white">{formatCurrency(data.penalties)}</div>
-                                  <div className="text-gray-400 text-xs">Penalties Prevented</div>
-                                </div>
-                                <div>
-                                  <div className="text-lg font-bold text-white">+{data.growth}%</div>
-                                  <div className="text-gray-400 text-xs">Growth Rate</div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <ScenarioChart scenarios={analyticsData.roiAnalysis.scenarioModeling} />
                       </CardBody>
                     </Card>
 
