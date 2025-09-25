@@ -1,22 +1,39 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDownIcon } from "../icons/sidebar/chevron-down-icon";
 import { Accordion, AccordionItem } from "@nextui-org/react";
+import { usePathname } from "next/navigation";
+import NextLink from "next/link";
 import clsx from "clsx";
+
+interface CollapseItem {
+  name: string;
+  href: string;
+}
 
 interface Props {
   icon: React.ReactNode;
   title: string;
-  items: string[];
+  items: CollapseItem[];
+  isActive?: boolean;
 }
 
-export const CollapseItems = ({ icon, items, title }: Props) => {
+export const CollapseItems = ({ icon, items, title, isActive = false }: Props) => {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Auto-expand if any item is active
+  useEffect(() => {
+    if (isActive) {
+      setOpen(true);
+    }
+  }, [isActive]);
 
   return (
     <div className="flex gap-4 h-full items-center cursor-pointer">
-      <Accordion className="px-0">
+      <Accordion className="px-0" defaultExpandedKeys={isActive ? ["1"] : []}>
         <AccordionItem
+          key="1"
           indicator={<ChevronDownIcon />}
           classNames={{
             indicator: "data-[open=true]:-rotate-180 text-gray-400",
@@ -38,12 +55,18 @@ export const CollapseItems = ({ icon, items, title }: Props) => {
         >
           <div className="pl-7 space-y-1">
             {items.map((item, index) => (
-              <span
+              <NextLink
                 key={index}
-                className="w-full flex text-sm text-gray-400 hover:text-white transition-colors duration-200 py-1 px-2 rounded hover:bg-white/5 cursor-pointer"
+                href={item.href}
+                className={clsx(
+                  "w-full flex text-sm transition-colors duration-200 py-1 px-2 rounded hover:bg-white/5 cursor-pointer",
+                  pathname === item.href 
+                    ? "text-white bg-white/10" 
+                    : "text-gray-400 hover:text-white"
+                )}
               >
-                {item}
-              </span>
+                {item.name}
+              </NextLink>
             ))}
           </div>
         </AccordionItem>
