@@ -60,64 +60,35 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               isActive={pathname === "/dashboard/managing-partner"}
               href="/dashboard/managing-partner"
             />
-            <CollapseItems
-              icon={<BalanceIcon />}
-              items={[
-                { name: "Overview", href: "/dashboard/managing-partner/compliance" },
-                { name: "Alerts", href: "/dashboard/managing-partner/compliance/alerts" },
-                { name: "Audit Trail", href: "/dashboard/managing-partner/compliance/audit-trail" },
-                { name: "Regulatory Updates", href: "/dashboard/managing-partner/compliance/regulatory-updates" },
-                { name: "Examination Readiness", href: "/dashboard/managing-partner/compliance/examination-readiness" }
-              ]}
+            <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/compliance"}
               title="Compliance"
-              isActive={pathname.startsWith("/dashboard/managing-partner/compliance")}
+              icon={<BalanceIcon />}
+              href="/dashboard/managing-partner/compliance"
             />
-            <CollapseItems
-              icon={<CustomersIcon />}
-              items={[
-                { name: "Portfolio", href: "/dashboard/managing-partner/clients" },
-                { name: "Risk Assessment", href: "/dashboard/managing-partner/clients/risk-assessment" }
-              ]}
+            <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/clients"}
               title="Clients"
-              isActive={pathname.startsWith("/dashboard/managing-partner/clients")}
+              icon={<CustomersIcon />}
+              href="/dashboard/managing-partner/clients"
             />
-            <CollapseItems
-              icon={<ReportsIcon />}
-              items={[
-                { name: "Overview", href: "/dashboard/managing-partner/risk-management" },
-                { name: "Exposure Analysis", href: "/dashboard/managing-partner/risk-management/exposure-analysis" },
-                { name: "Liability Metrics", href: "/dashboard/managing-partner/risk-management/liability-metrics" },
-                { name: "Insurance Review", href: "/dashboard/managing-partner/risk-management/insurance-review" },
-                { name: "Mitigation Strategies", href: "/dashboard/managing-partner/risk-management/mitigation-strategies" }
-              ]}
+            <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/risk-management"}
               title="Risk Management"
-              isActive={pathname.startsWith("/dashboard/managing-partner/risk-management")}
+              icon={<ReportsIcon />}
+              href="/dashboard/managing-partner/risk-management"
             />
-            <CollapseItems
-              icon={<ViewIcon />}
-              items={[
-                { name: "Overview", href: "/dashboard/managing-partner/analytics" },
-                { name: "ROI Analysis", href: "/dashboard/managing-partner/analytics/roi-analysis" },
-                { name: "Team Performance", href: "/dashboard/managing-partner/analytics/team-performance" },
-                { name: "Client Trends", href: "/dashboard/managing-partner/analytics/client-trends" },
-                { name: "Regulatory Impact", href: "/dashboard/managing-partner/analytics/regulatory-impact" }
-              ]}
+            <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/analytics"}
               title="Analytics"
-              isActive={pathname.startsWith("/dashboard/managing-partner/analytics")}
+              icon={<ViewIcon />}
+              href="/dashboard/managing-partner/analytics"
             />
-            <CollapseItems
-              icon={<SettingsIcon />}
-              items={[
-                { name: "Overview", href: "/dashboard/managing-partner/settings" },
-                { name: "Firm Profile", href: "/dashboard/managing-partner/settings/firm-profile" },
-                { name: "Alert Configuration", href: "/dashboard/managing-partner/settings/alert-configuration" },
-                { name: "Liability Settings", href: "/dashboard/managing-partner/settings/liability-settings" },
-                { name: "Team Management", href: "/dashboard/managing-partner/settings/team-management" },
-                { name: "ROI Tracking", href: "/dashboard/managing-partner/settings/roi-tracking" },
-                { name: "Integration Settings", href: "/dashboard/managing-partner/settings/integration-settings" }
-              ]}
+            <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/settings"}
               title="Settings"
-              isActive={pathname.startsWith("/dashboard/managing-partner/settings")}
+              icon={<SettingsIcon />}
+              href="/dashboard/managing-partner/settings"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/profile"}
