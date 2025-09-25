@@ -296,74 +296,42 @@ export default function TaxManagerAuditTrailPage() {
   return (
     <div className="min-h-screen bg-black">
       <div className="h-full lg:px-6">
-        {/* Header */}
-        <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold text-white tracking-tight">Professional Liability Audit Trail</h1>
-            <p className="text-gray-400 mt-2">Court-ready decision documentation and legal evidence creation</p>
-          </div>
-        </div>
-
-        {/* Executive Summary Section */}
+        {/* Header with Stats */}
         <div className="flex justify-center px-4 lg:px-0 mb-8">
           <div className="w-full max-w-[90rem]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Total Decisions</p>
-                      <p className="text-2xl font-semibold text-white">{auditSummary.totalDecisions}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-400 text-sm">📊</span>
-                    </div>
+            {/* Minimal Portfolio Stats */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <h3 className="text-white font-semibold text-sm tracking-tight">Jane Doe, Tax Manager</h3>
+                    <p className="text-gray-400 text-xs font-medium">Professional Liability Audit Trail</p>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Court-Ready</p>
-                      <p className="text-2xl font-semibold text-green-400">{auditSummary.courtReadyDecisions}</p>
-                      <p className="text-xs text-gray-400">{auditSummary.courtReadyPercentage}% complete</p>
-                    </div>
-                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-green-400 text-sm">⚖️</span>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-green-400 text-xs font-medium">Active</span>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Total Exposure</p>
-                      <p className="text-2xl font-semibold text-orange-400">{formatCurrency(auditSummary.totalExposure)}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-orange-400 text-sm">💰</span>
-                    </div>
+                </div>
+                
+                <div className="flex items-center space-x-6">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">{auditSummary.totalDecisions}</div>
+                    <div className="text-gray-400 text-xs font-medium">Total Decisions</div>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Risk Mitigated</p>
-                      <p className="text-2xl font-semibold text-green-400">{formatCurrency(auditSummary.totalRiskMitigation)}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-green-400 text-sm">🛡️</span>
-                    </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-500">{auditSummary.courtReadyDecisions}</div>
+                    <div className="text-gray-400 text-xs font-medium">Court-Ready</div>
                   </div>
-                </CardBody>
-              </Card>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-orange-500">{auditSummary.courtReadyPercentage}%</div>
+                    <div className="text-gray-400 text-xs font-medium">Complete</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">{formatCurrency(auditSummary.totalExposure)}</div>
+                    <div className="text-gray-400 text-xs font-medium">Total Exposure</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
