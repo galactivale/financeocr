@@ -296,11 +296,19 @@ export default function TaxManagerAuditTrailPage() {
   return (
     <div className="min-h-screen bg-black">
       <div className="h-full lg:px-6">
-        {/* Header with Stats */}
+        {/* Header */}
+        <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
+          <div>
+            <h1 className="text-3xl font-semibold text-white tracking-tight">Audit Trail</h1>
+            <p className="text-gray-400 mt-2">Professional liability documentation and legal evidence creation</p>
+          </div>
+        </div>
+
+        {/* Stats Section */}
         <div className="flex justify-center px-4 lg:px-0 mb-8">
           <div className="w-full max-w-[90rem]">
             {/* Minimal Portfolio Stats */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div>
