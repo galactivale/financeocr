@@ -20,7 +20,7 @@ import {
   Tooltip,
   Avatar
 } from "@nextui-org/react";
-import { SearchIcon } from "@/components/icons";
+import { SearchIcon } from "@/components/icons/searchicon";
 
 // Client data structure based on the comprehensive framework
 interface Client {
