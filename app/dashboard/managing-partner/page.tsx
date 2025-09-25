@@ -163,92 +163,242 @@ const EnhancedUSMap = () => {
   );
 };
 
-// Managing Partner specific cards with Apple design
-const CardTotalExposure = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+// Futuristic KPI Cards for Managing Partner
+const CardTotalClientPortfolio = () => (
+  <div className="group bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-6 hover:border-blue-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
           </svg>
         </div>
         <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Total Exposure</h3>
-          <p className="text-gray-400 text-xs font-medium">Firm-wide risk</p>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Total Client Portfolio</h3>
+          <p className="text-gray-400 text-xs font-medium">Active clients</p>
         </div>
       </div>
     </div>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">$2.4M</span>
+        <span className="text-3xl font-bold text-white">47</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-green-400 text-sm font-medium">↗ 12% growth</span>
+        </div>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1 rounded-full" style={{width: '85%'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+const CardCriticalRiskClients = () => (
+  <div className="group bg-gradient-to-br from-red-500/10 via-orange-500/5 to-yellow-500/10 backdrop-blur-xl rounded-2xl border border-red-500/20 p-6 hover:border-red-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-red-500/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Critical Risk Clients</h3>
+          <p className="text-gray-400 text-xs font-medium">High risk</p>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">8</span>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-red-400 text-sm font-medium">+2.5%</span>
+          <span className="text-red-400 text-sm font-medium">↑ 2 new</span>
         </div>
       </div>
       <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-red-500 h-1 rounded-full" style={{width: '85%'}}></div>
+        <div className="bg-gradient-to-r from-red-500 to-orange-500 h-1 rounded-full" style={{width: '70%'}}></div>
       </div>
     </div>
   </div>
 );
 
-const CardCriticalAlerts = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+const CardProfessionalLiability = () => (
+  <div className="group bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-indigo-500/10 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 hover:border-purple-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/20">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
         </div>
         <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Critical Alerts</h3>
-          <p className="text-gray-400 text-xs font-medium">Requiring attention</p>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Professional Liability</h3>
+          <p className="text-gray-400 text-xs font-medium">Exposure</p>
         </div>
       </div>
     </div>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">12</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-          <span className="text-orange-400 text-sm font-medium">+3 new</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-orange-500 h-1 rounded-full" style={{width: '70%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardComplianceRate = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Compliance Rate</h3>
-          <p className="text-gray-400 text-xs font-medium">Firm performance</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">94.2%</span>
+        <span className="text-3xl font-bold text-white">$284,500</span>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-400 text-sm font-medium">+1.2%</span>
+          <span className="text-green-400 text-sm font-medium">↘ 15% reduced</span>
         </div>
       </div>
       <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-green-500 h-1 rounded-full" style={{width: '94%'}}></div>
+        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1 rounded-full" style={{width: '60%'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+const CardStatesUnderMonitoring = () => (
+  <div className="group bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10 backdrop-blur-xl rounded-2xl border border-green-500/20 p-6 hover:border-green-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">States Under Monitoring</h3>
+          <p className="text-gray-400 text-xs font-medium">Jurisdictions</p>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">45</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-400 text-sm font-medium">→ stable</span>
+        </div>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-1 rounded-full" style={{width: '90%'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+const CardProfessionalDecisions = () => (
+  <div className="group bg-gradient-to-br from-indigo-500/10 via-blue-500/5 to-purple-500/10 backdrop-blur-xl rounded-2xl border border-indigo-500/20 p-6 hover:border-indigo-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm2 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Professional Decisions</h3>
+          <p className="text-gray-400 text-xs font-medium">Documented</p>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">156</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-green-400 text-sm font-medium">↗ 23% vs LY</span>
+        </div>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-gradient-to-r from-indigo-500 to-blue-500 h-1 rounded-full" style={{width: '95%'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+const CardPenaltiesPrevented = () => (
+  <div className="group bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-orange-500/10 backdrop-blur-xl rounded-2xl border border-yellow-500/20 p-6 hover:border-yellow-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Penalties Prevented</h3>
+          <p className="text-gray-400 text-xs font-medium">This year</p>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">$1.2M</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-green-400 text-sm font-medium">↗ 67% vs LY</span>
+        </div>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-gradient-to-r from-yellow-500 to-amber-500 h-1 rounded-full" style={{width: '88%'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+const CardTeamPerformance = () => (
+  <div className="group bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-teal-500/10 backdrop-blur-xl rounded-2xl border border-emerald-500/20 p-6 hover:border-emerald-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Team Performance</h3>
+          <p className="text-gray-400 text-xs font-medium">Compliance</p>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">94%</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-400 text-sm font-medium">→ stable</span>
+        </div>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-gradient-to-r from-emerald-500 to-green-500 h-1 rounded-full" style={{width: '94%'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+const CardPlatformROI = () => (
+  <div className="group bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-indigo-500/10 backdrop-blur-xl rounded-2xl border border-cyan-500/20 p-6 hover:border-cyan-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Platform ROI</h3>
+          <p className="text-gray-400 text-xs font-medium">Investment</p>
+        </div>
+      </div>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">2,458%</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-green-400 text-sm font-medium">↗ 340% vs LY</span>
+        </div>
+      </div>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1 rounded-full" style={{width: '100%'}}></div>
       </div>
     </div>
   </div>
@@ -523,10 +673,21 @@ export default function ManagingPartnerDashboard() {
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Executive Overview</h2>
               </div>
-              <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
-                <CardTotalExposure />
-                <CardCriticalAlerts />
-                <CardComplianceRate />
+              
+              {/* First Row - 4 Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-center w-full">
+                <CardTotalClientPortfolio />
+                <CardCriticalRiskClients />
+                <CardProfessionalLiability />
+                <CardStatesUnderMonitoring />
+              </div>
+              
+              {/* Second Row - 4 Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-center w-full">
+                <CardProfessionalDecisions />
+                <CardPenaltiesPrevented />
+                <CardTeamPerformance />
+                <CardPlatformROI />
               </div>
             </div>
 
