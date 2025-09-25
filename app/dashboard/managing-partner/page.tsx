@@ -416,29 +416,18 @@ export default function ManagingPartnerDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
           <h1 className="text-3xl font-semibold text-white tracking-tight">Client Distribution Analytics</h1>
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-4">
-              <button className="text-white text-sm font-medium border-b-2 border-blue-500 pb-1">Summary</button>
-              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Balance</button>
-              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Spending</button>
-              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Income</button>
-              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Net Income</button>
-              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Savings</button>
-              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Net Worth</button>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-400 text-sm">
-              <select className="bg-transparent text-white border-none outline-none">
-                <option>All Accounts</option>
-              </select>
-              <span>/</span>
-              <button className="text-gray-400 hover:text-white transition-colors">Weekly</button>
-              <button className="text-white font-medium">Monthly</button>
-              <button className="text-gray-400 hover:text-white transition-colors">Yearly</button>
-              <span>/</span>
-              <select className="bg-transparent text-white border-none outline-none">
-                <option>2024</option>
-              </select>
-            </div>
+          <div className="flex items-center space-x-2 text-gray-400 text-sm">
+            <select className="bg-transparent text-white border-none outline-none">
+              <option>All Accounts</option>
+            </select>
+            <span>/</span>
+            <button className="text-gray-400 hover:text-white transition-colors">Weekly</button>
+            <button className="text-white font-medium">Monthly</button>
+            <button className="text-gray-400 hover:text-white transition-colors">Yearly</button>
+            <span>/</span>
+            <select className="bg-transparent text-white border-none outline-none">
+              <option>2024</option>
+            </select>
           </div>
         </div>
 
