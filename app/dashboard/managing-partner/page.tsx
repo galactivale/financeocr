@@ -163,85 +163,6 @@ const EnhancedUSMap = () => {
   );
 };
 
-// Monthly Revenue & Exposure Chart Component
-const MonthlyRevenueChart = () => {
-  const monthlyData = [
-    { month: 'Jan', revenue: 3200000, exposure: 2800000, net: 400000 },
-    { month: 'Feb', revenue: 3400000, exposure: 2900000, net: 500000 },
-    { month: 'Mar', revenue: 3600000, exposure: 3100000, net: 500000 },
-    { month: 'Apr', revenue: 3800000, exposure: 3200000, net: 600000 },
-    { month: 'May', revenue: 4200000, exposure: 3500000, net: 700000 },
-    { month: 'Jun', revenue: 4000000, exposure: 3300000, net: 700000 },
-    { month: 'Jul', revenue: 4100000, exposure: 3400000, net: 700000 },
-    { month: 'Aug', revenue: 4300000, exposure: 3600000, net: 700000 },
-    { month: 'Sep', revenue: 4400000, exposure: 3700000, net: 700000 },
-    { month: 'Oct', revenue: 4500000, exposure: 3800000, net: 700000 },
-    { month: 'Nov', revenue: 4600000, exposure: 3900000, net: 700000 },
-    { month: 'Dec', revenue: 4800000, exposure: 4000000, net: 800000 }
-  ];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  return (
-    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-white font-semibold text-lg tracking-tight">Monthly Revenue & Exposure</h3>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-white text-sm">Revenue</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-pink-500"></div>
-            <span className="text-white text-sm">Exposure</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="h-80 flex items-end justify-between space-x-2">
-        {monthlyData.map((data, index) => (
-          <div key={data.month} className="flex flex-col items-center flex-1 group">
-            <div className="relative w-full flex flex-col items-center space-y-1 mb-2">
-              {/* Revenue Bar */}
-              <div 
-                className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-sm transition-all duration-300 group-hover:from-blue-500 group-hover:to-blue-300"
-                style={{ height: `${(data.revenue / 5000000) * 200}px` }}
-              ></div>
-              {/* Exposure Bar */}
-              <div 
-                className="w-full bg-gradient-to-b from-pink-600 to-pink-400 rounded-b-sm transition-all duration-300 group-hover:from-pink-500 group-hover:to-pink-300"
-                style={{ height: `${(data.exposure / 5000000) * 200}px` }}
-              ></div>
-            </div>
-            <span className="text-gray-400 text-xs font-medium">{data.month}</span>
-            
-            {/* Tooltip for May */}
-            {data.month === 'May' && (
-              <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black/90 backdrop-blur-sm rounded-lg border border-white/20 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <div className="text-white text-sm font-medium mb-2">May 2024</div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-white text-xs">Revenue: {formatCurrency(data.revenue)}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                  <span className="text-white text-xs">Exposure: {formatCurrency(data.exposure)}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // Summary Statistics Panel
 const SummaryStatistics = () => {
@@ -494,7 +415,7 @@ export default function ManagingPartnerDashboard() {
       <div className="h-full lg:px-6">
         {/* Header */}
         <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
-          <h1 className="text-3xl font-semibold text-white tracking-tight">Financial Analytics</h1>
+          <h1 className="text-3xl font-semibold text-white tracking-tight">Client Distribution Analytics</h1>
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-4">
               <button className="text-white text-sm font-medium border-b-2 border-blue-500 pb-1">Summary</button>
@@ -521,10 +442,127 @@ export default function ManagingPartnerDashboard() {
           </div>
         </div>
 
-        {/* Main Chart and Summary */}
+        {/* Main Map and Summary */}
         <div className="flex justify-center gap-6 xl:gap-8 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full mb-8">
           <div className="flex-1">
-            <MonthlyRevenueChart />
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-white font-semibold text-lg tracking-tight">Client Distribution Map</h3>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-white text-sm">Critical</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                    <span className="text-white text-sm">Warning</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span className="text-white text-sm">Pending</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-white text-sm">Compliant</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="h-96 relative">
+                <EnhancedUSMap />
+                
+                {/* Client Dots Overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* California - 25 clients */}
+                  <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="relative">
+                      <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg border border-white/20 p-2 opacity-0 hover:opacity-100 transition-opacity duration-200">
+                        <div className="text-white text-xs font-medium">California</div>
+                        <div className="text-gray-300 text-xs">25 clients</div>
+                        <div className="text-gray-300 text-xs">$4.85M revenue</div>
+                        <div className="text-red-400 text-xs">8 alerts</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Texas - 18 clients */}
+                  <div className="absolute top-2/3 left-1/3 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="relative">
+                      <div className="w-4 h-4 bg-orange-500 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg border border-white/20 p-2 opacity-0 hover:opacity-100 transition-opacity duration-200">
+                        <div className="text-white text-xs font-medium">Texas</div>
+                        <div className="text-gray-300 text-xs">18 clients</div>
+                        <div className="text-gray-300 text-xs">$2.2M revenue</div>
+                        <div className="text-orange-400 text-xs">5 alerts</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* New York - 22 clients */}
+                  <div className="absolute top-1/3 right-1/3 transform translate-x-1/2 -translate-y-1/2">
+                    <div className="relative">
+                      <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg border border-white/20 p-2 opacity-0 hover:opacity-100 transition-opacity duration-200">
+                        <div className="text-white text-xs font-medium">New York</div>
+                        <div className="text-gray-300 text-xs">22 clients</div>
+                        <div className="text-gray-300 text-xs">$3.2M revenue</div>
+                        <div className="text-blue-400 text-xs">3 alerts</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Florida - 12 clients */}
+                  <div className="absolute bottom-1/4 right-1/4 transform translate-x-1/2 translate-y-1/2">
+                    <div className="relative">
+                      <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg border border-white/20 p-2 opacity-0 hover:opacity-100 transition-opacity duration-200">
+                        <div className="text-white text-xs font-medium">Florida</div>
+                        <div className="text-gray-300 text-xs">12 clients</div>
+                        <div className="text-gray-300 text-xs">$1.5M revenue</div>
+                        <div className="text-green-400 text-xs">1 alert</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Additional client dots for other states */}
+                  {/* Illinois - 8 clients */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  
+                  {/* Pennsylvania - 6 clients */}
+                  <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  
+                  {/* Ohio - 5 clients */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  
+                  {/* Georgia - 4 clients */}
+                  <div className="absolute bottom-1/3 right-1/3 transform translate-x-1/2 translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  
+                  {/* North Carolina - 3 clients */}
+                  <div className="absolute bottom-1/2 right-1/3 transform translate-x-1/2 translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  
+                  {/* Michigan - 2 clients */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                  
+                  {/* Virginia - 2 clients */}
+                  <div className="absolute top-1/2 right-1/3 transform translate-x-1/2 -translate-y-1/2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div className="xl:w-80 w-full">
             <SummaryStatistics />
