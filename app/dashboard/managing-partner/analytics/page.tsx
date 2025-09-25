@@ -23,7 +23,65 @@ const analyticsData = {
     marketPosition: 15,
     premiumPricing: 23,
     referralGeneration: 12,
-    regionalLeadership: 96
+    regionalLeadership: 96,
+    // Enhanced ROI data
+    detailedROI: {
+      netROI: 1180000,
+      roiPercentage: 2458,
+      industryAverage: 890,
+      performanceVsIndustry: 176,
+      monthlyROI: 98000,
+      quarterlyGrowth: 15.2,
+      annualizedReturn: 3200
+    },
+    costBreakdown: {
+      softwareLicensing: 18000,
+      staffTraining: 12000,
+      implementation: 8000,
+      maintenance: 6000,
+      consulting: 4000
+    },
+    valueBreakdown: {
+      penaltyPrevention: 1228000,
+      timeEfficiency: 120000,
+      clientRetention: 85000,
+      newClientAcquisition: 150000,
+      premiumPricing: 230000,
+      operationalSavings: 95000
+    },
+    trendAnalysis: {
+      monthly: [
+        { month: 'Jan', roi: 1800, penalties: 85000, efficiency: 25 },
+        { month: 'Feb', roi: 2100, penalties: 92000, efficiency: 28 },
+        { month: 'Mar', roi: 2350, penalties: 105000, efficiency: 30 },
+        { month: 'Apr', roi: 2400, penalties: 110000, efficiency: 32 },
+        { month: 'May', roi: 2458, penalties: 115000, efficiency: 30 },
+        { month: 'Jun', roi: 2500, penalties: 120000, efficiency: 33 }
+      ],
+      quarterly: [
+        { quarter: 'Q1 2024', roi: 2100, growth: 12.5, clients: 42 },
+        { quarter: 'Q2 2024', roi: 2350, growth: 15.2, clients: 45 },
+        { quarter: 'Q3 2024', roi: 2400, growth: 18.7, clients: 47 },
+        { quarter: 'Q4 2024', roi: 2458, growth: 23.1, clients: 47 }
+      ]
+    },
+    scenarioModeling: {
+      conservative: { roi: 1800, penalties: 800000, growth: 15 },
+      realistic: { roi: 2458, penalties: 1228000, growth: 23 },
+      optimistic: { roi: 3200, penalties: 1800000, growth: 35 }
+    },
+    benchmarking: {
+      industryAverage: 890,
+      topQuartile: 1200,
+      ourPerformance: 2458,
+      percentile: 95,
+      competitiveAdvantage: 1568
+    },
+    predictiveAnalytics: {
+      nextQuarter: { roi: 2600, penalties: 130000, growth: 25 },
+      nextYear: { roi: 3200, penalties: 1800000, growth: 35 },
+      confidence: 87
+    }
   },
   teamPerformance: {
     teamCapacity: 50,
@@ -176,13 +234,14 @@ export default function AnalyticsPage() {
             >
               <Tab key="roi" title="ROI Analysis">
                 <div className="space-y-6">
-                  {/* Executive ROI Summary */}
+                  {/* Executive ROI Dashboard */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur-xl border border-blue-500/30">
                       <CardBody className="p-6 text-center">
                         <div className="text-3xl font-bold text-blue-400 mb-2">{formatCurrency(analyticsData.roiAnalysis.platformInvestment)}</div>
                         <div className="text-gray-300 text-sm">Platform Investment</div>
                         <div className="text-blue-300 text-xs mt-1">Software + Staff Time</div>
+                        <div className="mt-2 text-xs text-blue-200">6-Month Payback</div>
                       </CardBody>
                     </Card>
                     <Card className="bg-gradient-to-br from-green-500/20 to-green-600/20 backdrop-blur-xl border border-green-500/30">
@@ -190,95 +249,271 @@ export default function AnalyticsPage() {
                         <div className="text-3xl font-bold text-green-400 mb-2">{formatCurrency(analyticsData.roiAnalysis.penaltiesPrevented)}</div>
                         <div className="text-gray-300 text-sm">Penalties Prevented</div>
                         <div className="text-green-300 text-xs mt-1">18 Major Incidents Avoided</div>
+                        <div className="mt-2 text-xs text-green-200">+15.2% QoQ Growth</div>
                       </CardBody>
                     </Card>
                     <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-xl border border-purple-500/30">
                       <CardBody className="p-6 text-center">
-                        <div className="text-3xl font-bold text-purple-400 mb-2">{analyticsData.roiAnalysis.totalROI}%</div>
+                        <div className="text-3xl font-bold text-purple-400 mb-2">{analyticsData.roiAnalysis.detailedROI.roiPercentage}%</div>
                         <div className="text-gray-300 text-sm">Total ROI</div>
                         <div className="text-purple-300 text-xs mt-1">176% Above Industry Avg</div>
+                        <div className="mt-2 text-xs text-purple-200">95th Percentile</div>
                       </CardBody>
                     </Card>
                     <Card className="bg-gradient-to-br from-orange-500/20 to-orange-600/20 backdrop-blur-xl border border-orange-500/30">
                       <CardBody className="p-6 text-center">
-                        <div className="text-3xl font-bold text-orange-400 mb-2">{analyticsData.roiAnalysis.paybackPeriod} Years</div>
-                        <div className="text-gray-300 text-sm">Payback Period</div>
-                        <div className="text-orange-300 text-xs mt-1">6 Month Recovery</div>
+                        <div className="text-3xl font-bold text-orange-400 mb-2">{analyticsData.roiAnalysis.detailedROI.annualizedReturn}%</div>
+                        <div className="text-gray-300 text-sm">Annualized Return</div>
+                        <div className="text-orange-300 text-xs mt-1">Projected Performance</div>
+                        <div className="mt-2 text-xs text-orange-200">87% Confidence</div>
                       </CardBody>
                     </Card>
                   </div>
 
-                  {/* Financial Impact Analysis */}
-                  <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                    <CardHeader>
-                      <h3 className="text-white font-semibold text-lg">Financial Impact Analysis</h3>
-                    </CardHeader>
-                    <CardBody>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                          <div className="text-2xl font-bold text-green-500 mb-2">+{analyticsData.roiAnalysis.revenueGrowth}%</div>
-                          <div className="text-gray-400 text-sm">Revenue Growth</div>
-                          <div className="text-green-400 text-xs mt-1">Premium Pricing Capability</div>
+                  {/* Advanced ROI Metrics */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Cost-Benefit Analysis */}
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardHeader>
+                        <h3 className="text-white font-semibold text-lg">Cost-Benefit Analysis</h3>
+                      </CardHeader>
+                      <CardBody>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-white font-medium mb-3">Investment Breakdown</h4>
+                            <div className="space-y-2">
+                              {Object.entries(analyticsData.roiAnalysis.costBreakdown).map(([key, value]) => (
+                                <div key={key} className="flex justify-between items-center">
+                                  <span className="text-gray-400 text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                  <span className="text-white font-semibold">{formatCurrency(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="border-t border-white/10 pt-4">
+                            <h4 className="text-white font-medium mb-3">Value Creation</h4>
+                            <div className="space-y-2">
+                              {Object.entries(analyticsData.roiAnalysis.valueBreakdown).map(([key, value]) => (
+                                <div key={key} className="flex justify-between items-center">
+                                  <span className="text-gray-400 text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                  <span className="text-green-400 font-semibold">{formatCurrency(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                          <div className="text-2xl font-bold text-blue-500 mb-2">+{analyticsData.roiAnalysis.operationalEfficiency}%</div>
-                          <div className="text-gray-400 text-sm">Operational Efficiency</div>
-                          <div className="text-blue-400 text-xs mt-1">Time Savings & Automation</div>
+                      </CardBody>
+                    </Card>
+
+                    {/* Performance Benchmarking */}
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardHeader>
+                        <h3 className="text-white font-semibold text-lg">Performance Benchmarking</h3>
+                      </CardHeader>
+                      <CardBody>
+                        <div className="space-y-4">
+                          <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div className="text-2xl font-bold text-green-500 mb-2">{analyticsData.roiAnalysis.benchmarking.percentile}th</div>
+                            <div className="text-gray-400 text-sm">Industry Percentile</div>
+                            <div className="text-green-400 text-xs mt-1">Top 5% Performance</div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 text-sm">Industry Average</span>
+                              <span className="text-gray-300">{analyticsData.roiAnalysis.benchmarking.industryAverage}%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 text-sm">Top Quartile</span>
+                              <span className="text-blue-400">{analyticsData.roiAnalysis.benchmarking.topQuartile}%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 text-sm">Our Performance</span>
+                              <span className="text-green-500 font-bold">{analyticsData.roiAnalysis.benchmarking.ourPerformance}%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 text-sm">Competitive Advantage</span>
+                              <span className="text-purple-500 font-bold">+{analyticsData.roiAnalysis.benchmarking.competitiveAdvantage}%</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                          <div className="text-2xl font-bold text-purple-500 mb-2">+{analyticsData.roiAnalysis.marketPosition}%</div>
-                          <div className="text-gray-400 text-sm">Market Position</div>
-                          <div className="text-purple-400 text-xs mt-1">Competitive Advantage</div>
+                      </CardBody>
+                    </Card>
+                  </div>
+
+                  {/* Trend Analysis & Forecasting */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Monthly Trend Analysis */}
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardHeader>
+                        <h3 className="text-white font-semibold text-lg">Monthly ROI Trend Analysis</h3>
+                      </CardHeader>
+                      <CardBody>
+                        <div className="space-y-4">
+                          {analyticsData.roiAnalysis.trendAnalysis.monthly.map((month, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <div>
+                                  <div className="text-white font-medium">{month.month}</div>
+                                  <div className="text-gray-400 text-xs">ROI: {month.roi}%</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-green-500 font-semibold">{formatCurrency(month.penalties)}</div>
+                                <div className="text-gray-400 text-xs">Efficiency: {month.efficiency}%</div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    </CardBody>
-                  </Card>
+                      </CardBody>
+                    </Card>
+
+                    {/* Quarterly Performance */}
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardHeader>
+                        <h3 className="text-white font-semibold text-lg">Quarterly Performance</h3>
+                      </CardHeader>
+                      <CardBody>
+                        <div className="space-y-4">
+                          {analyticsData.roiAnalysis.trendAnalysis.quarterly.map((quarter, index) => (
+                            <div key={index} className="p-4 bg-white/5 rounded-xl border border-white/10">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-white font-medium">{quarter.quarter}</h4>
+                                <Chip size="sm" className="bg-green-500/20 text-green-400 border-0">
+                                  {quarter.roi}% ROI
+                                </Chip>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <div className="text-lg font-bold text-blue-500">+{quarter.growth}%</div>
+                                  <div className="text-gray-400 text-xs">Growth Rate</div>
+                                </div>
+                                <div>
+                                  <div className="text-lg font-bold text-purple-500">{quarter.clients}</div>
+                                  <div className="text-gray-400 text-xs">Active Clients</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+
+                  {/* Scenario Modeling & Predictive Analytics */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Scenario Modeling */}
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardHeader>
+                        <h3 className="text-white font-semibold text-lg">Scenario Modeling</h3>
+                      </CardHeader>
+                      <CardBody>
+                        <div className="space-y-4">
+                          {Object.entries(analyticsData.roiAnalysis.scenarioModeling).map(([scenario, data]) => (
+                            <div key={scenario} className={`p-4 rounded-xl border ${
+                              scenario === 'realistic' ? 'bg-green-500/10 border-green-500/30' :
+                              scenario === 'optimistic' ? 'bg-blue-500/10 border-blue-500/30' :
+                              'bg-yellow-500/10 border-yellow-500/30'
+                            }`}>
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-white font-medium capitalize">{scenario} Scenario</h4>
+                                <Chip size="sm" className={`${
+                                  scenario === 'realistic' ? 'bg-green-500/20 text-green-400' :
+                                  scenario === 'optimistic' ? 'bg-blue-500/20 text-blue-400' :
+                                  'bg-yellow-500/20 text-yellow-400'
+                                } border-0`}>
+                                  {data.roi}% ROI
+                                </Chip>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <div className="text-lg font-bold text-white">{formatCurrency(data.penalties)}</div>
+                                  <div className="text-gray-400 text-xs">Penalties Prevented</div>
+                                </div>
+                                <div>
+                                  <div className="text-lg font-bold text-white">+{data.growth}%</div>
+                                  <div className="text-gray-400 text-xs">Growth Rate</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardBody>
+                    </Card>
+
+                    {/* Predictive Analytics */}
+                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                      <CardHeader>
+                        <h3 className="text-white font-semibold text-lg">Predictive Analytics</h3>
+                      </CardHeader>
+                      <CardBody>
+                        <div className="space-y-4">
+                          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-white font-medium">Next Quarter Forecast</h4>
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-green-400 text-xs">{analyticsData.roiAnalysis.predictiveAnalytics.confidence}% Confidence</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <div className="text-lg font-bold text-green-500">{analyticsData.roiAnalysis.predictiveAnalytics.nextQuarter.roi}%</div>
+                                <div className="text-gray-400 text-xs">Projected ROI</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-blue-500">{formatCurrency(analyticsData.roiAnalysis.predictiveAnalytics.nextQuarter.penalties)}</div>
+                                <div className="text-gray-400 text-xs">Penalties Prevented</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-white font-medium">Annual Projection</h4>
+                              <Chip size="sm" className="bg-purple-500/20 text-purple-400 border-0">
+                                Long-term
+                              </Chip>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <div className="text-lg font-bold text-purple-500">{analyticsData.roiAnalysis.predictiveAnalytics.nextYear.roi}%</div>
+                                <div className="text-gray-400 text-xs">Annual ROI</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-orange-500">{formatCurrency(analyticsData.roiAnalysis.predictiveAnalytics.nextYear.penalties)}</div>
+                                <div className="text-gray-400 text-xs">Total Value</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
 
                   {/* Strategic Business Impact */}
                   <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
                     <CardHeader>
-                      <h3 className="text-white font-semibold text-lg">Strategic Business Impact</h3>
+                      <h3 className="text-white font-semibold text-lg">Strategic Business Impact Analysis</h3>
                     </CardHeader>
                     <CardBody>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                          <div className="flex items-center space-x-3">
-                            <ChartBarIcon className="w-5 h-5 text-green-500" />
-                            <div>
-                              <h4 className="text-white font-medium">Premium Pricing Capability</h4>
-                              <p className="text-gray-400 text-sm">Regional nexus expertise recognition</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-green-500">+{analyticsData.roiAnalysis.premiumPricing}%</div>
-                            <div className="text-gray-400 text-sm">Above Market Rates</div>
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <ChartBarIcon className="w-8 h-8 text-green-500 mx-auto mb-3" />
+                          <div className="text-2xl font-bold text-green-500 mb-2">+{analyticsData.roiAnalysis.premiumPricing}%</div>
+                          <div className="text-gray-400 text-sm">Premium Pricing Capability</div>
+                          <div className="text-green-400 text-xs mt-1">Regional Expertise Recognition</div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                          <div className="flex items-center space-x-3">
-                            <CheckCircleIcon className="w-5 h-5 text-blue-500" />
-                            <div>
-                              <h4 className="text-white font-medium">Referral Generation</h4>
-                              <p className="text-gray-400 text-sm">New clients from existing portfolio</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-blue-500">+{analyticsData.roiAnalysis.referralGeneration}</div>
-                            <div className="text-gray-400 text-sm">New Clients</div>
-                          </div>
+                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <CheckCircleIcon className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+                          <div className="text-2xl font-bold text-blue-500 mb-2">+{analyticsData.roiAnalysis.referralGeneration}</div>
+                          <div className="text-gray-400 text-sm">Referral Generation</div>
+                          <div className="text-blue-400 text-xs mt-1">New Clients from Portfolio</div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                          <div className="flex items-center space-x-3">
-                            <ClockIcon className="w-5 h-5 text-purple-500" />
-                            <div>
-                              <h4 className="text-white font-medium">Regional Market Leadership</h4>
-                              <p className="text-gray-400 text-sm">Professional reputation and expertise</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-purple-500">{analyticsData.roiAnalysis.regionalLeadership}%</div>
-                            <div className="text-gray-400 text-sm">Satisfaction Rate</div>
-                          </div>
+                        <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
+                          <ClockIcon className="w-8 h-8 text-purple-500 mx-auto mb-3" />
+                          <div className="text-2xl font-bold text-purple-500 mb-2">{analyticsData.roiAnalysis.regionalLeadership}%</div>
+                          <div className="text-gray-400 text-sm">Regional Market Leadership</div>
+                          <div className="text-purple-400 text-xs mt-1">Professional Reputation</div>
                         </div>
                       </div>
                     </CardBody>
