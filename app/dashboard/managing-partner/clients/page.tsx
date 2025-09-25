@@ -354,79 +354,46 @@ export default function ManagingPartnerClientsPage() {
           </div>
         </div>
 
-        {/* Executive Summary Section */}
+        {/* Stats Section */}
         <div className="flex justify-center px-4 lg:px-0 mb-8">
           <div className="w-full max-w-[90rem]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Total Clients</p>
-                      <p className="text-2xl font-semibold text-white">{portfolioSummary.totalClients}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-400 text-sm">👥</span>
-                    </div>
+            {/* Minimal Portfolio Stats */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <h3 className="text-white font-semibold text-sm tracking-tight">Michael Thompson, Managing Partner</h3>
+                    <p className="text-gray-400 text-xs font-medium">Client Portfolio Management</p>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Critical Alerts</p>
-                      <p className="text-2xl font-semibold text-red-400">{portfolioSummary.criticalAlerts}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-red-400 text-sm">⚠️</span>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-green-400 text-xs font-medium">Active</span>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Total Exposure</p>
-                      <p className="text-2xl font-semibold text-orange-400">{formatCurrency(portfolioSummary.totalPotentialExposure)}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-orange-400 text-sm">💰</span>
-                    </div>
+                </div>
+                
+                <div className="flex items-center space-x-6">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-white">{portfolioSummary.totalClients}</div>
+                    <div className="text-gray-400 text-xs font-medium">Total Clients</div>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Prevented Penalties</p>
-                      <p className="text-2xl font-semibold text-green-400">{formatCurrency(portfolioSummary.totalPreventedPenalties)}</p>
-                    </div>
-                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-green-400 text-sm">🛡️</span>
-                    </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-red-500">{portfolioSummary.criticalAlerts}</div>
+                    <div className="text-gray-400 text-xs font-medium">Critical Alerts</div>
                   </div>
-                </CardBody>
-              </Card>
-
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                <CardBody className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Average ROI</p>
-                      <p className="text-2xl font-semibold text-purple-400">{Math.round(portfolioSummary.averageROI)}%</p>
-                    </div>
-                    <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-purple-400 text-sm">📈</span>
-                    </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-orange-500">{formatCurrency(portfolioSummary.totalPotentialExposure)}</div>
+                    <div className="text-gray-400 text-xs font-medium">Total Exposure</div>
                   </div>
-                </CardBody>
-              </Card>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-500">{formatCurrency(portfolioSummary.totalPreventedPenalties)}</div>
+                    <div className="text-gray-400 text-xs font-medium">Prevented Penalties</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-500">{Math.round(portfolioSummary.averageROI)}%</div>
+                    <div className="text-gray-400 text-xs font-medium">Average ROI</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
