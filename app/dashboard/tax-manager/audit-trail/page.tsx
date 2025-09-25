@@ -296,43 +296,44 @@ export default function TaxManagerAuditTrailPage() {
   return (
     <div className="min-h-screen bg-black">
       <div className="h-full lg:px-6">
-        {/* Legal Protection Header */}
-        <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
-          <div>
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-lg">⚖️</span>
-              </div>
-              <h1 className="text-3xl font-semibold text-white tracking-tight">Professional Liability Audit Trail</h1>
-            </div>
-            <p className="text-gray-400">Court-ready decision documentation and legal evidence creation</p>
-            <div className="flex items-center space-x-4 mt-3">
-              <Chip color="success" variant="flat" size="sm">
-                <span className="flex items-center space-x-1">
-                  <span>✓</span>
-                  <span>COURT-READY</span>
-                </span>
-              </Chip>
-              <Chip color="primary" variant="flat" size="sm">
-                <span className="flex items-center space-x-1">
-                  <span>🔒</span>
-                  <span>DIGITALLY AUTHENTICATED</span>
-                </span>
-              </Chip>
-              <Chip color="warning" variant="flat" size="sm">
-                <span className="flex items-center space-x-1">
-                  <span>📋</span>
-                  <span>AICPA COMPLIANT</span>
-                </span>
-              </Chip>
-            </div>
-          </div>
-        </div>
-
-        {/* Professional Standards Summary */}
+        {/* Legal Protection Header with KPI Metrics */}
         <div className="flex justify-center px-4 lg:px-0 mb-8">
           <div className="w-full max-w-[90rem]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* Header Section */}
+            <div className="flex items-center justify-between pt-6 mb-6">
+              <div>
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-lg">⚖️</span>
+                  </div>
+                  <h1 className="text-3xl font-semibold text-white tracking-tight">Professional Liability Audit Trail</h1>
+                </div>
+                <p className="text-gray-400">Court-ready decision documentation and legal evidence creation</p>
+                <div className="flex items-center space-x-4 mt-3">
+                  <Chip color="success" variant="flat" size="sm">
+                    <span className="flex items-center space-x-1">
+                      <span>✓</span>
+                      <span>COURT-READY</span>
+                    </span>
+                  </Chip>
+                  <Chip color="primary" variant="flat" size="sm">
+                    <span className="flex items-center space-x-1">
+                      <span>🔒</span>
+                      <span>DIGITALLY AUTHENTICATED</span>
+                    </span>
+                  </Chip>
+                  <Chip color="warning" variant="flat" size="sm">
+                    <span className="flex items-center space-x-1">
+                      <span>📋</span>
+                      <span>AICPA COMPLIANT</span>
+                    </span>
+                  </Chip>
+                </div>
+              </div>
+            </div>
+
+            {/* KPI Metrics Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
                 <CardBody className="p-4">
                   <div className="flex items-center justify-between">
