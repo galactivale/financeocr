@@ -27,7 +27,7 @@ import {
   Accordion,
   AccordionItem
 } from "@nextui-org/react";
-import { SearchIcon } from "@/components/icons";
+import { SearchIcon } from "@/components/icons/searchicon";
 
 // Professional liability audit trail data structure
 interface AuditTrailDecision {
