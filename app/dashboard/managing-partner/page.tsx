@@ -163,500 +163,327 @@ const EnhancedUSMap = () => {
   );
 };
 
-// Futuristic KPI Cards for Managing Partner
-const CardTotalClientPortfolio = () => (
-  <div className="group bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10 backdrop-blur-xl rounded-2xl border border-blue-500/20 p-6 hover:border-blue-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Total Client Portfolio</h3>
-          <p className="text-gray-400 text-xs font-medium">Active clients</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">47</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-medium">↗ 12% growth</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-1 rounded-full" style={{width: '85%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardCriticalRiskClients = () => (
-  <div className="group bg-gradient-to-br from-red-500/10 via-orange-500/5 to-yellow-500/10 backdrop-blur-xl rounded-2xl border border-red-500/20 p-6 hover:border-red-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-red-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Critical Risk Clients</h3>
-          <p className="text-gray-400 text-xs font-medium">High risk</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">8</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-red-400 text-sm font-medium">↑ 2 new</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-red-500 to-orange-500 h-1 rounded-full" style={{width: '70%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardProfessionalLiability = () => (
-  <div className="group bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-indigo-500/10 backdrop-blur-xl rounded-2xl border border-purple-500/20 p-6 hover:border-purple-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Professional Liability</h3>
-          <p className="text-gray-400 text-xs font-medium">Exposure</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">$284,500</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-400 text-sm font-medium">↘ 15% reduced</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1 rounded-full" style={{width: '60%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardStatesUnderMonitoring = () => (
-  <div className="group bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-teal-500/10 backdrop-blur-xl rounded-2xl border border-green-500/20 p-6 hover:border-green-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">States Under Monitoring</h3>
-          <p className="text-gray-400 text-xs font-medium">Jurisdictions</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">45</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-400 text-sm font-medium">→ stable</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-1 rounded-full" style={{width: '90%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardProfessionalDecisions = () => (
-  <div className="group bg-gradient-to-br from-indigo-500/10 via-blue-500/5 to-purple-500/10 backdrop-blur-xl rounded-2xl border border-indigo-500/20 p-6 hover:border-indigo-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a2 2 0 114 0 2 2 0 01-4 0zm2 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Professional Decisions</h3>
-          <p className="text-gray-400 text-xs font-medium">Documented</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">156</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-medium">↗ 23% vs LY</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-indigo-500 to-blue-500 h-1 rounded-full" style={{width: '95%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardPenaltiesPrevented = () => (
-  <div className="group bg-gradient-to-br from-yellow-500/10 via-amber-500/5 to-orange-500/10 backdrop-blur-xl rounded-2xl border border-yellow-500/20 p-6 hover:border-yellow-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-yellow-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Penalties Prevented</h3>
-          <p className="text-gray-400 text-xs font-medium">This year</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">$1.2M</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-medium">↗ 67% vs LY</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-yellow-500 to-amber-500 h-1 rounded-full" style={{width: '88%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardTeamPerformance = () => (
-  <div className="group bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-teal-500/10 backdrop-blur-xl rounded-2xl border border-emerald-500/20 p-6 hover:border-emerald-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Team Performance</h3>
-          <p className="text-gray-400 text-xs font-medium">Compliance</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">94%</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-400 text-sm font-medium">→ stable</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-emerald-500 to-green-500 h-1 rounded-full" style={{width: '94%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardPlatformROI = () => (
-  <div className="group bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-indigo-500/10 backdrop-blur-xl rounded-2xl border border-cyan-500/20 p-6 hover:border-cyan-400/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Platform ROI</h3>
-          <p className="text-gray-400 text-xs font-medium">Investment</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">2,458%</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-medium">↗ 340% vs LY</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-1 rounded-full" style={{width: '100%'}}></div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardExecutiveSummary = () => (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-white font-semibold text-lg tracking-tight">Executive Summary</h3>
-      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-    </div>
-    <div className="space-y-3">
-      <div className="group bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20 p-4 hover:bg-red-500/15 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-medium text-white text-sm">ABC Corp - California Threshold</p>
-              <p className="text-xs text-red-400">$1.2M exposure, immediate action required</p>
-            </div>
-          </div>
-          <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
-            URGENT
-          </span>
-        </div>
-      </div>
-      <div className="group bg-orange-500/10 backdrop-blur-sm rounded-xl border border-orange-500/20 p-4 hover:bg-orange-500/15 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-medium text-white text-sm">Texas Rule Change Impact</p>
-              <p className="text-xs text-orange-400">15 clients affected by new nexus rules</p>
-            </div>
-          </div>
-          <span className="px-2 py-1 bg-orange-500 text-white text-xs font-medium rounded-full">
-            HIGH
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const CardRecentDecisions = () => (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-white font-semibold text-lg tracking-tight">Recent Executive Decisions</h3>
-      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-    </div>
-    <div className="space-y-3">
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium text-white text-sm">XYZ Industries - Registration</p>
-            <p className="text-xs text-gray-400">Approved immediate registration in 3 states</p>
-          </div>
-          <span className="text-xs text-gray-400">2h ago</span>
-        </div>
-      </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium text-white text-sm">Risk Assessment Review</p>
-            <p className="text-xs text-gray-400">Updated firm-wide exposure analysis</p>
-          </div>
-          <span className="text-xs text-gray-400">1d ago</span>
-        </div>
-      </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium text-white text-sm">Team Performance Review</p>
-            <p className="text-xs text-gray-400">Q3 compliance metrics reviewed</p>
-          </div>
-          <span className="text-xs text-gray-400">3d ago</span>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Firm Activity Table Component
-const FirmActivityTable = () => {
-  const firmActivities = [
-    {
-      time: "2 hours ago",
-      client: "ABC Corp",
-      activity: "Executive Decision Required",
-      activityDetail: "California threshold exceeded",
-      state: "CA",
-      impact: "$1.2M exposure",
-      impactDetail: "Immediate action needed",
-      status: "Critical",
-      user: "Managing Partner"
-    },
-    {
-      time: "4 hours ago",
-      client: "XYZ Industries",
-      activity: "Registration Approved",
-      activityDetail: "Multi-state compliance",
-      state: "TX",
-      impact: "3 states registered",
-      impactDetail: "Risk mitigated",
-      status: "Complete",
-      user: "Executive Team"
-    },
-    {
-      time: "Yesterday 3:45 PM",
-      client: "TechCorp SaaS",
-      activity: "Risk Assessment",
-      activityDetail: "Firm-wide exposure review",
-      state: "NY",
-      impact: "Portfolio analysis",
-      impactDetail: "Strategic planning",
-      status: "Resolved",
-      user: "Risk Committee"
-    },
-    {
-      time: "Yesterday 1:20 PM",
-      client: "ManufacturingCo",
-      activity: "Compliance Review",
-      activityDetail: "Q3 performance metrics",
-      state: "FL",
-      impact: "94.2% compliance",
-      impactDetail: "Above target",
-      status: "Complete",
-      user: "Compliance Team"
-    },
-    {
-      time: "Nov 20 4:15 PM",
-      client: "ServicesCorp",
-      activity: "Strategic Planning",
-      activityDetail: "2025 compliance strategy",
-      state: "WA",
-      impact: "Resource allocation",
-      impactDetail: "Budget approved",
-      status: "Approved",
-      user: "Executive Board"
-    },
-    {
-      time: "Nov 20 10:30 AM",
-      client: "RetailChain",
-      activity: "Regulatory Update",
-      activityDetail: "Texas nexus rule changes",
-      state: "TX",
-      impact: "15 clients affected",
-      impactDetail: "Action plan created",
-      status: "In Progress",
-      user: "Legal Team"
-    },
-    {
-      time: "Nov 19 2:10 PM",
-      client: "StartupInc",
-      activity: "Partnership Review",
-      activityDetail: "Client portfolio expansion",
-      state: "CA",
-      impact: "New market entry",
-      impactDetail: "Growth opportunity",
-      status: "Approved",
-      user: "Business Development"
-    },
-    {
-      time: "Nov 19 11:45 AM",
-      client: "LocalBusiness",
-      activity: "Performance Review",
-      activityDetail: "Team efficiency metrics",
-      state: "CO",
-      impact: "Productivity +15%",
-      impactDetail: "Target exceeded",
-      status: "Complete",
-      user: "HR Department"
-    }
+// Monthly Revenue & Exposure Chart Component
+const MonthlyRevenueChart = () => {
+  const monthlyData = [
+    { month: 'Jan', revenue: 3200000, exposure: 2800000, net: 400000 },
+    { month: 'Feb', revenue: 3400000, exposure: 2900000, net: 500000 },
+    { month: 'Mar', revenue: 3600000, exposure: 3100000, net: 500000 },
+    { month: 'Apr', revenue: 3800000, exposure: 3200000, net: 600000 },
+    { month: 'May', revenue: 4200000, exposure: 3500000, net: 700000 },
+    { month: 'Jun', revenue: 4000000, exposure: 3300000, net: 700000 },
+    { month: 'Jul', revenue: 4100000, exposure: 3400000, net: 700000 },
+    { month: 'Aug', revenue: 4300000, exposure: 3600000, net: 700000 },
+    { month: 'Sep', revenue: 4400000, exposure: 3700000, net: 700000 },
+    { month: 'Oct', revenue: 4500000, exposure: 3800000, net: 700000 },
+    { month: 'Nov', revenue: 4600000, exposure: 3900000, net: 700000 },
+    { month: 'Dec', revenue: 4800000, exposure: 4000000, net: 800000 }
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'critical': return 'text-danger';
-      case 'complete': return 'text-success';
-      case 'resolved': return 'text-success';
-      case 'approved': return 'text-success';
-      case 'in progress': return 'text-primary';
-      default: return 'text-default';
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   return (
-    <div className="w-full">
-      <Table aria-label="Recent Firm Activity">
-        <TableHeader>
-          <TableColumn>TIME</TableColumn>
-          <TableColumn>CLIENT</TableColumn>
-          <TableColumn>ACTIVITY</TableColumn>
-          <TableColumn>STATE</TableColumn>
-          <TableColumn>IMPACT</TableColumn>
-          <TableColumn>STATUS</TableColumn>
-          <TableColumn>USER</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {firmActivities.map((activity, index) => (
-            <TableRow key={index}>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.time}
+    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-white font-semibold text-lg tracking-tight">Monthly Revenue & Exposure</h3>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-white text-sm">Revenue</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+            <span className="text-white text-sm">Exposure</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="h-80 flex items-end justify-between space-x-2">
+        {monthlyData.map((data, index) => (
+          <div key={data.month} className="flex flex-col items-center flex-1 group">
+            <div className="relative w-full flex flex-col items-center space-y-1 mb-2">
+              {/* Revenue Bar */}
+              <div 
+                className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-sm transition-all duration-300 group-hover:from-blue-500 group-hover:to-blue-300"
+                style={{ height: `${(data.revenue / 5000000) * 200}px` }}
+              ></div>
+              {/* Exposure Bar */}
+              <div 
+                className="w-full bg-gradient-to-b from-pink-600 to-pink-400 rounded-b-sm transition-all duration-300 group-hover:from-pink-500 group-hover:to-pink-300"
+                style={{ height: `${(data.exposure / 5000000) * 200}px` }}
+              ></div>
+            </div>
+            <span className="text-gray-400 text-xs font-medium">{data.month}</span>
+            
+            {/* Tooltip for May */}
+            {data.month === 'May' && (
+              <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 bg-black/90 backdrop-blur-sm rounded-lg border border-white/20 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="text-white text-sm font-medium mb-2">May 2024</div>
+                <div className="flex items-center space-x-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-white text-xs">Revenue: {formatCurrency(data.revenue)}</span>
                 </div>
-              </TableCell>
-              <TableCell>
-                <div className="font-semibold text-default-900">
-                  {activity.client}
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                  <span className="text-white text-xs">Exposure: {formatCurrency(data.exposure)}</span>
                 </div>
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div className="font-medium text-default-900">
-                    {activity.activity}
-                  </div>
-                  <div className="text-sm text-default-500">
-                    {activity.activityDetail}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  {activity.state}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div className="font-medium text-default-900">
-                    {activity.impact}
-                  </div>
-                  <div className="text-sm text-default-500">
-                    {activity.impactDetail}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                  {activity.status}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.user}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Summary Statistics Panel
+const SummaryStatistics = () => {
+  return (
+    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+      <h3 className="text-white font-semibold text-lg tracking-tight mb-6">Summary Statistics</h3>
+      
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-white text-2xl font-bold">$48.2M</div>
+            <div className="text-gray-400 text-sm">Total Revenue</div>
+          </div>
+          <div className="text-green-400 text-sm font-medium">+8.7%</div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-white text-2xl font-bold">$40.1M</div>
+            <div className="text-gray-400 text-sm">Total Exposure</div>
+          </div>
+          <div className="text-red-400 text-sm font-medium">-6.3%</div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-white text-2xl font-bold">$8.1M</div>
+            <div className="text-gray-400 text-sm">Net Income</div>
+          </div>
+          <div className="text-green-400 text-sm font-medium">+21.4%</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Client Portfolio Overview
+const ClientPortfolioOverview = () => {
+  const portfolioData = [
+    { category: 'Enterprise', amount: 18000000, percentage: 37, color: 'bg-green-500' },
+    { category: 'Mid-Market', amount: 22000000, percentage: 44, color: 'bg-blue-500' },
+    { category: 'SMB', amount: 8200000, percentage: 19, color: 'bg-yellow-500' }
+  ];
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  return (
+    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-white font-semibold text-lg tracking-tight">Client Portfolio Overview</h3>
+        <button className="text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors">
+          Categories
+        </button>
+      </div>
+      
+      <div className="mb-4">
+        <div className="text-white text-2xl font-bold mb-2">$48.2M</div>
+        <div className="text-gray-400 text-sm">Total Portfolio Value</div>
+      </div>
+      
+      <div className="w-full bg-white/10 rounded-full h-2 mb-4">
+        <div className="flex h-2 rounded-full overflow-hidden">
+          <div className="bg-green-500" style={{width: '37%'}}></div>
+          <div className="bg-blue-500" style={{width: '44%'}}></div>
+          <div className="bg-yellow-500" style={{width: '19%'}}></div>
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        {portfolioData.map((item, index) => (
+          <div key={index} className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+              <span className="text-white text-sm font-medium">{item.category}</span>
+            </div>
+            <div className="text-right">
+              <div className="text-white text-sm font-medium">{formatCurrency(item.amount)}</div>
+              <div className="text-gray-400 text-xs">{item.percentage}%</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Risk Analysis Component
+const RiskAnalysis = () => {
+  const riskData = [
+    { category: 'Critical', count: 8, percentage: 40, color: 'bg-red-500' },
+    { category: 'High', count: 5, percentage: 25, color: 'bg-orange-500' },
+    { category: 'Medium', count: 4, percentage: 20, color: 'bg-yellow-500' },
+    { category: 'Low', count: 2, percentage: 10, color: 'bg-green-500' },
+    { category: 'Compliant', count: 1, percentage: 5, color: 'bg-gray-500' }
+  ];
+
+  return (
+    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-white font-semibold text-lg tracking-tight">Risk Analysis</h3>
+        <button className="text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors">
+          Details
+        </button>
+      </div>
+      
+      <div className="flex items-center justify-center mb-6">
+        <div className="relative w-32 h-32">
+          <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="8"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke="url(#gradient)"
+              strokeWidth="8"
+              strokeDasharray={`${2 * Math.PI * 40}`}
+              strokeDashoffset={`${2 * Math.PI * 40 * 0.2}`}
+              className="transition-all duration-500"
+            />
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#ef4444" />
+                <stop offset="25%" stopColor="#f59e0b" />
+                <stop offset="50%" stopColor="#eab308" />
+                <stop offset="75%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#6b7280" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-white text-lg font-bold">20</div>
+              <div className="text-gray-400 text-xs">Total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        {riskData.map((item, index) => (
+          <div key={index} className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+              <span className="text-white text-sm font-medium">{item.category}</span>
+            </div>
+            <div className="text-right">
+              <div className="text-white text-sm font-medium">{item.count}</div>
+              <div className="text-gray-400 text-xs">{item.percentage}%</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Financial Forecast Component
+const FinancialForecast = () => {
+  return (
+    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+      <h3 className="text-white font-semibold text-lg tracking-tight mb-6">Financial Forecast</h3>
+      
+      <div className="h-48 mb-4">
+        <div className="relative w-full h-full">
+          {/* Simplified line chart representation */}
+          <svg className="w-full h-full" viewBox="0 0 300 120">
+            {/* Income line */}
+            <path
+              d="M 20 80 Q 80 60 150 50 Q 220 40 280 30"
+              fill="none"
+              stroke="#3b82f6"
+              strokeWidth="2"
+              className="transition-all duration-500"
+            />
+            {/* Exposure line */}
+            <path
+              d="M 20 90 Q 80 85 150 80 Q 220 75 280 70"
+              fill="none"
+              stroke="#ec4899"
+              strokeWidth="2"
+              className="transition-all duration-500"
+            />
+            {/* Shaded area */}
+            <path
+              d="M 20 80 Q 80 60 150 50 Q 220 40 280 30 L 280 70 Q 220 75 150 80 Q 80 85 20 90 Z"
+              fill="url(#areaGradient)"
+              opacity="0.3"
+            />
+            <defs>
+              <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
+            
+            {/* May highlight */}
+            <line x1="150" y1="0" x2="150" y2="120" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4,4" />
+            <text x="150" y="15" textAnchor="middle" className="text-xs fill-yellow-400">May</text>
+          </svg>
+        </div>
+      </div>
+      
+      <div className="flex items-center space-x-4 mb-4">
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+          <span className="text-white text-sm">Revenue</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+          <span className="text-white text-sm">Exposure</span>
+        </div>
+      </div>
+      
+      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+        <div className="flex items-start space-x-3">
+          <div className="w-5 h-5 text-yellow-400 mt-0.5">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-yellow-300 text-sm">
+              Expecting <span className="font-semibold">deficit in May</span>. Consider saving more in April or <span className="font-semibold">optimizing leisure expenses</span>.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -665,77 +492,55 @@ export default function ManagingPartnerDashboard() {
   return (
     <div className="min-h-screen bg-black">
       <div className="h-full lg:px-6">
-        <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
-          <div className="mt-6 gap-8 flex flex-col w-full">
-            {/* Card Section Top */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Executive Overview</h2>
-              </div>
-              
-              {/* First Row - 4 Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-center w-full">
-                <CardTotalClientPortfolio />
-                <CardCriticalRiskClients />
-                <CardProfessionalLiability />
-                <CardStatesUnderMonitoring />
-              </div>
-              
-              {/* Second Row - 4 Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 justify-center w-full">
-                <CardProfessionalDecisions />
-                <CardPenaltiesPrevented />
-                <CardTeamPerformance />
-                <CardPlatformROI />
-              </div>
+        {/* Header */}
+        <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
+          <h1 className="text-3xl font-semibold text-white tracking-tight">Financial Analytics</h1>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
+              <button className="text-white text-sm font-medium border-b-2 border-blue-500 pb-1">Summary</button>
+              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Balance</button>
+              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Spending</button>
+              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Income</button>
+              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Net Income</button>
+              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Savings</button>
+              <button className="text-gray-400 text-sm font-medium hover:text-white transition-colors">Net Worth</button>
             </div>
-
-            {/* U.S. States Map */}
-            <div className="h-full flex flex-col gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Firm Client Distribution Map</h2>
-              </div>
-              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <EnhancedUSMap />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Section */}
-          <div className="mt-4 gap-6 flex flex-col xl:max-w-md w-full">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Executive Actions</h2>
-            </div>
-            <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
-              <CardExecutiveSummary />
-              <CardRecentDecisions />
+            <div className="flex items-center space-x-2 text-gray-400 text-sm">
+              <select className="bg-transparent text-white border-none outline-none">
+                <option>All Accounts</option>
+              </select>
+              <span>/</span>
+              <button className="text-gray-400 hover:text-white transition-colors">Weekly</button>
+              <button className="text-white font-medium">Monthly</button>
+              <button className="text-gray-400 hover:text-white transition-colors">Yearly</button>
+              <span>/</span>
+              <select className="bg-transparent text-white border-none outline-none">
+                <option>2024</option>
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Table Recent Firm Activity */}
-        <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
-          <div className="flex flex-wrap justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Recent Firm Activity</h2>
-            </div>
-            <Link
-              href="/dashboard/managing-partner/compliance"
-              as={NextLink}
-              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
-            >
-              <span className="text-sm font-medium">View All</span>
-              <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+        {/* Main Chart and Summary */}
+        <div className="flex justify-center gap-6 xl:gap-8 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full mb-8">
+          <div className="flex-1">
+            <MonthlyRevenueChart />
           </div>
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-            <FirmActivityTable />
+          <div className="xl:w-80 w-full">
+            <SummaryStatistics />
+          </div>
+        </div>
+
+        {/* Bottom Section - Three Columns */}
+        <div className="flex justify-center gap-6 xl:gap-8 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full">
+          <div className="flex-1">
+            <ClientPortfolioOverview />
+          </div>
+          <div className="flex-1">
+            <RiskAnalysis />
+          </div>
+          <div className="flex-1">
+            <FinancialForecast />
           </div>
         </div>
       </div>
