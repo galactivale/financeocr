@@ -191,16 +191,16 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             />
             <SidebarMenu title="Tasks">
               <SidebarItem
-                isActive={pathname === "/dashboard/staff-accountant/tasks"}
-                title="Tasks"
+                isActive={pathname === "/dashboard/staff-accountant/nexus-tasks"}
+                title="Nexus Tasks"
                 icon={<TasksIcon />}
-                href="/dashboard/staff-accountant/tasks"
+                href="/dashboard/staff-accountant/nexus-tasks"
               />
               <SidebarItem
-                isActive={pathname === "/dashboard/staff-accountant/data"}
-                title="Data"
+                isActive={pathname === "/dashboard/staff-accountant/data-entry"}
+                title="Documents"
                 icon={<DataIcon />}
-                href="/dashboard/staff-accountant/data"
+                href="/dashboard/staff-accountant/data-entry"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/clients"}
@@ -209,12 +209,32 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
                 href="/dashboard/staff-accountant/clients"
               />
             </SidebarMenu>
+            <SidebarMenu title="Monitoring">
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/monitoring"}
+                title="Task Monitoring"
+                icon={<MonitoringIcon />}
+                href="/dashboard/staff-accountant/monitoring"
+              />
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/alerts"}
+                title="Alerts"
+                icon={<AlertsIcon />}
+                href="/dashboard/staff-accountant/alerts"
+              />
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/audit-trail"}
+                title="Audit Trail"
+                icon={<AuditTrailIcon />}
+                href="/dashboard/staff-accountant/audit-trail"
+              />
+            </SidebarMenu>
             <SidebarMenu title="Support">
               <SidebarItem
-                isActive={pathname === "/dashboard/staff-accountant/support"}
-                title="Support"
+                isActive={pathname === "/dashboard/staff-accountant/client-support"}
+                title="Client Support"
                 icon={<SupportIcon />}
-                href="/dashboard/staff-accountant/support"
+                href="/dashboard/staff-accountant/client-support"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/training"}
@@ -229,12 +249,38 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
                 href="/dashboard/staff-accountant/notifications"
               />
             </SidebarMenu>
+            <SidebarMenu title="Reports & Compliance">
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/reports"}
+                title="Reports"
+                icon={<ReportsIcon />}
+                href="/dashboard/staff-accountant/reports"
+              />
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/regulatory"}
+                title="Regulatory"
+                icon={<RegulatoryIcon />}
+                href="/dashboard/staff-accountant/regulatory"
+              />
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/liability"}
+                title="Liability"
+                icon={<LiabilityIcon />}
+                href="/dashboard/staff-accountant/liability"
+              />
+            </SidebarMenu>
             <SidebarMenu title="Settings">
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/profile"}
                 title="Profile"
                 icon={<ProfileIcon />}
                 href="/dashboard/staff-accountant/profile"
+              />
+              <SidebarItem
+                isActive={pathname === "/dashboard/staff-accountant/settings"}
+                title="Settings"
+                icon={<SettingsIcon />}
+                href="/dashboard/staff-accountant/settings"
               />
             </SidebarMenu>
           </>

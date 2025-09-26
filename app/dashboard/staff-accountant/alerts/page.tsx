@@ -1,17 +1,52 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { 
+  Card, 
+  CardBody, 
+  Button, 
+  Chip, 
+  Input,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter
+} from "@nextui-org/react";
 
-export default function StaffAccountantAlerts() {
-  return (
-    <div className="h-full lg:px-6">
-      <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-        <div className="mt-6 gap-6 flex flex-col w-full">
-          <div className="flex flex-col gap-2">
-            <h3 className="text-xl font-semibold">Staff Accountant Alerts</h3>
-            <p className="text-default-500">Monitor task alerts and notifications for staff accountants.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+// Alert data structure for Staff Accountant
+interface StaffAlert {
+  id: string;
+  title: string;
+  message: string;
+  category: 'task-assignment' | 'client-communication' | 'system-update' | 'quality-feedback' | 'professional-development';
+  priority: 'urgent' | 'high' | 'medium' | 'low';
+  status: 'unread' | 'read' | 'actioned' | 'dismissed';
+  createdAt: string;
+  dueDate?: string;
+  client?: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  supervisor?: {
+    name: string;
+    role: string;
+  };
+  actions?: {
+    id: string;
+    label: string;
+    type: 'accept' | 'escalate' | 'respond' | 'complete' | 'learn';
+    primary?: boolean;
+  }[];
+  learningContent?: {
+    title: string;
+    description: string;
+    resources: string[];
+  };
+  qualityMetrics?: {
+    accuracy?: number;
+    timeliness?: number;
+    completeness?: number;
+  };
 }

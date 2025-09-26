@@ -1,6 +1,6 @@
 import React from "react";
 
-export const CalendarIcon = () => {
+export const MagnifyingGlassIcon = () => {
   return (
     <svg
       aria-hidden="true"
@@ -13,7 +13,7 @@ export const CalendarIcon = () => {
     >
       <path
         className="stroke-default-400"
-        d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z"
+        d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -21,3 +21,4 @@ export const CalendarIcon = () => {
     </svg>
   );
 };
+
