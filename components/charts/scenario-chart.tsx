@@ -106,3 +106,4 @@ export const ScenarioChart: React.FC<ScenarioChartProps> = ({ scenarios }) => {
     </div>
   );
 };
+
