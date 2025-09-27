@@ -5,212 +5,288 @@ import { TableWrapper } from "@/components/table/table";
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
+import { 
+  Server, 
+  Users, 
+  Shield, 
+  AlertTriangle,
+  Activity, 
+  Globe,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  BarChart3,
+  Cpu,
+  HardDrive,
+  Wifi
+} from "lucide-react";
 
-const Chart = dynamic(
-  () => import("@/components/charts/steam").then((mod) => mod.Steam),
+const ActivityLogChart = dynamic(
+  () => import("@/components/charts/activity-log-chart").then((mod) => mod.ActivityLogChart),
   {
     ssr: false,
   }
 );
 
-// System Admin specific cards
+// Tax-manager style System Admin cards
 const CardSystemHealth = () => (
-  <Card className="xl:max-w-sm bg-default-50 flex flex-col w-full">
-    <CardHeader className="flex flex-row !items-start !space-x-3 !space-y-0">
-      <div className="flex flex-col">
-        <p className="text-xs font-medium uppercase text-success">System Health</p>
-        <p className="text-2xl font-bold">99.9%</p>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+          <Server className="w-5 h-5 text-green-500" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">System Health</h3>
+          <p className="text-gray-400 text-xs font-medium">Platform uptime</p>
+        </div>
       </div>
-      <div className="text-success">💚</div>
-    </CardHeader>
-    <CardBody className="pt-0">
-      <div className="flex gap-2">
-        <span className="text-xs text-success">+0.1%</span>
-        <span className="text-xs text-default-500">uptime last 30 days</span>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">99.8%</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-400 text-sm font-medium">+0.2%</span>
+        </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-green-500 h-1 rounded-full" style={{width: '99.8%'}}></div>
+      </div>
+    </div>
+  </div>
 );
 
-const CardActiveUsers = () => (
-  <Card className="xl:max-w-sm bg-default-50 flex flex-col w-full">
-    <CardHeader className="flex flex-row !items-start !space-x-3 !space-y-0">
-      <div className="flex flex-col">
-        <p className="text-xs font-medium uppercase text-primary">Active Users</p>
-        <p className="text-2xl font-bold">1,247</p>
+const CardActiveTenants = () => (
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+          <Users className="w-5 h-5 text-blue-500" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Active Tenants</h3>
+          <p className="text-gray-400 text-xs font-medium">CPA firms online</p>
+        </div>
       </div>
-      <div className="text-primary">👥</div>
-    </CardHeader>
-    <CardBody className="pt-0">
-      <div className="flex gap-2">
-        <span className="text-xs text-primary">+23</span>
-        <span className="text-xs text-default-500">across all tenants</span>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">47</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-400 text-sm font-medium">+3 new</span>
+        </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-blue-500 h-1 rounded-full" style={{width: '78%'}}></div>
+      </div>
+    </div>
+  </div>
 );
 
 const CardSecurityStatus = () => (
-  <Card className="xl:max-w-sm bg-default-50 flex flex-col w-full">
-    <CardHeader className="flex flex-row !items-start !space-x-3 !space-y-0">
-      <div className="flex flex-col">
-        <p className="text-xs font-medium uppercase text-success">Security Status</p>
-        <p className="text-2xl font-bold">SECURE</p>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center space-x-3">
+        <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
+          <Shield className="w-5 h-5 text-orange-500" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm tracking-tight">Security Alerts</h3>
+          <p className="text-gray-400 text-xs font-medium">Active threats</p>
+        </div>
       </div>
-      <div className="text-success">🛡️</div>
-    </CardHeader>
-    <CardBody className="pt-0">
-      <div className="flex gap-2">
-        <span className="text-xs text-success">0</span>
-        <span className="text-xs text-default-500">security alerts</span>
+    </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-3xl font-bold text-white">2</span>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-green-400 text-sm font-medium">-1 resolved</span>
+        </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="w-full bg-white/10 rounded-full h-1">
+        <div className="bg-orange-500 h-1 rounded-full" style={{width: '40%'}}></div>
+      </div>
+    </div>
+  </div>
 );
 
-const CardSystemStatus = () => (
-  <Card className="w-full p-4">
-    <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-      <h4 className="font-bold text-large">System Components Status</h4>
-    </CardHeader>
-    <CardBody className="overflow-visible py-2">
-      <div className="space-y-3">
+
+const CardPlatformOverview = () => (
+  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-white font-semibold text-lg tracking-tight">Platform Command Center</h3>
+      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+    </div>
+    <div className="space-y-3">
+      <div className="group bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20 p-4 hover:bg-red-500/15 transition-all duration-200">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Web Application</span>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-sm text-success">Operational</span>
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">Database Performance Alert</p>
+              <p className="text-xs text-red-400">Query response time exceeding 2s threshold</p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Database</span>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-sm text-success">Operational</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">AI Processing Engine</span>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-sm text-success">Operational</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Regulatory Data Feed</span>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-warning rounded-full"></div>
-            <span className="text-sm text-warning">Syncing</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Backup System</span>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-sm text-success">Operational</span>
-          </div>
+          <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
+            CRITICAL
+          </span>
         </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="group bg-orange-500/10 backdrop-blur-sm rounded-xl border border-orange-500/20 p-4 hover:bg-orange-500/15 transition-all duration-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
+              <Users className="w-4 h-4 text-orange-500" />
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">Tenant Onboarding Queue</p>
+              <p className="text-xs text-orange-400">3 new firms pending initial configuration</p>
+            </div>
+          </div>
+          <span className="px-2 py-1 bg-orange-500 text-white text-xs font-medium rounded-full">
+            HIGH
+          </span>
+        </div>
+      </div>
+      <div className="group bg-green-500/10 backdrop-blur-sm rounded-xl border border-green-500/20 p-4 hover:bg-green-500/15 transition-all duration-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+            </div>
+            <div>
+              <p className="font-medium text-white text-sm">Integration Health Check</p>
+              <p className="text-xs text-green-400">QuickBooks API connectivity restored</p>
+            </div>
+          </div>
+          <span className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-full">
+            RESOLVED
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
-const CardIntegrationStatus = () => (
-  <Card className="w-full p-4">
-    <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-      <h4 className="font-bold text-large">Integration Status</h4>
-    </CardHeader>
-    <CardBody className="overflow-visible py-2">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div>
-            <p className="font-medium">QuickBooks Integration</p>
-            <p className="text-sm text-default-500">Last sync: 2 minutes ago</p>
-          </div>
-          <span className="text-xs bg-success-100 dark:bg-success-800 text-success-800 dark:text-success-200 px-2 py-1 rounded">
-            ACTIVE
-          </span>
+const CardSystemActions = () => (
+  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-white font-semibold text-lg tracking-tight">System Administration Actions</h3>
+      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+    </div>
+    <div className="space-y-4">
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">Backup Verification</span>
+          <span className="text-green-400 text-sm font-medium">2h ago</span>
         </div>
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div>
-            <p className="font-medium">Sage Integration</p>
-            <p className="text-sm text-default-500">Last sync: 5 minutes ago</p>
-          </div>
-          <span className="text-xs bg-success-100 dark:bg-success-800 text-success-800 dark:text-success-200 px-2 py-1 rounded">
-            ACTIVE
-          </span>
-        </div>
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div>
-            <p className="font-medium">Xero Integration</p>
-            <p className="text-sm text-default-500">Last sync: 1 hour ago</p>
-          </div>
-          <span className="text-xs bg-warning-100 dark:bg-warning-800 text-warning-800 dark:text-warning-200 px-2 py-1 rounded">
-            WARNING
-          </span>
-        </div>
-        <div className="flex items-center justify-between p-3 border rounded-lg">
-          <div>
-            <p className="font-medium">Thomson Reuters Feed</p>
-            <p className="text-sm text-default-500">Last update: 30 minutes ago</p>
-          </div>
-          <span className="text-xs bg-success-100 dark:bg-success-800 text-success-800 dark:text-success-200 px-2 py-1 rounded">
-            ACTIVE
-          </span>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '100%'}}></div>
         </div>
       </div>
-    </CardBody>
-  </Card>
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">Security Patch Deployment</span>
+          <span className="text-green-400 text-sm font-medium">4h ago</span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '100%'}}></div>
+        </div>
+      </div>
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">Tenant Performance Review</span>
+          <span className="text-blue-400 text-sm font-medium">1d ago</span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style={{width: '85%'}}></div>
+        </div>
+      </div>
+      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium text-sm">Integration Monitoring</span>
+          <span className="text-green-400 text-sm font-medium">2d ago</span>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1.5">
+          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '100%'}}></div>
+        </div>
+      </div>
+    </div>
+  </div>
 );
 
 export default function SystemAdminDashboard() {
   return (
-    <div className="h-full lg:px-6">
-      <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-        <div className="mt-6 gap-6 flex flex-col w-full">
-          {/* Card Section Top */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-xl font-semibold">System Overview</h3>
-            <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-5 justify-center w-full">
-              <CardSystemHealth />
-              <CardActiveUsers />
-              <CardSecurityStatus />
+    <div className="min-h-screen bg-black">
+      <div className="h-full lg:px-6">
+        <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
+          <div className="mt-6 gap-8 flex flex-col w-full">
+            {/* Card Section Top */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">System Health Overview</h2>
+              </div>
+              <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
+                <CardSystemHealth />
+                <CardActiveTenants />
+                <CardSecurityStatus />
+              </div>
+            </div>
+
+
+            {/* Activity Log Chart */}
+            <div className="h-full flex flex-col gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">System Activity Log</h2>
+              </div>
+              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+                <ActivityLogChart />
+              </div>
             </div>
           </div>
 
-          {/* Chart */}
-          <div className="h-full flex flex-col gap-2">
-            <h3 className="text-xl font-semibold">System Performance Analytics</h3>
-            <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
-              <Chart />
+          {/* Right Section */}
+          <div className="mt-4 gap-6 flex flex-col xl:max-w-md w-full">
+            <div className="flex items-center space-x-3">
+              <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">System Management</h2>
+            </div>
+            <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
+              <CardPlatformOverview />
+              <CardSystemActions />
             </div>
           </div>
         </div>
 
-        {/* Right Section */}
-        <div className="mt-4 gap-2 flex flex-col xl:max-w-md w-full">
-          <h3 className="text-xl font-semibold">System Monitoring</h3>
-          <div className="flex flex-col justify-center gap-4 flex-wrap md:flex-nowrap md:flex-col">
-            <CardSystemStatus />
-            <CardIntegrationStatus />
+        {/* Table Critical System Issues */}
+        <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
+          <div className="flex flex-wrap justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="w-1 h-8 bg-red-500 rounded-full"></div>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">Critical System Issues</h2>
+            </div>
+            <Link
+              href="/dashboard/system-admin/system-monitoring"
+              as={NextLink}
+              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+            >
+              <span className="text-sm font-medium">View All</span>
+              <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+            <TableWrapper />
           </div>
         </div>
-      </div>
-
-      {/* Table Latest System Activity */}
-      <div className="flex flex-col justify-center w-full py-5 px-4 lg:px-0 max-w-[90rem] mx-auto gap-3">
-        <div className="flex flex-wrap justify-between">
-          <h3 className="text-center text-xl font-semibold">Recent System Activity</h3>
-          <Link
-            href="/dashboard/system-admin/system-monitoring/logs"
-            as={NextLink}
-            color="primary"
-            className="cursor-pointer"
-          >
-            View All
-          </Link>
-        </div>
-        <TableWrapper />
       </div>
     </div>
   );

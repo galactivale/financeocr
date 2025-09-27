@@ -26,17 +26,17 @@ export const SidebarItem = ({ icon, title, isActive, href = "" }: Props) => {
       <div
         className={clsx(
           isActive
-            ? "bg-white/10 [&_svg_path]:fill-white [&_svg]:text-white"
-            : "hover:bg-white/5 [&_svg_path]:fill-gray-400 [&_svg]:text-gray-400",
-          "flex gap-3 w-full min-h-[36px] h-full items-center px-3 rounded-lg cursor-pointer transition-all duration-200 active:scale-[0.98] group"
+            ? "bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-l-2 border-blue-500 [&_svg_path]:fill-white [&_svg]:text-white shadow-lg"
+            : "hover:bg-white/8 [&_svg_path]:fill-gray-400 [&_svg]:text-gray-400 hover:border-l-2 hover:border-white/20",
+          "flex gap-3 w-full min-h-[40px] h-full items-center px-4 rounded-r-lg cursor-pointer transition-all duration-300 active:scale-[0.98] group border-l-2 border-transparent"
         )}
         onClick={handleClick}
       >
-        <div className="w-4 h-4 flex items-center justify-center">
+        <div className="w-5 h-5 flex items-center justify-center">
           {icon}
         </div>
         <span className={clsx(
-          "text-sm font-medium transition-colors duration-200",
+          "text-sm font-medium transition-colors duration-300",
           isActive ? "text-white" : "text-gray-300 group-hover:text-white"
         )}>{title}</span>
       </div>
