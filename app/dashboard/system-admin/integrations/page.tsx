@@ -174,19 +174,6 @@ const integrations: Integration[] = [
     type: "thomson",
     version: "v4.2.1"
   },
-  // CCH integrations
-  {
-    id: "cch-001",
-    name: "Professional Resources - CCH Axcess",
-    tenant: "VaultCPA",
-    status: "active",
-    lastSync: "2024-11-28T14:25:00Z",
-    syncFrequency: "On-demand",
-    errorCount: 0,
-    performance: 94,
-    type: "cch",
-    version: "v2.5.3"
-  },
   // Custom API integrations
   {
     id: "custom-001",
@@ -382,7 +369,7 @@ export default function IntegrationsPage() {
                   </div>
                   <div>
                     <p className="text-gray-300 text-xs font-medium uppercase tracking-wide">Research</p>
-                    <p className="text-white font-bold text-lg">{thomsonStats.total + cchStats.total}</p>
+                    <p className="text-white font-bold text-lg">{thomsonStats.total}</p>
                   </div>
                 </div>
               </CardBody>
@@ -692,47 +679,6 @@ export default function IntegrationsPage() {
                 </div>
               </Tab>
 
-              <Tab key="cch" title={
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  <span>CCH</span>
-                  <Badge color="primary" size="sm">
-                    {cchStats.total}
-                  </Badge>
-                </div>
-              }>
-                <div className="space-y-6">
-                  <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
-                    <CardHeader>
-                      <h3 className="text-lg font-semibold text-gray-900">CCH Professional Resources</h3>
-                    </CardHeader>
-                    <CardBody>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Axcess Connections</span>
-                            <span className="text-green-600 font-bold">{cchStats.active}</span>
-                          </div>
-                          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Document Access</span>
-                            <span className="text-blue-600 font-bold">3,891 today</span>
-                          </div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Sync Status</span>
-                            <span className="text-purple-600 font-bold">Up to date</span>
-                          </div>
-                          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Last Update</span>
-                            <span className="text-orange-600 font-bold">2h ago</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardBody>
-                  </Card>
-                </div>
-              </Tab>
 
               <Tab key="custom" title={
                 <div className="flex items-center gap-2">

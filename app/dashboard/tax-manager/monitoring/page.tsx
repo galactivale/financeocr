@@ -333,7 +333,7 @@ const TaxManagerMonitoring = () => {
 
   if (!isMounted) {
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-blue-600 text-white">
+      <div className="flex items-center justify-center h-screen w-full bg-black text-white">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
           <p className="mt-4 text-lg">Initializing Nexus Monitoring...</p>
@@ -348,7 +348,7 @@ const TaxManagerMonitoring = () => {
         collapsed: sidebarOpen,
         setCollapsed: handleToggleSidebar,
       }}>
-      <div className="fixed inset-0 w-full h-full flex bg-blue-600 overflow-hidden z-50">
+      <div className="fixed inset-0 w-full h-full flex bg-black overflow-hidden z-50">
         {/* Sidebar */}
         <DynamicSidebar userRole="tax-manager" />
         
