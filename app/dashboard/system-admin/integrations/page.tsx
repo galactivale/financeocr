@@ -51,7 +51,9 @@ import {
   Calculator,
   BookOpen,
   Code,
-  MoreVertical
+  MoreVertical,
+  Bell,
+  Wrench
 } from "lucide-react";
 
 // Integration data structure
@@ -297,25 +299,31 @@ export default function IntegrationsPage() {
   const customStats = getTabStats("custom");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-black">
       <div className="h-full lg:px-8">
         {/* Header */}
         <div className="pt-8 pb-6">
           <div className="max-w-7xl mx-auto px-4 lg:px-0">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">System Integrations</h1>
-                <div className="flex items-center space-x-6 mt-2 text-gray-600 text-sm">
-                  <span>System Administrator</span>
-                  <span>•</span>
-                  <span>VaultCPA Platform</span>
-                  <span>•</span>
-                  <span>Third-Party Service Management</span>
-                </div>
+                <h1 className="text-3xl font-bold text-white tracking-tight">System Integrations</h1>
+                <p className="text-gray-400 text-sm mt-2">Third-party service management and configuration</p>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Last System Check</div>
-                <div className="text-base font-medium text-gray-900">Nov 28, 2024 15:45 UTC</div>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Bell className="w-5 h-5 text-gray-400" />
+                  <Badge color="danger" size="sm" className="absolute -top-2 -right-2">
+                    3
+                  </Badge>
+                </div>
+                <Button
+                  color="primary"
+                  variant="flat"
+                  startContent={<RefreshCw className="w-4 h-4" />}
+                  className="bg-blue-600/20 text-blue-400 border-blue-500/30"
+                >
+                  Refresh All
+                </Button>
               </div>
             </div>
           </div>
@@ -323,282 +331,197 @@ export default function IntegrationsPage() {
 
         {/* Integration Overview Cards */}
         <div className="max-w-7xl mx-auto px-4 lg:px-0 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="w-full bg-white/80 backdrop-blur-xl border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
               <CardBody className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <Calculator className="w-6 h-6 text-blue-600" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-600/30 rounded-lg">
+                    <Calculator className="w-5 h-5 text-blue-400" />
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-500 tracking-wide">QuickBooks</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">{quickbooksStats.total}</p>
+                  <div>
+                    <p className="text-gray-300 text-xs font-medium uppercase tracking-wide">QuickBooks</p>
+                    <p className="text-white font-bold text-lg">{quickbooksStats.total}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-green-500" />
-                    <span className="text-sm font-medium text-green-600">{quickbooksStats.active} active</span>
-                  </div>
-                  {quickbooksStats.errors > 0 && (
-                    <div className="flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3 text-red-500" />
-                      <span className="text-sm font-medium text-red-600">{quickbooksStats.errors} errors</span>
-                    </div>
-                  )}
                 </div>
               </CardBody>
             </Card>
 
-            <Card className="w-full bg-white/80 backdrop-blur-xl border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+            <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
               <CardBody className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-green-100 rounded-xl">
-                    <Shield className="w-6 h-6 text-green-600" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-600/30 rounded-lg">
+                    <Shield className="w-5 h-5 text-green-400" />
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-500 tracking-wide">Avalara</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">{avalaraStats.total}</p>
+                  <div>
+                    <p className="text-gray-300 text-xs font-medium uppercase tracking-wide">Avalara</p>
+                    <p className="text-white font-bold text-lg">{avalaraStats.total}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-green-500" />
-                    <span className="text-sm font-medium text-green-600">{avalaraStats.active} active</span>
-                  </div>
-                  {avalaraStats.errors > 0 && (
-                    <div className="flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3 text-red-500" />
-                      <span className="text-sm font-medium text-red-600">{avalaraStats.errors} errors</span>
-                    </div>
-                  )}
                 </div>
               </CardBody>
             </Card>
 
-            <Card className="w-full bg-white/80 backdrop-blur-xl border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+            <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
               <CardBody className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-purple-100 rounded-xl">
-                    <Globe className="w-6 h-6 text-purple-600" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-600/30 rounded-lg">
+                    <Globe className="w-5 h-5 text-purple-400" />
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-500 tracking-wide">Regulatory</p>
-                    <p className="text-2xl font-semibold text-gray-900 mt-1">{regulatoryStats.total}</p>
+                  <div>
+                    <p className="text-gray-300 text-xs font-medium uppercase tracking-wide">Regulatory</p>
+                    <p className="text-white font-bold text-lg">{regulatoryStats.total}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-green-500" />
-                    <span className="text-sm font-medium text-green-600">{regulatoryStats.active} active</span>
+              </CardBody>
+            </Card>
+
+            <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+              <CardBody className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-600/30 rounded-lg">
+                    <BookOpen className="w-5 h-5 text-orange-400" />
                   </div>
-                  {regulatoryStats.errors > 0 && (
-                    <div className="flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3 text-red-500" />
-                      <span className="text-sm font-medium text-red-600">{regulatoryStats.errors} errors</span>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-gray-300 text-xs font-medium uppercase tracking-wide">Research</p>
+                    <p className="text-white font-bold text-lg">{thomsonStats.total + cchStats.total}</p>
+                  </div>
                 </div>
               </CardBody>
             </Card>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center px-4 lg:px-0 mb-8">
-          <div className="max-w-7xl mx-auto w-full">
-            <Tabs
-              selectedKey={selectedTab}
-              onSelectionChange={(key) => setSelectedTab(key as string)}
-              className="w-full"
-              classNames={{
-                tabList: "bg-white/80 backdrop-blur-xl border-0 shadow-sm rounded-2xl p-1",
-                tab: "text-gray-600 data-[selected=true]:text-blue-600 data-[selected=true]:bg-white data-[selected=true]:shadow-sm rounded-xl",
-                panel: "mt-8"
-              }}
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 lg:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Main Content */}
+            <div className="lg:col-span-2">
+              {/* Tab Navigation */}
+              <Tabs
+                selectedKey={selectedTab}
+                onSelectionChange={(key) => setSelectedTab(key as string)}
+                className="w-full mb-8"
+                classNames={{
+                  tabList: "bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 shadow-sm rounded-2xl p-1",
+                  tab: "text-gray-400 data-[selected=true]:text-white data-[selected=true]:bg-gray-800 data-[selected=true]:shadow-sm rounded-xl",
+                  panel: "mt-8"
+                }}
             >
               <Tab key="quickbooks" title={
                 <div className="flex items-center gap-2">
                   <Calculator className="w-4 h-4" />
                   <span>QuickBooks</span>
-                  <Badge content={quickbooksStats.total} color="primary" size="sm" />
+                  <Badge color="primary" size="sm">
+                    {quickbooksStats.total}
+                  </Badge>
                 </div>
               }>
                 <div className="space-y-6">
-                  {/* Filters and Search */}
-                  <div className="flex gap-4 items-center flex-wrap">
-                    <Input
-                      placeholder="Search QuickBooks integrations..."
-                      value={searchTerm}
-                      onValueChange={setSearchTerm}
-                      startContent={<SearchIcon className="w-4 h-4 text-gray-400" />}
-                      className="max-w-xs"
-                    />
-                    <Select
-                      placeholder="Filter by status"
-                      selectedKeys={[statusFilter]}
-                      onSelectionChange={(keys) => setStatusFilter(Array.from(keys)[0] as string)}
-                      className="max-w-xs"
-                    >
-                      <SelectItem key="all" value="all">All Statuses</SelectItem>
-                      <SelectItem key="active" value="active">Active</SelectItem>
-                      <SelectItem key="error" value="error">Error</SelectItem>
-                      <SelectItem key="syncing" value="syncing">Syncing</SelectItem>
-                      <SelectItem key="inactive" value="inactive">Inactive</SelectItem>
-                    </Select>
-                    <Button
-                      color="primary"
-                      variant="flat"
-                      startContent={<RefreshCw className="w-4 h-4" />}
-                    >
-                      Refresh All
-                    </Button>
-                  </div>
+                  {/* Connected Services Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-white">QuickBooks Integrations</h3>
+                    </div>
 
-                  {/* Bulk Actions */}
-                  {selectedIntegrations.length > 0 && (
-                    <Card className="bg-blue-50 border border-blue-200">
-                      <CardBody className="p-4">
+                    {/* Main Office Integration */}
+                    <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                      <CardBody className="p-6">
                         <div className="flex items-center justify-between">
-                          <span className="text-blue-700 font-medium">
-                            {selectedIntegrations.length} integration(s) selected
-                          </span>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="flat" color="primary" startContent={<Play className="w-4 h-4" />}>
-                              Test Connections
-                            </Button>
-                            <Button size="sm" variant="flat" color="secondary" startContent={<RotateCcw className="w-4 h-4" />}>
-                              Restart Sync
-                            </Button>
-                            <Button size="sm" variant="flat" color="warning" startContent={<Settings className="w-4 h-4" />}>
-                              Update Config
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-600/30 rounded-xl">
+                              <Calculator className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-semibold">Main Office - QuickBooks Online</h4>
+                              <p className="text-gray-300 text-sm">Accounting Integration</p>
+                              <p className="text-gray-400 text-xs mt-1">Last sync: 11/28/2024, 2:30:00 PM</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Chip color="success" variant="flat" size="sm">
+                              CONNECTED
+                            </Chip>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              color="default"
+                              startContent={<Wrench className="w-4 h-4" />}
+                              className="bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                            >
+                              Manage
                             </Button>
                           </div>
                         </div>
                       </CardBody>
                     </Card>
-                  )}
 
-                  {/* Integrations Table */}
-                  <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
-                    <CardHeader className="pb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">QuickBooks Integrations ({filteredIntegrations.length})</h3>
-                    </CardHeader>
-                    <CardBody>
-                      <Table aria-label="QuickBooks integrations table">
-                        <TableHeader>
-                          <TableColumn>
-                            <Checkbox
-                              isSelected={selectedIntegrations.length === filteredIntegrations.length && filteredIntegrations.length > 0}
-                              isIndeterminate={selectedIntegrations.length > 0 && selectedIntegrations.length < filteredIntegrations.length}
-                              onValueChange={handleSelectAll}
-                            />
-                          </TableColumn>
-                          <TableColumn>INTEGRATION</TableColumn>
-                          <TableColumn>TENANT</TableColumn>
-                          <TableColumn>STATUS</TableColumn>
-                          <TableColumn>LAST SYNC</TableColumn>
-                          <TableColumn>PERFORMANCE</TableColumn>
-                          <TableColumn>ACTIONS</TableColumn>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredIntegrations.map((integration) => (
-                            <TableRow key={integration.id}>
-                              <TableCell>
-                                <Checkbox
-                                  isSelected={selectedIntegrations.includes(integration.id)}
-                                  onValueChange={() => handleSelectIntegration(integration.id)}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-3">
-                                  {getTypeIcon(integration.type)}
-                                  <div>
-                                    <p className="font-medium text-gray-900 text-sm">{integration.name}</p>
-                                    <p className="text-xs text-gray-500">v{integration.version}</p>
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <span className="text-gray-700 text-sm">{integration.tenant}</span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  {getStatusIcon(integration.status)}
-                                  <Chip
-                                    color={getStatusColor(integration.status)}
-                                    variant="flat"
-                                    size="sm"
-                                  >
-                                    {integration.status}
-                                  </Chip>
-                                  {integration.errorCount > 0 && (
-                                    <Badge content={integration.errorCount} color="danger" size="sm" />
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div>
-                                  <span className="text-gray-700 text-sm">{formatLastSync(integration.lastSync)}</span>
-                                  <p className="text-xs text-gray-500">{integration.syncFrequency}</p>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Progress
-                                    value={integration.performance}
-                                    className="max-w-20"
-                                    color={integration.performance > 95 ? "success" : integration.performance > 85 ? "warning" : "danger"}
-                                    size="sm"
-                                  />
-                                  <span className="text-gray-700 text-sm">{integration.performance}%</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  <Tooltip content="Test Connection">
-                                    <Button size="sm" variant="flat" color="primary" isIconOnly>
-                                      <Play className="w-4 h-4" />
-                                    </Button>
-                                  </Tooltip>
-                                  <Tooltip content="View Details">
-                                    <Button size="sm" variant="flat" color="secondary" isIconOnly>
-                                      <ExternalLink className="w-4 h-4" />
-                                    </Button>
-                                  </Tooltip>
-                                  <Dropdown>
-                                    <DropdownTrigger>
-                                      <Button size="sm" variant="flat" color="default" isIconOnly>
-                                        <MoreVertical className="w-4 h-4" />
-                                      </Button>
-                                    </DropdownTrigger>
-                                    <DropdownMenu>
-                                      <DropdownItem key="reconnect">
-                                        <RotateCcw className="w-4 h-4" />
-                                        Reconnect
-                                      </DropdownItem>
-                                      <DropdownItem key="configure">
-                                        <Settings className="w-4 h-4" />
-                                        Configure
-                                      </DropdownItem>
-                                      <DropdownItem key="logs">
-                                        <FileText className="w-4 h-4" />
-                                        View Logs
-                                      </DropdownItem>
-                                      <DropdownItem key="disable">
-                                        <Pause className="w-4 h-4" />
-                                        Disable
-                                      </DropdownItem>
-                                    </DropdownMenu>
-                                  </Dropdown>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardBody>
-                  </Card>
+                    {/* Branch Office Integration */}
+                    <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                      <CardBody className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-600/30 rounded-xl">
+                              <Calculator className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-semibold">Branch Office - QuickBooks Desktop</h4>
+                              <p className="text-gray-300 text-sm">Desktop Integration</p>
+                              <p className="text-gray-400 text-xs mt-1">Last sync: 11/28/2024, 2:25:00 PM</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Chip color="warning" variant="flat" size="sm">
+                              SYNCING
+                            </Chip>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              color="default"
+                              startContent={<Wrench className="w-4 h-4" />}
+                              className="bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                            >
+                              Manage
+                            </Button>
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+
+                    {/* Client Portal Integration */}
+                    <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                      <CardBody className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-blue-600/30 rounded-xl">
+                              <Calculator className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-semibold">Client Portal - QuickBooks Online</h4>
+                              <p className="text-gray-300 text-sm">Client Integration</p>
+                              <p className="text-gray-400 text-xs mt-1">Last sync: 11/28/2024, 1:45:00 PM</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Chip color="danger" variant="flat" size="sm">
+                              ERROR
+                            </Chip>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              color="default"
+                              startContent={<Wrench className="w-4 h-4" />}
+                              className="bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                            >
+                              Manage
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <p className="text-red-400 text-sm">Authentication token expired - Click manage to troubleshoot</p>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
                 </div>
               </Tab>
 
@@ -606,41 +529,82 @@ export default function IntegrationsPage() {
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4" />
                   <span>Avalara</span>
-                  <Badge content={avalaraStats.total} color="success" size="sm" />
+                  <Badge color="success" size="sm">
+                    {avalaraStats.total}
+                  </Badge>
                 </div>
               }>
                 <div className="space-y-6">
-                  <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
-                    <CardHeader>
-                      <h3 className="text-lg font-semibold text-gray-900">Avalara Tax Calculation Services</h3>
-                    </CardHeader>
-                    <CardBody>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Active Connections</span>
-                            <span className="text-green-600 font-bold">{avalaraStats.active}</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                      <h3 className="text-lg font-semibold text-white">Avalara Tax Services</h3>
+                    </div>
+
+                    {/* Primary Avalara Integration */}
+                    <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                      <CardBody className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-green-600/30 rounded-xl">
+                              <Shield className="w-6 h-6 text-green-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-semibold">Primary - Avalara AvaTax</h4>
+                              <p className="text-gray-300 text-sm">Tax Calculation Service</p>
+                              <p className="text-gray-400 text-xs mt-1">Last sync: 11/28/2024, 2:30:00 PM</p>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Average Performance</span>
-                            <span className="text-blue-600 font-bold">{avalaraStats.avgPerformance}%</span>
+                          <div className="flex items-center gap-3">
+                            <Chip color="success" variant="flat" size="sm">
+                              CONNECTED
+                            </Chip>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              color="default"
+                              startContent={<Wrench className="w-4 h-4" />}
+                              className="bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                            >
+                              Manage
+                            </Button>
                           </div>
                         </div>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Total Integrations</span>
-                            <span className="text-purple-600 font-bold">{avalaraStats.total}</span>
+                      </CardBody>
+                    </Card>
+
+                    {/* Backup Avalara Integration */}
+                    <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                      <CardBody className="p-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-green-600/30 rounded-xl">
+                              <Shield className="w-6 h-6 text-green-400" />
+                            </div>
+                            <div>
+                              <h4 className="text-white font-semibold">Backup - Avalara AvaTax</h4>
+                              <p className="text-gray-300 text-sm">Backup Tax Service</p>
+                              <p className="text-gray-400 text-xs mt-1">Last sync: 11/28/2024, 2:28:00 PM</p>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
-                            <span className="text-gray-700 font-medium">Error Rate</span>
-                            <span className="text-orange-600 font-bold">
-                              {avalaraStats.total > 0 ? Math.round((avalaraStats.errors / avalaraStats.total) * 100) : 0}%
-                            </span>
+                          <div className="flex items-center gap-3">
+                            <Chip color="success" variant="flat" size="sm">
+                              CONNECTED
+                            </Chip>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              color="default"
+                              startContent={<Wrench className="w-4 h-4" />}
+                              className="bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                            >
+                              Manage
+                            </Button>
                           </div>
                         </div>
-                      </div>
-                    </CardBody>
-                  </Card>
+                      </CardBody>
+                    </Card>
+                  </div>
                 </div>
               </Tab>
 
@@ -648,7 +612,9 @@ export default function IntegrationsPage() {
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4" />
                   <span>Regulatory</span>
-                  <Badge content={regulatoryStats.total} color="secondary" size="sm" />
+                  <Badge color="secondary" size="sm">
+                    {regulatoryStats.total}
+                  </Badge>
                 </div>
               }>
                 <div className="space-y-6">
@@ -688,7 +654,9 @@ export default function IntegrationsPage() {
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
                   <span>Thomson Reuters</span>
-                  <Badge content={thomsonStats.total} color="warning" size="sm" />
+                  <Badge color="warning" size="sm">
+                    {thomsonStats.total}
+                  </Badge>
                 </div>
               }>
                 <div className="space-y-6">
@@ -728,7 +696,9 @@ export default function IntegrationsPage() {
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4" />
                   <span>CCH</span>
-                  <Badge content={cchStats.total} color="primary" size="sm" />
+                  <Badge color="primary" size="sm">
+                    {cchStats.total}
+                  </Badge>
                 </div>
               }>
                 <div className="space-y-6">
@@ -768,7 +738,9 @@ export default function IntegrationsPage() {
                 <div className="flex items-center gap-2">
                   <Code className="w-4 h-4" />
                   <span>Custom APIs</span>
-                  <Badge content={customStats.total} color="default" size="sm" />
+                  <Badge color="default" size="sm">
+                    {customStats.total}
+                  </Badge>
                 </div>
               }>
                 <div className="space-y-6">
@@ -804,6 +776,103 @@ export default function IntegrationsPage() {
                 </div>
               </Tab>
             </Tabs>
+            </div>
+
+            {/* Right Column - Sidebar */}
+            <div className="space-y-6">
+              {/* System Health Card */}
+              <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-white">System Health</h3>
+                  </div>
+                </CardHeader>
+                <CardBody className="space-y-4">
+                  <div>
+                    <p className="text-gray-300 text-sm">Overall Status</p>
+                    <p className="text-white font-semibold">Healthy</p>
+                    <div className="mt-2">
+                      <Chip color="success" variant="flat" size="sm">
+                        99.8% Uptime
+                      </Chip>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-gray-300 text-sm">Active Integrations</p>
+                    <p className="text-white font-semibold">8/10</p>
+                  </div>
+                  <Button
+                    color="primary"
+                    variant="flat"
+                    startContent={<Activity className="w-4 h-4" />}
+                    className="w-full bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600/30"
+                  >
+                    View System Logs
+                  </Button>
+                </CardBody>
+              </Card>
+
+              {/* Integration Management Card */}
+              <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-white">Integration Management</h3>
+                  </div>
+                </CardHeader>
+                <CardBody className="space-y-3">
+                  <Button
+                    variant="flat"
+                    color="default"
+                    startContent={<RefreshCw className="w-4 h-4" />}
+                    className="w-full justify-start bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                  >
+                    Test All Connections
+                  </Button>
+                  <Button
+                    variant="flat"
+                    color="default"
+                    startContent={<Settings className="w-4 h-4" />}
+                    className="w-full justify-start bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                  >
+                    Configure Settings
+                  </Button>
+                  <Button
+                    variant="flat"
+                    color="default"
+                    startContent={<FileText className="w-4 h-4" />}
+                    className="w-full justify-start bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
+                  >
+                    View Integration Logs
+                  </Button>
+                </CardBody>
+              </Card>
+
+              {/* Performance Metrics Card */}
+              <Card className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl hover:bg-gray-800/50 transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-white">Performance Metrics</h3>
+                  </div>
+                </CardHeader>
+                <CardBody className="space-y-4">
+                  <div>
+                    <p className="text-gray-300 text-sm">Average Response Time</p>
+                    <p className="text-white font-semibold">1.2s</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-300 text-sm">Success Rate</p>
+                    <p className="text-white font-semibold">98.5%</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-300 text-sm">Data Sync Frequency</p>
+                    <p className="text-white font-semibold">Real-time</p>
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
