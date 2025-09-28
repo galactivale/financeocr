@@ -564,7 +564,7 @@ export default function ManagingPartnerDashboard() {
               </div>
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
                 <EnhancedUSMap />
-              </div>
+            </div>
           </div>
         </div>
 

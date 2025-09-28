@@ -93,6 +93,12 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               href="/dashboard/managing-partner/analytics"
             />
             <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/team-management"}
+              title="Team Management"
+              icon={<CustomersIcon />}
+              href="/dashboard/managing-partner/team-management"
+            />
+            <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/settings"}
               title="Settings"
               icon={<SettingsIcon />}
