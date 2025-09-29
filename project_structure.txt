@@ -1,0 +1,1071 @@
+# NextUI Dashboard - Complete Project Structure Documentation
+
+## Overview
+This is a comprehensive Next.js application built with NextUI components, featuring a multi-role dashboard system for tax and accounting professionals. The application includes role-based access control with different interfaces for Managing Partners, Tax Managers, Staff Accountants, and System Administrators.
+
+## Technology Stack
+- **Framework**: Next.js 14+ (App Router)
+- **UI Library**: NextUI (@nextui-org/react)
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Maps**: @mirawision/usa-map-react
+- **Charts**: Custom chart components
+- **Language**: TypeScript
+
+## Project Structure
+
+### Root Directory
+```
+nextui-dashboard/
+├── app/                          # Next.js App Router
+├── components/                   # Reusable UI components
+├── config/                      # Configuration files
+├── helpers/                     # Utility functions and types
+├── styles/                      # Global styles
+├── types/                       # TypeScript type definitions
+├── public/                      # Static assets
+├── actions/                     # Server actions
+├── middleware.ts                # Next.js middleware
+├── next.config.js              # Next.js configuration
+├── tailwind.config.js          # Tailwind CSS configuration
+├── tsconfig.json               # TypeScript configuration
+└── package.json                # Dependencies and scripts
+```
+
+## Dashboard Routes Structure
+
+### Main Layout (`app/dashboard/layout.tsx`)
+**Purpose**: Main dashboard layout with role-based sidebar and navigation
+**Key Features**:
+- Role detection based on URL pathname
+- Dynamic sidebar rendering based on user role
+- Responsive design with mobile support
+- Context provider for sidebar state management
+
+**Data Structures**:
+```typescript
+interface Props {
+  children: React.ReactNode;
+}
+
+// Role detection function
+const getUserRole = (): string => {
+  if (pathname.includes('/managing-partner')) return 'managing-partner';
+  if (pathname.includes('/tax-manager')) return 'tax-manager';
+  if (pathname.includes('/staff-accountant')) return 'staff-accountant';
+  if (pathname.includes('/system-admin')) return 'system-admin';
+  if (pathname.includes('/client-portal')) return 'client-portal';
+  return 'default';
+};
+```
+
+**Components Used**:
+- `DynamicSidebar` - Role-based sidebar component
+- `NavbarWrapper` - Navigation wrapper
+- `SidebarContext.Provider` - Context for sidebar state
+
+---
+
+## Managing Partner Dashboard
+
+### Main Dashboard (`app/dashboard/managing-partner/page.tsx`)
+**Purpose**: Executive overview dashboard for managing partners
+**Key Features**:
+- Revenue growth tracking
+- Client retention metrics
+- Team performance indicators
+- Interactive US map for firm performance
+- Strategic management cards
+- Executive activity table
+
+**Data Structures**:
+```typescript
+interface FirmPerformanceData {
+  state: string;
+  clients: number;
+  revenue: number;
+  growth: number;
+  risk: 'low' | 'medium' | 'high';
+}
+
+interface ExecutiveActivity {
+  id: string;
+  type: string;
+  description: string;
+  client: string;
+  timestamp: string;
+  status: 'completed' | 'pending' | 'in-progress';
+  priority: 'high' | 'medium' | 'low';
+}
+```
+
+**Components Used**:
+- `CardRevenueGrowth` - Revenue metrics card
+- `CardClientRetention` - Client retention metrics
+- `CardTeamPerformance` - Team performance indicators
+- `EnhancedUSMap` - Interactive US map component
+- `CardStrategicInitiatives` - Strategic initiatives card
+- `CardMarketAnalysis` - Market analysis card
+- `ExecutiveActivityTable` - Activity tracking table
+
+### Analytics (`app/dashboard/managing-partner/analytics/page.tsx`)
+**Purpose**: Strategic analytics command center
+**Key Features**:
+- ROI analysis with trend charts
+- Team performance metrics
+- Client trends analysis
+- Regulatory impact assessment
+- Comprehensive data visualization
+
+**Data Structures**:
+```typescript
+interface AnalyticsData {
+  roiAnalysis: {
+    currentROI: number;
+    targetROI: number;
+    trend: number[];
+    benchmarks: BenchmarkData[];
+  };
+  teamPerformance: {
+    productivity: number;
+    utilization: number;
+    satisfaction: number;
+    metrics: PerformanceMetric[];
+  };
+  clientTrends: {
+    retention: number;
+    acquisition: number;
+    satisfaction: number;
+    trends: TrendData[];
+  };
+  regulatoryImpact: {
+    compliance: number;
+    risk: number;
+    changes: RegulatoryChange[];
+  };
+}
+```
+
+**Components Used**:
+- `ROITrendChart` - ROI trend visualization
+- `CostBenefitChart` - Cost-benefit analysis
+- `BenchmarkingChart` - Performance benchmarking
+- `ScenarioChart` - Scenario analysis
+- Various custom metric cards
+
+### Clients (`app/dashboard/managing-partner/clients/page.tsx`)
+**Purpose**: Client nexus risk portfolio management
+**Key Features**:
+- Portfolio summary with risk metrics
+- Client filtering and search
+- Detailed client risk assessment
+- Multi-state compliance tracking
+- Revenue impact analysis
+
+**Data Structures**:
+```typescript
+interface Client {
+  id: string;
+  name: string;
+  industry: string;
+  revenue: number;
+  riskLevel: 'critical' | 'high' | 'warning' | 'low';
+  penaltyExposure: number;
+  states: ClientState[];
+  lastReview: string;
+  nextReview: string;
+  activeAlerts: number;
+}
+
+interface ClientState {
+  code: string;
+  name: string;
+  revenue: number;
+  threshold: number;
+  percentage: number;
+  status: 'critical' | 'warning' | 'monitoring' | 'compliant';
+  daysSinceThreshold?: number;
+  penaltyRange?: { min: number; max: number };
+}
+```
+
+**Components Used**:
+- `Table` with custom `RenderCell` - Client data table
+- `Input` - Search functionality
+- `Select` - Filtering options
+- `Progress` - Risk level indicators
+- `Chip` - Status badges
+- `Badge` - Alert indicators
+- `Avatar` - Client avatars
+- `Tooltip` - Additional information
+
+### Compliance (`app/dashboard/managing-partner/compliance/page.tsx`)
+**Purpose**: Compliance intelligence center
+**Key Features**:
+- Executive decision tracking
+- Risk analysis dashboard
+- Business impact assessment
+- Team performance metrics
+- Liability management
+- Action center for critical issues
+
+**Data Structures**:
+```typescript
+interface ComplianceDecision {
+  id: string;
+  client: string;
+  decision: string;
+  exposure: number;
+  status: 'pending' | 'approved' | 'escalated';
+  dueDate: string;
+  priority: 'high' | 'medium' | 'low';
+}
+```
+
+**Components Used**:
+- `Tabs` and `Tab` - Tabbed interface
+- `Button` - Action buttons
+- `AlertTriangle` - Warning indicators
+- `CheckCircle` - Success indicators
+- `Clock` - Time indicators
+- `Progress` - Progress bars
+
+### Risk Management (`app/dashboard/managing-partner/risk-management/page.tsx`)
+**Purpose**: Risk management command center
+**Key Features**:
+- Exposure analysis by state and client
+- Liability metrics tracking
+- Insurance review dashboard
+- Mitigation strategies
+- Professional liability monitoring
+
+**Data Structures**:
+```typescript
+interface RiskData {
+  exposureAnalysis: {
+    byState: StateExposure[];
+    byClient: ClientExposure[];
+    totalExposure: number;
+    trends: ExposureTrend[];
+  };
+  liabilityMetrics: {
+    professionalLiability: number;
+    malpracticeRisk: number;
+    coverage: InsuranceCoverage;
+  };
+  insuranceReview: {
+    policies: InsurancePolicy[];
+    claims: Claim[];
+    renewals: Renewal[];
+  };
+  mitigationStrategies: {
+    strategies: Strategy[];
+    implementation: Implementation[];
+  };
+}
+```
+
+**Components Used**:
+- `Card`, `CardBody`, `CardHeader` - Content cards
+- `Tabs`, `Tab` - Tabbed navigation
+- `Chip` - Status indicators
+- `Progress` - Progress tracking
+- Various Lucide icons for different risk types
+
+---
+
+## Staff Accountant Dashboard
+
+### Main Dashboard (`app/dashboard/staff-accountant/page.tsx`)
+**Purpose**: Task management overview for staff accountants
+**Key Features**:
+- Active tasks tracking
+- Pending review queue
+- Completed tasks today
+- Task distribution map
+- Priority task management
+- Task analysis metrics
+
+**Data Structures**:
+```typescript
+interface TaskData {
+  state: string;
+  tasks: number;
+  completed: number;
+  pending: number;
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface TaskActivity {
+  id: string;
+  type: string;
+  description: string;
+  client: string;
+  timestamp: string;
+  status: 'completed' | 'pending' | 'in-progress';
+  priority: 'high' | 'medium' | 'low';
+}
+```
+
+**Components Used**:
+- `CardActiveTasks` - Active task metrics
+- `CardPendingReview` - Pending review queue
+- `CardCompletedToday` - Daily completion metrics
+- `EnhancedUSMap` - Task distribution map
+- `CardPriorityTasks` - Priority task management
+- `CardTaskAnalysis` - Task analysis metrics
+- `TaskActivityTable` - Activity tracking
+
+### Nexus Tasks (`app/dashboard/staff-accountant/nexus-tasks/page.tsx`)
+**Purpose**: Nexus task monitoring and management
+**Key Features**:
+- Work queue with task statistics
+- Category and priority filtering
+- Task progress tracking
+- Step-by-step task completion
+- Client assignment tracking
+
+**Data Structures**:
+```typescript
+interface NexusTask {
+  id: string;
+  title: string;
+  client: string;
+  category: 'registration' | 'compliance' | 'monitoring' | 'analysis';
+  priority: 'high' | 'medium' | 'low';
+  status: 'pending' | 'in-progress' | 'completed' | 'blocked';
+  progress: number;
+  steps: TaskStep[];
+  assignedTo: string;
+  dueDate: string;
+  estimatedHours: number;
+}
+
+interface TaskStep {
+  id: string;
+  title: string;
+  completed: boolean;
+  required: boolean;
+  estimatedTime: number;
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - Task management table
+- `Button` - Action buttons
+- `Chip` - Status and priority indicators
+- `Progress` - Task progress bars
+- `Badge` - Alert indicators
+- `Avatar` - User avatars
+- `Tooltip` - Additional information
+- `Input` - Search and filtering
+
+### Data Entry (`app/dashboard/staff-accountant/data-entry/page.tsx`)
+**Purpose**: Document management and data entry
+**Key Features**:
+- Document table with filtering
+- Search functionality
+- Document status tracking
+- Add documents wizard
+- Document categorization
+
+**Data Structures**:
+```typescript
+interface Document {
+  id: string;
+  name: string;
+  type: 'tax-return' | 'financial-statement' | 'compliance' | 'other';
+  client: string;
+  status: 'draft' | 'review' | 'approved' | 'filed';
+  uploadedDate: string;
+  size: number;
+  uploadedBy: string;
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - Document table
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Input` - Search functionality
+- `Dropdown`, `DropdownTrigger`, `DropdownMenu`, `DropdownItem` - Filtering
+- `Tooltip` - Additional information
+- Custom icons for document actions
+
+### Clients (`app/dashboard/staff-accountant/clients/page.tsx`)
+**Purpose**: Client work queue management
+**Key Features**:
+- Grid and list view options
+- Task status filtering
+- Search functionality
+- Client detail side panel
+- Current tasks tracking
+- Data status monitoring
+- Quality metrics
+- Communication history
+
+**Data Structures**:
+```typescript
+interface StaffClient {
+  id: string;
+  name: string;
+  industry: string;
+  assignedSince: string;
+  currentTasks: number;
+  completedTasks: number;
+  dataStatus: 'complete' | 'incomplete' | 'pending';
+  qualityScore: number;
+  lastCommunication: string;
+  nextReview: string;
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - Client table
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Progress` - Progress tracking
+- `Badge` - Alert indicators
+- `Avatar` - Client avatars
+- `Tooltip` - Additional information
+- `Input` - Search functionality
+- `Textarea` - Communication notes
+
+---
+
+## System Administrator Dashboard
+
+### Main Dashboard (`app/dashboard/system-admin/page.tsx`)
+**Purpose**: System health overview for system administrators
+**Key Features**:
+- System health monitoring
+- Active tenant tracking
+- Security alert management
+- System activity logging
+- Platform overview
+- System actions center
+
+**Components Used**:
+- `CardSystemHealth` - System health metrics
+- `CardActiveTenants` - Tenant management
+- `CardSecurityStatus` - Security monitoring
+- `ActivityLogChart` - Activity visualization
+- `CardPlatformOverview` - Platform metrics
+- `CardSystemActions` - System actions
+- `TableWrapper` - Data tables
+
+### User Management (`app/dashboard/system-admin/user-management/page.tsx`)
+**Purpose**: Multi-tenant user administration
+**Key Features**:
+- User search and filtering
+- Role-based access control
+- Status management (Active, Inactive, Suspended, Pending)
+- Firm/tenant filtering
+- Bulk actions
+- User profile management
+- MFA status tracking
+
+**Data Structures**:
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  firm: string;
+  role: "Managing Partner" | "Tax Manager" | "Staff Accountant" | "System Admin";
+  lastLogin: string;
+  status: "Active" | "Inactive" | "Suspended" | "Pending";
+  cpaLicense?: string;
+  mfaEnabled: boolean;
+  loginCount: number;
+  createdAt: string;
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - User management table
+- `Input` - Search functionality
+- `Select`, `SelectItem` - Filtering options
+- `Checkbox` - Bulk selection
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Avatar` - User avatars
+- `Tooltip` - Additional information
+- `Dropdown` - Action menus
+
+### Integrations (`app/dashboard/system-admin/integrations/page.tsx`)
+**Purpose**: Third-party service management
+**Key Features**:
+- Integration status monitoring
+- Service health tracking
+- Performance metrics
+- Error monitoring
+- Configuration management
+- Service dependencies
+
+**Data Structures**:
+```typescript
+interface Integration {
+  id: string;
+  name: string;
+  tenant: string;
+  status: "active" | "inactive" | "error" | "syncing" | "maintenance";
+  lastSync: string;
+  syncFrequency: string;
+  errorCount: number;
+  performance: number;
+  type: "quickbooks" | "avalara" | "regulatory" | "thomson" | "cch" | "custom";
+  version: string;
+  lastError?: string;
+}
+```
+
+**Components Used**:
+- `Tabs`, `Tab` - Service categorization
+- `Card`, `CardBody`, `CardHeader` - Service cards
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Badge` - Alert indicators
+- `Progress` - Performance metrics
+- `Tooltip` - Additional information
+- Various Lucide icons for service types
+
+### System Monitoring (`app/dashboard/system-admin/system-monitoring/page.tsx`)
+**Purpose**: System monitoring command center
+**Key Features**:
+- System alerts management
+- Performance metrics tracking
+- Infrastructure health monitoring
+- Service dependency tracking
+- Alert severity filtering
+- System status overview
+
+**Data Structures**:
+```typescript
+interface SystemAlert {
+  id: string;
+  type: "infrastructure" | "security" | "performance" | "integration" | "compliance";
+  severity: "critical" | "high" | "medium" | "low";
+  title: string;
+  description: string;
+  affectedTenants: string[];
+  detectedAt: string;
+  status: "active" | "investigating" | "resolved" | "false_positive";
+  assignedTo: string;
+  resolutionTime?: string;
+  impact: {
+    usersAffected: number;
+    servicesAffected: string[];
+    estimatedDowntime: string;
+  };
+}
+
+interface PerformanceMetric {
+  name: string;
+  currentValue: number;
+  threshold: number;
+  unit: string;
+  status: "healthy" | "warning" | "critical";
+  trend: "up" | "down" | "stable";
+  changePercent: number;
+}
+```
+
+**Components Used**:
+- `Tabs`, `Tab` - Monitoring categories
+- `Table` with custom columns - Alert management
+- `Input` - Search functionality
+- `Select`, `SelectItem` - Filtering options
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Progress` - Performance metrics
+- `Badge` - Alert indicators
+- `Tooltip` - Additional information
+- Various Lucide icons for alert types
+
+---
+
+## Tax Manager Dashboard
+
+### Main Dashboard (`app/dashboard/tax-manager/page.tsx`)
+**Purpose**: Nexus monitoring overview for tax managers
+**Key Features**:
+- Active alerts tracking
+- Threshold monitoring
+- Resolved issues today
+- Nexus client distribution map
+- Priority alert management
+- State analysis
+- Recent nexus activity
+
+**Data Structures**:
+```typescript
+interface NexusData {
+  state: string;
+  clients: number;
+  alerts: number;
+  resolved: number;
+  risk: 'low' | 'medium' | 'high';
+}
+
+interface NexusActivity {
+  id: string;
+  type: string;
+  description: string;
+  client: string;
+  state: string;
+  timestamp: string;
+  status: 'resolved' | 'pending' | 'escalated';
+  priority: 'high' | 'medium' | 'low';
+}
+```
+
+**Components Used**:
+- `CardActiveAlerts` - Active alert metrics
+- `CardThresholdMonitoring` - Threshold monitoring
+- `CardResolvedToday` - Daily resolution metrics
+- `EnhancedUSMap` - Client distribution map
+- `CardPriorityAlerts` - Priority alert management
+- `CardStateAnalysis` - State analysis
+- `NexusActivityTable` - Activity tracking
+
+### Clients (`app/dashboard/tax-manager/clients/page.tsx`)
+**Purpose**: Client portfolio management for tax managers
+**Key Features**:
+- Client portfolio overview
+- Risk level filtering
+- Grid and list view options
+- Search functionality
+- Client detail side panel
+- Multi-state status tracking
+- Professional decisions history
+- Current action items
+- Performance metrics
+
+**Data Structures**:
+```typescript
+interface Client {
+  id: string;
+  name: string;
+  avatar: string;
+  industry: string;
+  revenue: number;
+  founded: number;
+  employees: number;
+  riskLevel: 'critical' | 'high' | 'warning' | 'low';
+  penaltyExposure: number;
+  assignedSince: string;
+  lastReview: string;
+  nextReview: string;
+  activeAlerts: number;
+  states: ClientState[];
+  decisions: ProfessionalDecision[];
+  communications: Communication[];
+  performance: PerformanceMetrics;
+}
+
+interface ClientState {
+  code: string;
+  name: string;
+  revenue: number;
+  threshold: number;
+  percentage: number;
+  status: 'critical' | 'warning' | 'monitoring' | 'compliant';
+  daysSinceThreshold?: number;
+  penaltyRange?: { min: number; max: number };
+  transactions?: number;
+  transactionThreshold?: number;
+  projectedCrossover?: string;
+}
+
+interface ProfessionalDecision {
+  id: number;
+  date: string;
+  type: string;
+  outcome: string;
+  manager: string;
+  rationale: string;
+  documentation: string;
+  clientCommunication: string;
+  followUp: string;
+}
+
+interface Communication {
+  id: number;
+  type: string;
+  subject: string;
+  participants: string[];
+  date: string;
+  duration?: string;
+  status: string;
+  followUp: string;
+}
+
+interface PerformanceMetrics {
+  responseTime: string;
+  satisfaction: number;
+  complianceRate: number;
+  penaltyPrevention: number;
+  timeSpent: string;
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - Client table
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Input` - Search functionality
+- `Textarea` - Communication notes
+- Custom client cards for grid view
+- Side panel for detailed client information
+
+### Advisory (`app/dashboard/tax-manager/advisory/page.tsx`)
+**Purpose**: Client advisory services management
+**Key Features**:
+- Consultation scheduling
+- Advisory preparation
+- Talking points library
+- Document generator
+- Client communications
+- Professional documentation
+- Performance metrics
+
+**Data Structures**:
+```typescript
+interface Consultation {
+  id: string;
+  client: string;
+  topic: string;
+  date: string;
+  time: string;
+  duration: string;
+  exposure: string;
+  prepStatus: 'complete' | 'pending' | 'in-progress';
+  status: 'scheduled' | 'completed' | 'cancelled';
+}
+
+interface AdvisoryDocument {
+  id: string;
+  type: string;
+  client: string;
+  issue: string;
+  urgency: string;
+  status: 'draft' | 'sent' | 'delivered';
+  date: string;
+}
+
+interface Communication {
+  id: string;
+  client: string;
+  type: string;
+  date: string;
+  status: 'sent' | 'delivered' | 'read';
+  subject: string;
+}
+```
+
+**Components Used**:
+- `Tabs`, `Tab` - Advisory functions
+- `Table` with custom columns - Consultation table
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Input` - Form inputs
+- `Textarea` - Text areas
+- `Progress` - Progress tracking
+- Custom cards for different advisory functions
+
+### Alerts (`app/dashboard/tax-manager/alerts/page.tsx`)
+**Purpose**: Nexus alerts management
+**Key Features**:
+- Alert prioritization
+- Status filtering
+- Alert detail panel
+- Decision making interface
+- Action tracking
+- Client communication
+
+**Data Structures**:
+```typescript
+interface Alert {
+  id: string;
+  client: string;
+  state: string;
+  issue: string;
+  currentAmount: string;
+  threshold: string;
+  deadline: string;
+  penaltyRisk: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'new' | 'in-progress' | 'resolved';
+  actions: string[];
+  details: string;
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - Alert table
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Textarea` - Decision reasoning
+- Side panel for alert details
+- Custom alert cards
+
+### Audit Trail (`app/dashboard/tax-manager/audit-trail/page.tsx`)
+**Purpose**: Professional liability documentation
+**Key Features**:
+- Decision audit trail
+- Professional standards compliance
+- Legal defensibility tracking
+- Digital authentication
+- Court-ready documentation
+- Risk assessment
+
+**Data Structures**:
+```typescript
+interface AuditTrailDecision {
+  id: string;
+  decisionDate: string;
+  clientId: string;
+  clientName: string;
+  decisionType: "nexus-threshold-analysis" | "registration-strategy" | "compliance-assessment" | "penalty-mitigation" | "voluntary-disclosure";
+  riskLevel: "critical" | "high" | "medium" | "low";
+  financialExposure: number;
+  professionalStandards: {
+    sstsCompliance: boolean;
+    peerReviewCompleted: boolean;
+    clientCommunicationDocumented: boolean;
+    implementationVerified: boolean;
+  };
+  decisionSummary: string;
+  professionalReasoning: string;
+  statutoryReferences: string[];
+  peerReviewDetails: {
+    reviewerName: string;
+    reviewerLicense: string;
+    reviewDate: string;
+    approvalStatus: "approved" | "conditional" | "requires-modification";
+    reviewComments: string;
+  };
+  clientCommunication: {
+    communicationDate: string;
+    communicationType: "written-advisory" | "phone-consultation" | "in-person-meeting";
+    participants: string[];
+    summary: string;
+    clientResponse: string;
+  };
+  implementationTracking: {
+    implementationDate: string;
+    complianceStatus: "compliant" | "in-progress" | "non-compliant";
+    verificationMethod: string;
+    outcomeDocumentation: string;
+  };
+  digitalAuthentication: {
+    cpaSignature: string;
+    timestamp: string;
+    hashValue: string;
+    integrityVerified: boolean;
+  };
+  legalDefensibility: {
+    courtReady: boolean;
+    malpracticeDefense: boolean;
+    regulatoryExamination: boolean;
+    professionalLiability: boolean;
+  };
+  businessImpact: {
+    clientRetention: boolean;
+    revenueImpact: number;
+    riskMitigation: number;
+    professionalReputation: "enhanced" | "maintained" | "at-risk";
+  };
+}
+```
+
+**Components Used**:
+- `Table` with custom columns - Decision table
+- `Modal`, `ModalContent`, `ModalHeader`, `ModalBody`, `ModalFooter` - Detail modals
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Input` - Search functionality
+- `Badge` - Alert indicators
+- `Progress` - Progress tracking
+- `Tooltip` - Additional information
+- `Avatar` - User avatars
+- `Divider` - Content separation
+- `Accordion`, `AccordionItem` - Collapsible content
+
+### Liability (`app/dashboard/tax-manager/liability/page.tsx`)
+**Purpose**: Professional liability protection
+**Key Features**:
+- Decision audit trail
+- Standards compliance
+- Court-ready documentation
+- Risk assessment
+- Decision templates
+- Insurance and legal coordination
+
+**Data Structures**:
+```typescript
+interface ProfessionalDecision {
+  id: string;
+  client: string;
+  decision: string;
+  exposure: string;
+  dueDate: string;
+  status: 'draft' | 'peer-review' | 'legal-review' | 'complete';
+  priority: 'high' | 'standard';
+  documentation: {
+    statutoryCitation: boolean;
+    professionalReasoning: boolean;
+    clientImpact: boolean;
+    peerReview: boolean;
+    legalReview: boolean;
+  };
+}
+
+interface ComplianceStandard {
+  id: string;
+  standard: string;
+  description: string;
+  status: 'compliant' | 'non-compliant' | 'pending';
+  lastReview: string;
+}
+
+interface RiskFactor {
+  category: string;
+  level: 'low' | 'medium' | 'high';
+  description: string;
+  mitigation: string;
+  status: 'resolved' | 'monitoring' | 'action-required';
+}
+```
+
+**Components Used**:
+- `Tabs`, `Tab` - Liability protection functions
+- `Table` with custom columns - Decision table
+- `Button` - Action buttons
+- `Chip` - Status indicators
+- `Input` - Form inputs
+- `Textarea` - Text areas
+- `Progress` - Progress tracking
+- Custom cards for different liability functions
+
+---
+
+## Shared Components
+
+### Layout Components
+- `DynamicSidebar` - Role-based sidebar navigation
+- `NavbarWrapper` - Navigation wrapper
+- `Layout` - Main layout component
+- `LayoutContext` - Layout state management
+
+### UI Components
+- `Card`, `CardBody`, `CardHeader` - Content cards
+- `Table`, `TableHeader`, `TableColumn`, `TableBody`, `TableRow`, `TableCell` - Data tables
+- `Button` - Action buttons
+- `Input` - Form inputs
+- `Select`, `SelectItem` - Dropdown selections
+- `Chip` - Status indicators
+- `Badge` - Alert indicators
+- `Progress` - Progress bars
+- `Avatar` - User avatars
+- `Tooltip` - Additional information
+- `Modal`, `ModalContent`, `ModalHeader`, `ModalBody`, `ModalFooter` - Modal dialogs
+- `Tabs`, `Tab` - Tabbed interfaces
+- `Dropdown`, `DropdownTrigger`, `DropdownMenu`, `DropdownItem` - Dropdown menus
+- `Checkbox` - Checkbox inputs
+- `Textarea` - Text areas
+- `Divider` - Content separation
+- `Accordion`, `AccordionItem` - Collapsible content
+
+### Chart Components
+- `ROITrendChart` - ROI trend visualization
+- `CostBenefitChart` - Cost-benefit analysis
+- `BenchmarkingChart` - Performance benchmarking
+- `ScenarioChart` - Scenario analysis
+- `ActivityLogChart` - Activity logging
+- `EnhancedUSMap` - Interactive US map
+
+### Icon Components
+- `SearchIcon` - Search functionality
+- Various Lucide React icons for different purposes
+- Custom icons for specific business functions
+
+## Key Features
+
+### Role-Based Access Control
+- Different dashboards for different user roles
+- Role-specific navigation and features
+- Permission-based component rendering
+
+### Data Visualization
+- Interactive charts and graphs
+- US map integration for geographic data
+- Real-time metrics and KPIs
+- Progress tracking and status indicators
+
+### Responsive Design
+- Mobile-first approach
+- Responsive grid layouts
+- Adaptive navigation
+- Touch-friendly interfaces
+
+### State Management
+- React hooks for local state
+- Context providers for global state
+- URL-based state persistence
+- Real-time data updates
+
+### Professional Features
+- Audit trail documentation
+- Professional liability tracking
+- Compliance monitoring
+- Risk assessment tools
+- Client communication management
+- Document management
+- Task tracking and management
+
+## File Organization
+
+### Component Structure
+- Components are organized by feature/domain
+- Shared components in root components directory
+- Role-specific components in respective directories
+- Reusable UI components with consistent styling
+
+### Data Management
+- TypeScript interfaces for type safety
+- Mock data for development and testing
+- Consistent data structures across components
+- Utility functions for data formatting
+
+### Styling
+- Tailwind CSS for utility-first styling
+- Consistent design system
+- Dark theme implementation
+- Responsive breakpoints
+- Custom component styling
+
+## Development Notes
+
+### Code Quality
+- TypeScript for type safety
+- Consistent naming conventions
+- Component composition patterns
+- Reusable utility functions
+- Error handling and validation
+
+### Performance
+- Lazy loading for large components
+- Memoization for expensive calculations
+- Efficient re-rendering patterns
+- Optimized bundle sizes
+
+### Accessibility
+- ARIA labels and roles
+- Keyboard navigation support
+- Screen reader compatibility
+- Color contrast compliance
+- Focus management
+
+This documentation provides a comprehensive overview of the NextUI Dashboard project structure, including all routes, data structures, components, and key features. The application is designed as a professional-grade dashboard system for tax and accounting professionals with role-based access control and comprehensive business functionality.

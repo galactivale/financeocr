@@ -1,0 +1,506 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id                    String    @id @default(uuid())
+  slug                  String    @unique
+  name                  String
+  legalName             String?   @map("legal_name")
+  taxId                 String?   @map("tax_id")
+  subscriptionTier      String    @default("trial") @map("subscription_tier")
+  subscriptionStatus    String    @default("active") @map("subscription_status")
+  subscriptionStartedAt DateTime? @map("subscription_started_at")
+  subscriptionExpiresAt DateTime? @map("subscription_expires_at")
+  settings              Json      @default("{}")
+  branding              Json      @default("{}")
+  features              Json      @default("{}")
+  email                 String?
+  phone                 String?
+  website               String?
+  addressLine1          String?   @map("address_line1")
+  addressLine2          String?   @map("address_line2")
+  city                  String?
+  state                 String?
+  postalCode            String?   @map("postal_code")
+  country               String    @default("US")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  createdBy             String?   @map("created_by")
+
+  // Relations
+  users                 User[]
+  clients               Client[]
+  alerts                Alert[]
+  tasks                 Task[]
+  documents             Document[]
+  professionalDecisions ProfessionalDecision[]
+  complianceStandards   ComplianceStandard[]
+  regulatoryChanges     RegulatoryChange[]
+  integrations          Integration[]
+  performanceMetrics    PerformanceMetric[]
+  auditLogs             AuditLog[]
+  organizationMetadata  OrganizationMetadata[]
+  clientStates          ClientState[]
+
+  @@map("organizations")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  organizationId  String    @map("organization_id")
+  email           String
+  passwordHash    String    @map("password_hash")
+  mfaEnabled      Boolean   @default(false) @map("mfa_enabled")
+  mfaSecret       String?   @map("mfa_secret")
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  displayName     String?   @map("display_name")
+  avatarUrl       String?   @map("avatar_url")
+  title           String?
+  department      String?
+  cpaLicense      String?   @map("cpa_license")
+  cpaState        String?   @map("cpa_state")
+  cpaExpiration   DateTime? @map("cpa_expiration")
+  role            String
+  status          String    @default("pending")
+  lastLogin       DateTime? @map("last_login")
+  loginCount      Int       @default(0) @map("login_count")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  createdBy       String?   @map("created_by")
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userSessions    UserSession[]
+  userPermissions UserPermission[]
+  assignedClients Client[] @relation("ClientAssignedPartner")
+  managedClients  Client[] @relation("ClientAssignedManager")
+  assignedTasks   Task[]
+  assignedAlerts  Alert[]
+  uploadedDocuments Document[] @relation("DocumentUploader")
+  reviewedDocuments Document[] @relation("DocumentReviewer")
+  approvedDocuments Document[] @relation("DocumentApprover")
+  createdDecisions ProfessionalDecision[]
+  peerReviewedDecisions ProfessionalDecision[] @relation("DecisionPeerReviewer")
+
+  @@unique([organizationId, email])
+  @@map("users")
+}
+
+model Client {
+  id                    String    @id @default(uuid())
+  organizationId        String    @map("organization_id")
+  name                  String
+  legalName             String?   @map("legal_name")
+  taxId                 String?   @map("tax_id")
+  industry              String?
+  foundedYear           Int?
+  employeeCount         Int?      @map("employee_count")
+  annualRevenue         Decimal?  @map("annual_revenue")
+  fiscalYearEnd         DateTime? @map("fiscal_year_end")
+  riskLevel             String?   @map("risk_level")
+  penaltyExposure       Decimal?  @map("penalty_exposure")
+  qualityScore          Int?      @map("quality_score")
+  assignedPartner       String?   @map("assigned_partner")
+  assignedManager       String?   @map("assigned_manager")
+  assignedStaff         String[]  @default([]) @map("assigned_staff")
+  assignedSince         DateTime? @map("assigned_since")
+  lastReview            DateTime? @map("last_review")
+  nextReview            DateTime? @map("next_review")
+  primaryContactName    String?   @map("primary_contact_name")
+  primaryContactEmail   String?   @map("primary_contact_email")
+  primaryContactPhone   String?   @map("primary_contact_phone")
+  addressLine1          String?   @map("address_line1")
+  addressLine2          String?   @map("address_line2")
+  city                  String?
+  state                 String?
+  postalCode            String?   @map("postal_code")
+  country               String    @default("US")
+  status                String    @default("active")
+  avatarUrl             String?   @map("avatar_url")
+  notes                 String?
+  tags                  String[]
+  customFields          Json      @default("{}") @map("custom_fields")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  createdBy             String?   @map("created_by")
+
+  // Relations
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedPartnerUser   User? @relation("ClientAssignedPartner", fields: [assignedPartner], references: [id])
+  assignedManagerUser   User? @relation("ClientAssignedManager", fields: [assignedManager], references: [id])
+  clientStates          ClientState[]
+  alerts                Alert[]
+  tasks                 Task[]
+  documents             Document[]
+  professionalDecisions ProfessionalDecision[]
+
+  @@map("clients")
+}
+
+model Alert {
+  id                String    @id @default(uuid())
+  organizationId    String    @map("organization_id")
+  clientId          String?   @map("client_id")
+  title             String
+  description       String?
+  issue             String?
+  stateCode         String?   @map("state_code")
+  stateName         String?   @map("state_name")
+  currentAmount     Decimal?  @map("current_amount")
+  thresholdAmount   Decimal?  @map("threshold_amount")
+  penaltyRisk       Decimal?  @map("penalty_risk")
+  priority          String
+  severity          String?
+  status            String    @default("new")
+  type              String?
+  category          String?
+  deadline          DateTime?
+  detectedAt        DateTime  @default(now()) @map("detected_at")
+  resolvedAt        DateTime? @map("resolved_at")
+  assignedTo        String?   @map("assigned_to")
+  assignedAt        DateTime? @map("assigned_at")
+  actions           String[]
+  resolutionNotes   String?   @map("resolution_notes")
+  affectedTenants   String[]  @map("affected_tenants")
+  affectedServices  String[]  @map("affected_services")
+  usersAffected     Int?      @map("users_affected")
+  estimatedDowntime String?   @map("estimated_downtime")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  createdBy         String?   @map("created_by")
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client            Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  assignedUser      User? @relation(fields: [assignedTo], references: [id])
+  alertActions      AlertAction[]
+
+  @@map("alerts")
+}
+
+model Task {
+  id              String    @id @default(uuid())
+  organizationId  String    @map("organization_id")
+  clientId        String?   @map("client_id")
+  title           String
+  description     String?
+  category        String?
+  type            String?
+  priority        String?
+  status          String    @default("pending")
+  assignedTo      String?   @map("assigned_to")
+  assignedBy      String?   @map("assigned_by")
+  assignedAt      DateTime? @map("assigned_at")
+  dueDate         DateTime? @map("due_date")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  estimatedHours  Decimal?  @map("estimated_hours")
+  actualHours     Decimal?  @map("actual_hours")
+  progress        Int       @default(0)
+  stateCode       String?   @map("state_code")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  createdBy       String?   @map("created_by")
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client          Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  assignedUser    User? @relation(fields: [assignedTo], references: [id])
+  taskSteps       TaskStep[]
+
+  @@map("tasks")
+}
+
+model Document {
+  id                String    @id @default(uuid())
+  organizationId    String    @map("organization_id")
+  clientId          String?   @map("client_id")
+  name              String
+  description       String?
+  type              String?
+  category          String?
+  fileName          String?   @map("file_name")
+  fileSize          BigInt?   @map("file_size")
+  fileType          String?   @map("file_type")
+  fileUrl           String?   @map("file_url")
+  filePath          String?   @map("file_path")
+  status            String    @default("draft")
+  version           Int       @default(1)
+  parentDocumentId  String?   @map("parent_document_id")
+  visibility        String    @default("private")
+  tags              String[]
+  metadata          Json      @default("{}")
+  uploadedAt        DateTime  @default(now()) @map("uploaded_at")
+  uploadedBy        String?   @map("uploaded_by")
+  reviewedBy        String?   @map("reviewed_by")
+  reviewedAt        DateTime? @map("reviewed_at")
+  approvedBy        String?   @map("approved_by")
+  approvedAt        DateTime? @map("approved_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client            Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  uploadedByUser    User? @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+  reviewedByUser    User? @relation("DocumentReviewer", fields: [reviewedBy], references: [id])
+  approvedByUser    User? @relation("DocumentApprover", fields: [approvedBy], references: [id])
+
+  @@map("documents")
+}
+
+model ProfessionalDecision {
+  id String @id @default(uuid())
+  organizationId String @map("organization_id")
+  clientId String @map("client_id")
+  decisionDate DateTime @map("decision_date")
+  decisionType String @map("decision_type")
+  decisionSummary String @map("decision_summary")
+  professionalReasoning String @map("professional_reasoning")
+  riskLevel String? @map("risk_level")
+  financialExposure Decimal? @map("financial_exposure")
+  status String @default("draft")
+  decisionMakerId String? @map("decision_maker_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  decisionMaker User? @relation(fields: [decisionMakerId], references: [id])
+  peerReviewer User? @relation("DecisionPeerReviewer", fields: [peerReviewerId], references: [id])
+  peerReviewerId String? @map("peer_reviewer_id")
+
+  @@map("professional_decisions")
+}
+
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model UserPermission {
+  id       String @id @default(uuid())
+  userId   String @map("user_id")
+  resource String
+  action   String
+  granted  Boolean @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resource, action])
+  @@map("user_permissions")
+}
+
+model ClientState {
+  id                      String    @id @default(uuid())
+  clientId                String    @map("client_id")
+  organizationId          String    @map("organization_id")
+  stateCode               String    @map("state_code")
+  stateName               String    @map("state_name")
+  revenue                 Decimal?
+  threshold               Decimal?
+  thresholdPercentage     Decimal?  @map("threshold_percentage")
+  transactionCount        Int?      @map("transaction_count")
+  transactionThreshold    Int?      @map("transaction_threshold")
+  status                  String?
+  daysSinceThreshold      Int?      @map("days_since_threshold")
+  projectedCrossoverDate  DateTime? @map("projected_crossover_date")
+  penaltyMin              Decimal?  @map("penalty_min")
+  penaltyMax              Decimal?  @map("penalty_max")
+  registrationStatus      String?   @map("registration_status")
+  registrationDate        DateTime? @map("registration_date")
+  registrationNumber      String?   @map("registration_number")
+  filingFrequency         String?   @map("filing_frequency")
+  nextFilingDate          DateTime? @map("next_filing_date")
+  lastFilingDate          DateTime? @map("last_filing_date")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  client                  Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, stateCode])
+  @@map("client_states")
+}
+
+model TaskStep {
+  id          String    @id @default(uuid())
+  taskId      String    @map("task_id")
+  title       String
+  description String?
+  stepOrder   Int       @map("step_order")
+  completed   Boolean   @default(false)
+  required    Boolean   @default(true)
+  completedAt DateTime? @map("completed_at")
+  completedBy String?   @map("completed_by")
+  estimatedTime Int?    @map("estimated_time")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_steps")
+}
+
+model AlertAction {
+  id        String   @id @default(uuid())
+  alertId   String   @map("alert_id")
+  userId    String?  @map("user_id")
+  action    String
+  details   String?
+  oldValue  String?  @map("old_value")
+  newValue  String?  @map("new_value")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@map("alert_actions")
+}
+
+// Additional models for extended functionality
+model ComplianceStandard {
+  id String @id @default(uuid())
+  organizationId String @map("organization_id")
+  standardName String @map("standard_name")
+  standardCode String? @map("standard_code")
+  description String?
+  category String?
+  status String?
+  lastReviewDate DateTime? @map("last_review_date")
+  nextReviewDate DateTime? @map("next_review_date")
+  reviewedBy String? @map("reviewed_by")
+  documentationUrl String? @map("documentation_url")
+  complianceNotes String? @map("compliance_notes")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_standards")
+}
+
+model RegulatoryChange {
+  id String @id @default(uuid())
+  organizationId String @map("organization_id")
+  title String
+  description String?
+  stateCode String? @map("state_code")
+  federal Boolean @default(false)
+  effectiveDate DateTime? @map("effective_date")
+  announcementDate DateTime? @map("announcement_date")
+  impactLevel String? @map("impact_level")
+  affectedClients Int? @map("affected_clients")
+  status String?
+  regulationReference String? @map("regulation_reference")
+  documentationUrl String? @map("documentation_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("regulatory_changes")
+}
+
+model Integration {
+  id String @id @default(uuid())
+  organizationId String @map("organization_id")
+  name String
+  type String
+  provider String?
+  config Json @default("{}")
+  credentials Json @default("{}")
+  status String @default("inactive")
+  lastSync DateTime? @map("last_sync")
+  syncFrequency String? @map("sync_frequency")
+  nextSync DateTime? @map("next_sync")
+  errorCount Int @default(0) @map("error_count")
+  lastError String? @map("last_error")
+  lastErrorAt DateTime? @map("last_error_at")
+  performanceScore Int? @map("performance_score")
+  version String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String? @map("created_by")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
+}
+
+model PerformanceMetric {
+  id String @id @default(uuid())
+  organizationId String @map("organization_id")
+  metricDate DateTime @map("metric_date")
+  metricType String @map("metric_type")
+  value Decimal?
+  target Decimal?
+  variance Decimal?
+  unit String?
+  category String?
+  tags String[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, metricDate, metricType])
+  @@map("performance_metrics")
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+  organizationId String? @map("organization_id")
+  userId String? @map("user_id")
+  action String
+  resourceType String @map("resource_type")
+  resourceId String? @map("resource_id")
+  oldValues Json? @map("old_values")
+  newValues Json? @map("new_values")
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+  details String?
+  severity String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("audit_log")
+}
+
+model OrganizationMetadata {
+  id String @id @default(uuid())
+  organizationId String @map("organization_id")
+  key String
+  value String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@map("organization_metadata")
+}
