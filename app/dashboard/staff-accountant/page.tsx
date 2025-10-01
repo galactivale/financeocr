@@ -190,8 +190,8 @@ const CardActiveTasks = () => (
       <div className="w-full bg-white/10 rounded-full h-1">
         <div className="bg-blue-500 h-1 rounded-full" style={{width: '75%'}}></div>
       </div>
-    </div>
-  </div>
+      </div>
+      </div>
 );
 
 const CardPendingReview = () => (
@@ -220,8 +220,8 @@ const CardPendingReview = () => (
       <div className="w-full bg-white/10 rounded-full h-1">
         <div className="bg-orange-500 h-1 rounded-full" style={{width: '60%'}}></div>
       </div>
-    </div>
-  </div>
+      </div>
+      </div>
 );
 
 const CardCompletedToday = () => (
@@ -250,8 +250,8 @@ const CardCompletedToday = () => (
       <div className="w-full bg-white/10 rounded-full h-1">
         <div className="bg-green-500 h-1 rounded-full" style={{width: '85%'}}></div>
       </div>
-    </div>
-  </div>
+      </div>
+      </div>
 );
 
 const CardPriorityTasks = () => (
@@ -499,29 +499,29 @@ const TaskActivityTable = () => {
                 </div>
               </TableCell>
               <TableCell>
-                <div>
+          <div>
                   <div className="font-medium text-default-900">
                     {activity.activity}
-                  </div>
+          </div>
                   <div className="text-sm text-default-500">
                     {activity.activityDetail}
-                  </div>
-                </div>
+        </div>
+          </div>
               </TableCell>
               <TableCell>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   {activity.state}
-                </span>
+          </span>
               </TableCell>
               <TableCell>
-                <div>
+          <div>
                   <div className="font-medium text-default-900">
                     {activity.impact}
-                  </div>
+          </div>
                   <div className="text-sm text-default-500">
                     {activity.impactDetail}
-                  </div>
-                </div>
+        </div>
+      </div>
               </TableCell>
               <TableCell>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
@@ -568,7 +568,7 @@ export default function StaffAccountantDashboard() {
               </div>
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
                 <EnhancedUSMap />
-              </div>
+            </div>
           </div>
         </div>
 
@@ -602,7 +602,7 @@ export default function StaffAccountantDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
           </Link>
-          </div>
+        </div>
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
             <TaskActivityTable />
           </div>

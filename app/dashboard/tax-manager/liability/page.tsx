@@ -128,11 +128,11 @@ export default function TaxManagerLiability() {
               <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/25">
                 <Shield className="w-5 h-5 text-white" />
               </div>
-              <div>
+                    <div>
                 <h1 className="text-2xl font-semibold text-white tracking-tight">Professional Liability</h1>
                 <p className="text-gray-400 text-sm">Legal protection through documented decisions</p>
-              </div>
-            </div>
+                    </div>
+                  </div>
             <div className="flex items-center space-x-3">
               <Link href="/dashboard/tax-manager/liability/decision-builder">
                 <Button
@@ -143,21 +143,21 @@ export default function TaxManagerLiability() {
                   New Decision Record
                 </Button>
               </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Risk Dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
             <CardBody className="p-6">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Total Exposure</p>
                   <p className="text-3xl font-bold text-red-500 mt-1">$847K</p>
-                </div>
+                  </div>
                 <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center">
                   <AlertTriangle className="w-6 h-6 text-red-400" />
                 </div>
@@ -168,14 +168,14 @@ export default function TaxManagerLiability() {
           <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
             <CardBody className="p-6">
               <div className="flex items-center justify-between">
-                <div>
+                    <div>
                   <p className="text-gray-400 text-sm font-medium">High-Risk Clients</p>
                   <p className="text-3xl font-bold text-orange-500 mt-1">12</p>
-                </div>
+                            </div>
                 <div className="w-12 h-12 bg-orange-500/20 rounded-2xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-orange-400" />
-                </div>
-              </div>
+                            </div>
+                          </div>
             </CardBody>
           </Card>
 
@@ -185,11 +185,11 @@ export default function TaxManagerLiability() {
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Pending Documentation</p>
                   <p className="text-3xl font-bold text-yellow-500 mt-1">3</p>
-                </div>
+                              </div>
                 <div className="w-12 h-12 bg-yellow-500/20 rounded-2xl flex items-center justify-center">
                   <Clock className="w-6 h-6 text-yellow-400" />
-                </div>
-              </div>
+                              </div>
+                            </div>
             </CardBody>
           </Card>
 
@@ -199,14 +199,14 @@ export default function TaxManagerLiability() {
                 <div>
                   <p className="text-gray-400 text-sm font-medium">Peer Review Backlog</p>
                   <p className="text-3xl font-bold text-blue-500 mt-1">2</p>
-                </div>
+                          </div>
                 <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
                   <FileText className="w-6 h-6 text-blue-400" />
-                </div>
-              </div>
+                          </div>
+                        </div>
             </CardBody>
           </Card>
-        </div>
+                    </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -216,11 +216,11 @@ export default function TaxManagerLiability() {
                 <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center">
                   <Plus className="w-6 h-6 text-red-400" />
                 </div>
-                <div>
+                    <div>
                   <h3 className="text-white font-semibold">Create Decision Record</h3>
                   <p className="text-gray-400 text-sm">Document professional decisions</p>
-                </div>
-              </div>
+                        </div>
+                      </div>
             </CardBody>
           </Card>
 
@@ -229,12 +229,12 @@ export default function TaxManagerLiability() {
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-blue-400" />
-                </div>
-                <div>
+                    </div>
+                    <div>
                   <h3 className="text-white font-semibold">Peer Reviews</h3>
                   <p className="text-gray-400 text-sm">2 pending reviews</p>
-                </div>
-              </div>
+                        </div>
+                      </div>
             </CardBody>
           </Card>
 
@@ -243,15 +243,15 @@ export default function TaxManagerLiability() {
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center">
                   <FileText className="w-6 h-6 text-green-400" />
-                </div>
-                <div>
+                    </div>
+                    <div>
                   <h3 className="text-white font-semibold">Recent Decisions</h3>
                   <p className="text-gray-400 text-sm">View latest records</p>
-                </div>
-              </div>
+                            </div>
+                          </div>
             </CardBody>
           </Card>
-        </div>
+                            </div>
 
         {/* Search and Controls Bar */}
         <div className="flex items-center justify-between mb-6">
@@ -265,29 +265,29 @@ export default function TaxManagerLiability() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
-          </div>
+                            </div>
+                          </div>
           <div className="flex items-center space-x-3">
-            <Button
+                      <Button 
               size="sm"
               variant="ghost"
               className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
               startContent={<RefreshCw className="w-4 h-4" />}
             >
               Refresh
-            </Button>
-          </div>
-        </div>
+                      </Button>
+                    </div>
+                  </div>
 
         {/* Decision Log Table */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
           <div className="p-6 border-b border-white/10">
             <h2 className="text-xl font-semibold text-white tracking-tight">Decision Log</h2>
-          </div>
+                          </div>
           <div className="divide-y divide-white/10">
             {filteredRecords.map((record) => (
               <div key={record.id} className="p-6 hover:bg-white/5 transition-colors duration-200">
-                <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center">
                       <Shield className="w-6 h-6 text-red-400" />
@@ -296,8 +296,8 @@ export default function TaxManagerLiability() {
                       <h3 className="text-white font-semibold text-lg">{record.client}</h3>
                       <p className="text-gray-400 text-sm">{record.decisionType} • {record.date}</p>
                       <p className="text-gray-500 text-xs mt-1">{record.description}</p>
-                    </div>
-                  </div>
+                          </div>
+                        </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
                       <p className="text-white font-semibold">{formatCurrency(record.exposure)}</p>
@@ -321,7 +321,7 @@ export default function TaxManagerLiability() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button
+                      <Button 
                         size="sm"
                         variant="ghost"
                         className="text-gray-400 hover:text-white"
@@ -330,7 +330,7 @@ export default function TaxManagerLiability() {
                       >
                         View
                       </Button>
-                      <Button
+                      <Button 
                         size="sm"
                         className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
                         startContent={<Edit className="w-4 h-4" />}
@@ -340,10 +340,10 @@ export default function TaxManagerLiability() {
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
         {/* Standards Compliance Tracker */}
         <div className="mt-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
@@ -351,27 +351,27 @@ export default function TaxManagerLiability() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center space-x-3">
               <CheckCircle className="w-6 h-6 text-green-500" />
-              <div>
+                    <div>
                 <p className="text-white font-medium">Critical Decisions Documented</p>
                 <p className="text-gray-400 text-sm">100% compliance rate</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <CheckCircle className="w-6 h-6 text-green-500" />
-              <div>
+                          <div>
                 <p className="text-white font-medium">Peer Review Timeliness</p>
                 <p className="text-gray-400 text-sm">94% within 48 hours</p>
-              </div>
-            </div>
+                            </div>
+                          </div>
             <div className="flex items-center space-x-3">
               <AlertTriangle className="w-6 h-6 text-yellow-500" />
-              <div>
+                          <div>
                 <p className="text-white font-medium">Follow-up Required</p>
                 <p className="text-gray-400 text-sm">3 decisions over 30 days old</p>
-              </div>
-            </div>
-          </div>
-        </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
         {/* Templates & Resources */}
         <div className="mt-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
@@ -384,39 +384,39 @@ export default function TaxManagerLiability() {
               <div className="text-left">
                 <p className="text-white font-medium">Decision Templates</p>
                 <p className="text-gray-400 text-xs">Pre-built forms</p>
-              </div>
+                    </div>
             </Button>
-            <Button
+                      <Button 
               variant="bordered"
               className="bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 rounded-xl h-auto p-4"
-            >
+                      >
               <div className="text-left">
                 <p className="text-white font-medium">State Statutes</p>
                 <p className="text-gray-400 text-xs">Legal references</p>
               </div>
-            </Button>
-            <Button
-              variant="bordered"
+                      </Button>
+                      <Button 
+                        variant="bordered"
               className="bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 rounded-xl h-auto p-4"
-            >
+                      >
               <div className="text-left">
                 <p className="text-white font-medium">Standards Guide</p>
                 <p className="text-gray-400 text-xs">Professional guidelines</p>
               </div>
-            </Button>
-            <Button
-              variant="bordered"
+                      </Button>
+                      <Button 
+                        variant="bordered"
               className="bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 rounded-xl h-auto p-4"
-            >
+                      >
               <div className="text-left">
                 <p className="text-white font-medium">Insurance Forms</p>
                 <p className="text-gray-400 text-xs">Notification templates</p>
               </div>
-            </Button>
-          </div>
-        </div>
-      </div>
-
+                      </Button>
+                    </div>
+                  </div>
+                  </div>
+                  
       {/* Decision Details Modal */}
       {selectedRecord && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -424,27 +424,27 @@ export default function TaxManagerLiability() {
             <div className="p-6 border-b border-white/10">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-white">Decision Details</h2>
-                <Button
+                      <Button 
                   size="sm"
                   variant="ghost"
                   className="text-gray-400 hover:text-white"
                   onPress={() => setSelectedRecord(null)}
                 >
                   ×
-                </Button>
-              </div>
-            </div>
+                      </Button>
+                    </div>
+                  </div>
             <div className="p-6 space-y-6">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center">
                   <Shield className="w-8 h-8 text-red-400" />
                 </div>
-                <div>
+                    <div>
                   <h3 className="text-xl font-semibold text-white">{selectedRecord.client}</h3>
                   <p className="text-gray-400">{selectedRecord.decisionType}</p>
-                </div>
-              </div>
-              
+                      </div>
+                    </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/5 rounded-xl p-4">
                   <p className="text-gray-400 text-sm">Risk Level</p>
@@ -456,40 +456,40 @@ export default function TaxManagerLiability() {
                   >
                     {selectedRecord.riskLevel.toUpperCase()}
                   </Chip>
-                </div>
+                          </div>
                 <div className="bg-white/5 rounded-xl p-4">
                   <p className="text-gray-400 text-sm">Exposure</p>
                   <p className="text-white font-medium mt-1">{formatCurrency(selectedRecord.exposure)}</p>
-                </div>
-              </div>
+                      </div>
+                    </div>
 
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-gray-400 text-sm mb-2">Description</p>
                 <p className="text-white">{selectedRecord.description}</p>
-              </div>
+                    </div>
 
               {selectedRecord.peerReviewer && (
                 <div className="bg-white/5 rounded-xl p-4">
                   <p className="text-gray-400 text-sm mb-2">Peer Reviewer</p>
                   <p className="text-white">{selectedRecord.peerReviewer}</p>
-                </div>
+                        </div>
               )}
 
               <div className="flex space-x-3">
-                <Button
+                      <Button 
                   className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
                   startContent={<Download className="w-4 h-4" />}
-                >
+                      >
                   Download Record
-                </Button>
-                <Button
-                  variant="bordered"
+                      </Button>
+                      <Button 
+                        variant="bordered"
                   className="bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 rounded-xl"
                 >
                   Edit Record
-                </Button>
-              </div>
-            </div>
+                      </Button>
+                    </div>
+                  </div>
           </div>
         </div>
       )}

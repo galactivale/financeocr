@@ -243,49 +243,49 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     });
   };
 
-  return (
+    return (
     <div className="min-h-screen bg-black">
       {/* Apple-style Sticky Header */}
       <div className="sticky top-0 z-30 bg-black/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
+        <Button
+          variant="ghost"
                 className="text-gray-400 hover:text-white"
-                startContent={<ArrowLeft className="w-4 h-4" />}
-                onClick={() => router.back()}
-              >
+          startContent={<ArrowLeft className="w-4 h-4" />}
+          onClick={() => router.back()}
+        >
                 Back
-              </Button>
+        </Button>
               <div className="w-px h-6 bg-white/10"></div>
-              <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
                   <Building className="w-5 h-5 text-white" />
-                </div>
-                <div>
+          </div>
+            <div>
                   <h1 className="text-2xl font-semibold text-white tracking-tight">
                     {clientData.name}
                   </h1>
                   <p className="text-gray-400 text-sm">Professional nexus compliance oversight</p>
-                </div>
               </div>
             </div>
+            </div>
             <div className="flex items-center space-x-3">
-              <Button
+          <Button
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/25"
                 startContent={<MessageSquare className="w-4 h-4" />}
-              >
+          >
                 Contact Client
-              </Button>
-              <Button
+          </Button>
+          <Button
                 size="sm"
                 className="bg-white/5 text-gray-300 hover:bg-white/10 rounded-xl"
-                startContent={<FileText className="w-4 h-4" />}
-              >
+            startContent={<FileText className="w-4 h-4" />}
+          >
                 Generate Report
-              </Button>
+          </Button>
             </div>
           </div>
         </div>
@@ -298,206 +298,206 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           <div className="flex items-center space-x-2">
             <AlertTriangle className="w-4 h-4 text-red-400" />
             <span className="text-red-300 text-sm font-medium">Nexus Alert: Registration Required</span>
-          </div>
         </div>
+      </div>
 
-        {/* Main Content with Tabs */}
+      {/* Main Content with Tabs */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
           {/* Apple-style Tab Navigation */}
-          <div className="border-b border-white/10">
-            <nav className="flex space-x-8 px-6">
-                <button
-                  onClick={() => setSelectedTab("nexus")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "nexus"
-                      ? "border-blue-500 text-blue-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Nexus Status
-                </button>
-                <button
-                  onClick={() => setSelectedTab("details")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "details"
-                      ? "border-cyan-500 text-cyan-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Client Details
-                </button>
-                <button
-                  onClick={() => setSelectedTab("alerts")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "alerts"
-                      ? "border-red-500 text-red-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Active Alerts
-                </button>
-                <button
-                  onClick={() => setSelectedTab("audit")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "audit"
-                      ? "border-green-500 text-green-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Audit Trail
-                </button>
-                <button
-                  onClick={() => setSelectedTab("communications")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "communications"
-                      ? "border-purple-500 text-purple-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Communications
-                </button>
-                <button
-                  onClick={() => setSelectedTab("documents")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "documents"
-                      ? "border-indigo-500 text-indigo-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Documents
-                </button>
-                <button
-                  onClick={() => setSelectedTab("analytics")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                    selectedTab === "analytics"
-                      ? "border-orange-500 text-orange-400"
-                      : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
-                  }`}
-                >
-                  Analytics
-                </button>
-              </nav>
-            </div>
+        <div className="border-b border-white/10">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setSelectedTab("nexus")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "nexus"
+                  ? "border-blue-500 text-blue-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Nexus Status
+            </button>
+            <button
+              onClick={() => setSelectedTab("details")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "details"
+                  ? "border-cyan-500 text-cyan-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Client Details
+            </button>
+            <button
+              onClick={() => setSelectedTab("alerts")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "alerts"
+                  ? "border-red-500 text-red-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Active Alerts
+            </button>
+            <button
+              onClick={() => setSelectedTab("audit")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "audit"
+                  ? "border-green-500 text-green-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Audit Trail
+            </button>
+            <button
+              onClick={() => setSelectedTab("communications")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "communications"
+                  ? "border-purple-500 text-purple-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Communications
+            </button>
+            <button
+              onClick={() => setSelectedTab("documents")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "documents"
+                  ? "border-indigo-500 text-indigo-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Documents
+            </button>
+            <button
+              onClick={() => setSelectedTab("analytics")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                selectedTab === "analytics"
+                  ? "border-orange-500 text-orange-400"
+                  : "border-transparent text-gray-400 hover:text-white hover:border-gray-300"
+              }`}
+            >
+              Analytics
+            </button>
+          </nav>
+        </div>
 
             {/* Apple-style Tab Content */}
-            <div className="p-6">
-              {selectedTab === "nexus" && (
+        <div className="p-6">
+          {selectedTab === "nexus" && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                      <h2 className="text-2xl font-semibold text-white tracking-tight">Multi-State Nexus Dashboard</h2>
-                    </div>
-                    <Button
-                      size="sm"
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Multi-State Nexus Dashboard</h2>
+                </div>
+                <Button
+                  size="sm"
                       className="bg-white/5 text-gray-300 hover:bg-white/10 rounded-xl"
                       startContent={<Filter className="w-4 h-4" />}
-                    >
-                      Filter States
-                    </Button>
-                  </div>
+                >
+                  Filter States
+                </Button>
+              </div>
 
                   {/* Apple-style Interactive State Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {clientData.states.map((state) => (
-                      <div
-                        key={state.code}
+                  <div
+                    key={state.code}
                         className={`group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer ${
-                          expandedState === state.code ? 'ring-2 ring-blue-500/50' : ''
-                        }`}
-                        onClick={() => setExpandedState(expandedState === state.code ? null : state.code)}
-                      >
+                      expandedState === state.code ? 'ring-2 ring-blue-500/50' : ''
+                    }`}
+                    onClick={() => setExpandedState(expandedState === state.code ? null : state.code)}
+                  >
                         <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
                                 <Flag className="w-5 h-5 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="text-white font-semibold text-sm tracking-tight">{state.name}</h3>
-                                <p className="text-gray-400 text-xs">{state.code}</p>
-                              </div>
-                            </div>
-                            <Chip
-                              color={getStatusColor(state.status)}
-                              size="sm"
-                              className="text-xs"
-                            >
-                              {state.status === "critical" ? "REGISTRATION REQUIRED" :
-                               state.status === "warning" ? "APPROACHING THRESHOLD" :
-                               "MONITORING"}
-                            </Chip>
-                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold text-sm tracking-tight">{state.name}</h3>
+                          <p className="text-gray-400 text-xs">{state.code}</p>
+                        </div>
+                      </div>
+                      <Chip
+                        color={getStatusColor(state.status)}
+                        size="sm"
+                        className="text-xs"
+                      >
+                        {state.status === "critical" ? "REGISTRATION REQUIRED" :
+                         state.status === "warning" ? "APPROACHING THRESHOLD" :
+                         "MONITORING"}
+                      </Chip>
+                    </div>
 
                           <div className="space-y-4">
-                            <div>
+                      <div>
                               <div className="flex justify-between text-sm mb-2">
-                                <span className="text-gray-400">Revenue</span>
-                                <span className="text-white">{formatCurrency(state.revenue)} of {formatCurrency(state.threshold)}</span>
-                              </div>
-                              <Progress
-                                value={state.percentage}
-                                className="mb-2"
-                                color={state.percentage >= 100 ? "danger" : state.percentage >= 80 ? "warning" : "primary"}
-                              />
-                              <p className="text-xs text-gray-400">{state.percentage}% of threshold</p>
-                            </div>
-
-                            {state.transactions && (
-                              <div>
-                                <div className="flex justify-between text-sm mb-2">
-                                  <span className="text-gray-400">Transactions</span>
-                                  <span className="text-white">{state.transactions} of {state.transactionThreshold}</span>
-                                </div>
-                                <Progress
-                                  value={(state.transactions / state.transactionThreshold) * 100}
-                                  className="mb-2"
-                                  color="warning"
-                                />
-                              </div>
-                            )}
-
-                            {state.daysSinceThreshold && (
-                              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-                                <p className="text-red-300 text-xs">
-                                  Days since threshold crossed: {state.daysSinceThreshold} days
-                                </p>
-                                <p className="text-red-200 text-xs">
-                                  Estimated penalty: {formatCurrency(state.penaltyRange.min)} - {formatCurrency(state.penaltyRange.max)}
-                                </p>
-                              </div>
-                            )}
-
-                            {state.projectedCrossover && (
-                              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
-                                <p className="text-yellow-300 text-xs">
-                                  Projected crossover: {state.projectedCrossover}
-                                </p>
-                              </div>
-                            )}
-
-                            <div className="flex space-x-2 pt-2">
-                              <Button
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs"
-                              >
-                                {state.status === "critical" ? "Register Client" : 
-                                 state.status === "warning" ? "Monitor Closely" : "Track Progress"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="bg-white/5 text-gray-300 hover:bg-white/10 rounded-xl text-xs"
-                              >
-                                Document Decision
-                              </Button>
-                            </div>
-                          </div>
+                          <span className="text-gray-400">Revenue</span>
+                          <span className="text-white">{formatCurrency(state.revenue)} of {formatCurrency(state.threshold)}</span>
                         </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                        <Progress
+                          value={state.percentage}
+                          className="mb-2"
+                          color={state.percentage >= 100 ? "danger" : state.percentage >= 80 ? "warning" : "primary"}
+                        />
+                        <p className="text-xs text-gray-400">{state.percentage}% of threshold</p>
+                      </div>
 
-              {selectedTab === "details" && (
+                      {state.transactions && (
+                        <div>
+                                <div className="flex justify-between text-sm mb-2">
+                            <span className="text-gray-400">Transactions</span>
+                            <span className="text-white">{state.transactions} of {state.transactionThreshold}</span>
+                          </div>
+                          <Progress
+                            value={(state.transactions / state.transactionThreshold) * 100}
+                            className="mb-2"
+                            color="warning"
+                          />
+                        </div>
+                      )}
+
+                      {state.daysSinceThreshold && (
+                              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+                          <p className="text-red-300 text-xs">
+                            Days since threshold crossed: {state.daysSinceThreshold} days
+                          </p>
+                          <p className="text-red-200 text-xs">
+                            Estimated penalty: {formatCurrency(state.penaltyRange.min)} - {formatCurrency(state.penaltyRange.max)}
+                          </p>
+                        </div>
+                      )}
+
+                      {state.projectedCrossover && (
+                              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+                          <p className="text-yellow-300 text-xs">
+                            Projected crossover: {state.projectedCrossover}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex space-x-2 pt-2">
+                        <Button
+                          size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs"
+                        >
+                          {state.status === "critical" ? "Register Client" : 
+                           state.status === "warning" ? "Monitor Closely" : "Track Progress"}
+                        </Button>
+                        <Button
+                          size="sm"
+                                className="bg-white/5 text-gray-300 hover:bg-white/10 rounded-xl text-xs"
+                        >
+                          Document Decision
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedTab === "details" && (
             <div className="space-y-6">
               {/* Business Profile Header */}
               <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6">
@@ -1537,7 +1537,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 </div>
               </div>
             </div>
-              )}
+          )}
             </div>
         </div>
       </div>
