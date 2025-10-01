@@ -3,994 +3,383 @@ import React, { useState } from "react";
 import { 
   Card, 
   CardBody, 
-  CardHeader, 
+  Button, 
+  Chip, 
+  Input,
   Table, 
   TableHeader, 
   TableColumn, 
   TableBody, 
   TableRow, 
-  TableCell, 
-  Button, 
-  Chip, 
-  Input,
-  Textarea,
-  Progress,
-  Tabs,
-  Tab
+  TableCell
 } from "@nextui-org/react";
+import { 
+  FileText, 
+  Download, 
+  Plus, 
+  Calendar,
+  User,
+  Building,
+  Search,
+  RefreshCw
+} from "lucide-react";
 
-// Report data structure
+// Simple report data structure
 interface Report {
   id: string;
   title: string;
-  type: 'client-compliance' | 'regulatory-analysis' | 'professional-audit' | 'portfolio-summary' | 'state-updates' | 'custom';
-  client?: string;
+  client: string;
   date: string;
-  format: 'PDF' | 'Excel' | 'PowerPoint';
-  size: string;
-  status: 'generated' | 'scheduled' | 'in-progress';
-}
-
-interface ScheduledReport {
-  id: string;
-  title: string;
-  frequency: string;
-  nextDue: string;
-  status: 'active' | 'paused';
+  type: 'compliance' | 'summary' | 'audit';
+  status: 'ready' | 'generating' | 'scheduled';
 }
 
 // Sample data
-const recentReports: Report[] = [
+const reports: Report[] = [
   {
     id: "1",
-    title: "TechCorp Q4 Compliance Review",
-    type: "client-compliance",
+    title: "TechCorp Q4 Compliance Report",
     client: "TechCorp SaaS",
     date: "Dec 1, 2024",
-    format: "PDF",
-    size: "2.3 MB",
-    status: "generated"
+    type: "compliance",
+    status: "ready"
   },
   {
     id: "2",
-    title: "Portfolio Risk Analysis",
-    type: "portfolio-summary",
+    title: "Portfolio Summary Report",
+    client: "All Clients",
     date: "Nov 28, 2024",
-    format: "Excel",
-    size: "1.8 MB",
-    status: "generated"
+    type: "summary",
+    status: "ready"
   },
   {
     id: "3",
-    title: "CA Regulation Update Summary",
-    type: "regulatory-analysis",
+    title: "Professional Audit Trail",
+    client: "TechCorp SaaS",
     date: "Nov 25, 2024",
-    format: "PDF",
-    size: "1.2 MB",
-    status: "generated"
+    type: "audit",
+    status: "ready"
   },
   {
     id: "4",
-    title: "Professional Decision Audit",
-    type: "professional-audit",
+    title: "Monthly Client Review",
+    client: "All Clients",
     date: "Nov 20, 2024",
-    format: "PDF",
-    size: "3.1 MB",
-    status: "generated"
-  },
-  {
-    id: "5",
-    title: "Client Advisory Package",
-    type: "client-compliance",
-    client: "RetailChain LLC",
-    date: "Nov 15, 2024",
-    format: "PowerPoint",
-    size: "4.2 MB",
-    status: "generated"
+    type: "summary",
+    status: "ready"
   }
-];
-
-const scheduledReports: ScheduledReport[] = [
-  {
-    id: "1",
-    title: "Client Portfolio Review",
-    frequency: "Monthly, 1st of month",
-    nextDue: "Jan 1, 2025",
-    status: "active"
-  },
-  {
-    id: "2",
-    title: "High-Risk Alert Summary",
-    frequency: "Weekly, Mondays",
-    nextDue: "Tomorrow 9:00 AM",
-    status: "active"
-  },
-  {
-    id: "3",
-    title: "Regulatory Update Digest",
-    frequency: "Weekly, Fridays",
-    nextDue: "Friday 5:00 PM",
-    status: "active"
-  },
-  {
-    id: "4",
-    title: "Professional Decision Log",
-    frequency: "Quarterly",
-    nextDue: "Dec 31, 2024",
-    status: "active"
-  },
-  {
-    id: "5",
-    title: "Managing Partner Brief",
-    frequency: "Monthly",
-    nextDue: "Dec 15, 2024",
-    status: "active"
-  }
-];
-
-const reportTemplates = [
-  "Client Quarterly Review",
-  "Threshold Approach Advisory",
-  "Registration Recommendation",
-  "Voluntary Disclosure Analysis",
-  "Professional Decision Summary",
-  "Regulatory Update Impact"
-];
-
-const customTemplates = [
-  "TechCorp Quarterly Format",
-  "High-Risk Client Deep Dive",
-  "Partner Escalation Package"
 ];
 
 export default function TaxManagerReports() {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedClient, setSelectedClient] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState('Q4 2024');
-  const [reportComponents, setReportComponents] = useState({
-    nexusStatus: true,
-    thresholdAnalysis: true,
-    activeAlerts: true,
-    professionalDecisions: true,
-    complianceTimeline: true,
-    nextReview: true
-  });
-  const [deliveryOptions, setDeliveryOptions] = useState({
-    clientPortal: true,
-    email: true,
-    presentation: false
+  const [showGenerateForm, setShowGenerateForm] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newReport, setNewReport] = useState({
+    title: "",
+    client: "",
+    type: "compliance" as const
   });
 
-  const getReportTypeColor = (type: string) => {
+  const getTypeColor = (type: string) => {
     switch (type) {
-      case 'client-compliance': return 'primary';
-      case 'regulatory-analysis': return 'secondary';
-      case 'professional-audit': return 'warning';
-      case 'portfolio-summary': return 'success';
-      case 'state-updates': return 'default';
-      case 'custom': return 'danger';
+      case 'compliance': return 'primary';
+      case 'summary': return 'success';
+      case 'audit': return 'warning';
       default: return 'default';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'generated': return 'success';
+      case 'ready': return 'success';
+      case 'generating': return 'warning';
       case 'scheduled': return 'primary';
-      case 'in-progress': return 'warning';
-      case 'active': return 'success';
-      case 'paused': return 'default';
       default: return 'default';
     }
   };
 
+  const handleGenerateReport = () => {
+    // Simple report generation logic
+    console.log('Generating report:', newReport);
+    setShowGenerateForm(false);
+    setNewReport({ title: "", client: "", type: "compliance" });
+  };
+
+  // Filter reports based on search term
+  const filteredReports = reports.filter(report =>
+    report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    report.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    report.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6 relative">
-        <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-          
-          {/* Main Content */}
-          <div className="mt-6 gap-6 flex flex-col w-full">
-            {/* Professional Reports Center Header */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Reports Center</h2>
+      {/* Apple-style Header */}
+      <div className="sticky top-0 z-30 bg-black/80 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <FileText className="w-5 h-5 text-white" />
               </div>
-              
-              {/* Minimal KPI Stats */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
                     <div>
-                      <h3 className="text-white font-semibold text-sm tracking-tight">Jane Doe, Tax Manager CPA</h3>
-                      <p className="text-gray-400 text-xs font-medium">Professional Documentation Center</p>
+                <h1 className="text-2xl font-semibold text-white tracking-tight">Reports</h1>
+                <p className="text-gray-400 text-sm">Professional documentation center</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/25"
+                startContent={<Plus className="w-4 h-4" />}
+                onPress={() => setShowGenerateForm(true)}
+              >
+                Generate Report
+              </Button>
+            </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-green-400 text-xs font-medium">Active</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-6">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-white">47</div>
-                      <div className="text-gray-400 text-xs font-medium">Generated This Month</div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+
+        {/* Apple-style Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Total Reports</p>
+                  <p className="text-3xl font-bold text-white mt-1">47</p>
                     </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-500">32</div>
-                      <div className="text-gray-400 text-xs font-medium">Client Reports</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-orange-500">15</div>
-                      <div className="text-gray-400 text-xs font-medium">Compliance Reports</div>
-                    </div>
-                  </div>
+                <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-blue-400" />
                 </div>
               </div>
+            </CardBody>
+          </Card>
 
-              {/* Quick Actions */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Button 
-                      color="primary" 
-                      variant="solid"
-                      className="bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
-                    >
-                      Quick Generate
-                    </Button>
-                    <Button 
-                      color="default" 
-                      variant="bordered"
-                      className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                    >
-                      Report Templates
-                    </Button>
-                    <Button 
-                      color="default" 
-                      variant="bordered"
-                      className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                    >
-                      Scheduled Reports
-                    </Button>
-                    <Button 
-                      color="default" 
-                      variant="bordered"
-                      className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                    >
-                      Archive
-                    </Button>
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Client Reports</p>
+                  <p className="text-3xl font-bold text-green-500 mt-1">32</p>
                   </div>
+                <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center">
+                  <User className="w-6 h-6 text-green-400" />
                 </div>
               </div>
+            </CardBody>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Portfolio Reports</p>
+                  <p className="text-3xl font-bold text-orange-500 mt-1">15</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-500/20 rounded-2xl flex items-center justify-center">
+                  <Building className="w-6 h-6 text-orange-400" />
+            </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Scheduled</p>
+                  <p className="text-3xl font-bold text-purple-500 mt-1">8</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-purple-400" />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
             </div>
 
-            {/* Report Categories */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
-                <h4 className="text-lg font-semibold text-white">Report Categories</h4>
-              </div>
-              <div className="flex flex-wrap gap-2">
+        {/* Search and Controls Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search reports..."
+                className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-200 w-80"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
                 <Button
                   size="sm"
-                  color={selectedCategory === 'all' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'all' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('all')}
-                  className={selectedCategory === 'all' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  All Reports
-                </Button>
-                <Button
-                  size="sm"
-                  color={selectedCategory === 'client-compliance' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'client-compliance' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('client-compliance')}
-                  className={selectedCategory === 'client-compliance' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  Client Compliance
-                </Button>
-                <Button
-                  size="sm"
-                  color={selectedCategory === 'regulatory-analysis' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'regulatory-analysis' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('regulatory-analysis')}
-                  className={selectedCategory === 'regulatory-analysis' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  Regulatory Analysis
-                </Button>
-                <Button
-                  size="sm"
-                  color={selectedCategory === 'professional-audit' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'professional-audit' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('professional-audit')}
-                  className={selectedCategory === 'professional-audit' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  Professional Audit
-                </Button>
-                <Button
-                  size="sm"
-                  color={selectedCategory === 'portfolio-summary' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'portfolio-summary' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('portfolio-summary')}
-                  className={selectedCategory === 'portfolio-summary' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  Portfolio Summary
-                </Button>
-                <Button
-                  size="sm"
-                  color={selectedCategory === 'state-updates' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'state-updates' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('state-updates')}
-                  className={selectedCategory === 'state-updates' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  State Updates
-                </Button>
-                <Button
-                  size="sm"
-                  color={selectedCategory === 'custom' ? 'primary' : 'default'}
-                  variant={selectedCategory === 'custom' ? 'solid' : 'bordered'}
-                  onPress={() => setSelectedCategory('custom')}
-                  className={selectedCategory === 'custom' 
-                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                    : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                  }
-                >
-                  Custom Reports
+              variant="ghost"
+              className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+              startContent={<RefreshCw className="w-4 h-4" />}
+            >
+              Refresh
                 </Button>
               </div>
             </div>
 
-            {/* Report Generation Interface */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <Tabs aria-label="Report Generation" className="w-full">
-                <Tab key="client-compliance" title="Client Compliance">
-                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mt-4">
+        {/* Generate Report Form */}
+        {showGenerateForm && (
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-8 shadow-2xl">
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-white">Client Nexus Compliance Report</h4>
+              <h2 className="text-xl font-semibold text-white tracking-tight">Generate New Report</h2>
                     </div>
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Client</label>
+                <label className="text-sm font-medium text-white mb-2 block">Report Title</label>
                           <Input
-                            placeholder="TechCorp SaaS"
-                            value={selectedClient}
-                            onValueChange={setSelectedClient}
+                  placeholder="Enter report title"
+                  value={newReport.title}
+                  onValueChange={(value) => setNewReport(prev => ({ ...prev, title: value }))}
                             className="bg-white/5 border-white/10 text-white placeholder-gray-400"
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Period</label>
+                <label className="text-sm font-medium text-white mb-2 block">Client</label>
                           <Input
-                            placeholder="Q4 2024"
-                            value={selectedPeriod}
-                            onValueChange={setSelectedPeriod}
+                  placeholder="Select client or 'All Clients'"
+                  value={newReport.client}
+                  onValueChange={(value) => setNewReport(prev => ({ ...prev, client: value }))}
                             className="bg-white/5 border-white/10 text-white placeholder-gray-400"
                           />
                         </div>
-                      </div>
-
                       <div>
-                        <h5 className="font-semibold text-white mb-3">Report Components</h5>
-                        <div className="space-y-2">
-                          {Object.entries(reportComponents).map(([key, value]) => (
-                            <div key={key} className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={value}
-                                onChange={(e) => setReportComponents(prev => ({
-                                  ...prev,
-                                  [key]: e.target.checked
-                                }))}
-                                className="rounded bg-white/5 border-white/10 text-blue-500"
-                              />
-                              <span className="text-sm text-gray-300">
-                                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                              </span>
-                            </div>
-                          ))}
+                <label className="text-sm font-medium text-white mb-2 block">Report Type</label>
+                <select
+                  value={newReport.type}
+                  onChange={(e) => setNewReport(prev => ({ ...prev, type: e.target.value as any }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="compliance" className="bg-gray-800">Compliance Report</option>
+                  <option value="summary" className="bg-gray-800">Portfolio Summary</option>
+                  <option value="audit" className="bg-gray-800">Audit Trail</option>
+                </select>
                         </div>
                       </div>
 
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">Delivery Options</h5>
-                        <div className="space-y-2">
-                          {Object.entries(deliveryOptions).map(([key, value]) => (
-                            <div key={key} className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={value}
-                                onChange={(e) => setDeliveryOptions(prev => ({
-                                  ...prev,
-                                  [key]: e.target.checked
-                                }))}
-                                className="rounded bg-white/5 border-white/10 text-blue-500"
-                              />
-                              <span className="text-sm text-gray-300">
-                                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
+            <div className="flex gap-3">
                         <Button 
-                          color="primary" 
-                          variant="solid"
-                          className="bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/25 transition-all duration-300 hover:scale-105"
+                onPress={handleGenerateReport}
                         >
                           Generate Report
                         </Button>
                         <Button 
-                          color="default" 
                           variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Preview
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Schedule Recurring
+                className="bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/20 rounded-xl transition-all duration-300 hover:scale-105"
+                onPress={() => setShowGenerateForm(false)}
+              >
+                Cancel
                         </Button>
                       </div>
+                    </div>
+        )}
+
+        {/* Reports List */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="text-xl font-semibold text-white tracking-tight">Recent Reports</h2>
+                    </div>
+          <div className="divide-y divide-white/10">
+            {filteredReports.map((report) => (
+              <div key={report.id} className="p-6 hover:bg-white/5 transition-colors duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-blue-400" />
+                    </div>
+                      <div>
+                      <h3 className="text-white font-semibold text-lg">{report.title}</h3>
+                      <p className="text-gray-400 text-sm">{report.client} • {report.type}</p>
                     </div>
                   </div>
-                </Tab>
-
-                <Tab key="professional-audit" title="Professional Audit">
-                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mt-4">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-white">Professional Liability Audit Package</h4>
-                    </div>
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="font-semibold text-white">CLIENT:</span> 
-                          <span className="text-gray-300 ml-2">TechCorp SaaS</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold text-white">PERIOD:</span> 
-                          <span className="text-gray-300 ml-2">2024 Annual</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">AUDIT TRAIL COMPONENTS</h5>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <div>├─ Professional decisions: 8 documented</div>
-                          <div>├─ Statutory citations: Complete references</div>
-                          <div>├─ Client communications: All logged</div>
-                          <div>├─ Data validation records: Quality scores</div>
-                          <div>├─ Regulatory updates: Applied changes</div>
-                          <div>└─ Peer review documentation: 3 reviews</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">PROFESSIONAL STANDARDS COMPLIANCE</h5>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <div>├─ AICPA guidelines: Fully compliant</div>
-                          <div>├─ State CPA requirements: Met</div>
-                          <div>├─ Documentation completeness: 100%</div>
-                          <div>└─ Court defensibility: Verified</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">PACKAGE CONTENTS</h5>
-                        <div className="space-y-1 text-sm text-gray-300">
-                          <div>• Executive summary (2 pages)</div>
-                          <div>• Decision chronology (12 pages)</div>
-                          <div>• Supporting documentation (45 pages)</div>
-                          <div>• Regulatory references (8 pages)</div>
-                          <div>• Professional certifications</div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button 
-                          color="primary" 
-                          variant="solid"
-                          className="bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
-                        >
-                          Generate Audit Package
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Legal Review
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Archive Copy
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Tab>
-
-                <Tab key="portfolio-analytics" title="Portfolio Analytics">
-                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mt-4">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-white">Client Portfolio Risk Analysis</h4>
-                    </div>
-                    <div className="space-y-6">
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">PORTFOLIO OVERVIEW</h5>
-                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
-                          <div>Total Clients: 24 | High Risk: 8 | Critical Alerts: 3</div>
-                          <div>Total Exposure: $284,500 | Avg per Client: $11,854</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">RISK DISTRIBUTION</h5>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <div className="flex justify-between">
-                            <span>Critical (3): $127K exposure</span>
-                            <span>18% of portfolio</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>High (8): $98K exposure</span>
-                            <span>35% of portfolio</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Medium (9): $47K exposure</span>
-                            <span>37% of portfolio</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Low (4): $12K exposure</span>
-                            <span>10% of portfolio</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">STATE ANALYSIS</h5>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <div>California: 15 clients, $156K exposure, 3 critical</div>
-                          <div>New York: 12 clients, $78K exposure, 2 warnings</div>
-                          <div>Texas: 8 clients, $34K exposure, 1 warning</div>
-                          <div>Other States: Combined $16K exposure</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">PERFORMANCE METRICS</h5>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <div>Penalties Prevented: $1.2M this year</div>
-                          <div>Avg Decision Time: 2.3 days</div>
-                          <div>Client Satisfaction: 96%</div>
-                          <div>Professional Standards: 100% compliant</div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button 
-                          color="primary" 
-                          variant="solid"
-                          className="bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
-                        >
-                          Export Analysis
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Share with Partner
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Schedule Review
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Tab>
-
-                <Tab key="quick-generator" title="Quick Generator">
-                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mt-4">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-cyan-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-white">Quick Report Generation</h4>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Report Type</label>
-                          <Input 
-                            placeholder="Client Status Update" 
-                            className="bg-white/5 border-white/10 text-white placeholder-gray-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Client/Scope</label>
-                          <Input 
-                            placeholder="All Assigned Clients" 
-                            className="bg-white/5 border-white/10 text-white placeholder-gray-400"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Time Period</label>
-                          <Input 
-                            placeholder="Last 30 Days" 
-                            className="bg-white/5 border-white/10 text-white placeholder-gray-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Detail Level</label>
-                          <Input 
-                            placeholder="Executive Summary" 
-                            className="bg-white/5 border-white/10 text-white placeholder-gray-400"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Output Format</label>
-                          <div className="flex gap-2">
+                  <div className="flex items-center space-x-4">
+                    <span className="text-gray-400 text-sm">{report.date}</span>
                             <Button 
                               size="sm" 
-                              color="primary" 
-                              variant="solid"
-                              className="bg-blue-500 text-white shadow-lg shadow-blue-500/25"
-                            >
-                              PDF
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              color="default" 
-                              variant="bordered"
-                              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                            >
-                              Excel
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              color="default" 
-                              variant="bordered"
-                              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                            >
-                              PowerPoint
-                            </Button>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-white mb-2 block">Delivery</label>
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              color="primary" 
-                              variant="solid"
-                              className="bg-blue-500 text-white shadow-lg shadow-blue-500/25"
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                      startContent={<Download className="w-4 h-4" />}
+                      onPress={() => setSelectedReport(report)}
                             >
                               Download
                             </Button>
-                            <Button 
-                              size="sm" 
-                              color="default" 
-                              variant="bordered"
-                              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                            >
-                              Email
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              color="default" 
-                              variant="bordered"
-                              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                            >
-                              Client Portal
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          color="primary" 
-                          variant="solid"
-                          className="bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
-                        >
-                          Generate Now
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Save Template
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Schedule Recurring
-                        </Button>
-                      </div>
-                    </div>
                   </div>
-                </Tab>
-
-                <Tab key="templates" title="Templates">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                        <h4 className="text-lg font-semibold text-white">Standard Templates</h4>
                       </div>
-                      <div className="space-y-2">
-                        {reportTemplates.map((template, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                            <span className="text-sm text-gray-300">• {template}</span>
-                            <Button 
-                              size="sm" 
-                              color="primary" 
-                              variant="light"
-                              className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                            >
-                              Use
-                            </Button>
                           </div>
                         ))}
                       </div>
                     </div>
-
-                    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                        <h4 className="text-lg font-semibold text-white">Custom Templates (3)</h4>
                       </div>
-                      <div className="space-y-2">
-                        {customTemplates.map((template, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                            <span className="text-sm text-gray-300">• {template}</span>
-                            <div className="flex gap-1">
+
+      {/* Report Details Modal */}
+      {selectedReport && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">Report Details</h2>
                               <Button 
                                 size="sm" 
-                                color="primary" 
-                                variant="light"
-                                className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                              >
-                                Use
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                color="default" 
-                                variant="light"
-                                className="bg-white/10 text-white hover:bg-white/20"
-                              >
-                                Edit
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white"
+                  onPress={() => setSelectedReport(null)}
+                >
+                  ×
                               </Button>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                      <div className="mt-4">
-                        <Button 
-                          color="primary" 
-                          variant="solid" 
-                          className="w-full bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
-                        >
-                          Create New Template
-                        </Button>
-                      </div>
+            <div className="p-6 space-y-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                  <FileText className="w-8 h-8 text-blue-400" />
                     </div>
-                  </div>
-                </Tab>
-
-                <Tab key="scheduled" title="Scheduled Reports">
-                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mt-4">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-yellow-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-white">Scheduled Report Management</h4>
-                    </div>
-                    <div className="space-y-4">
                       <div>
-                        <h5 className="font-semibold text-white mb-3">ACTIVE SCHEDULES</h5>
-                        <div className="space-y-2">
-                          {scheduledReports.map((report) => (
-                            <div key={report.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                              <div>
-                                <div className="font-medium text-white">{report.title}</div>
-                                <div className="text-sm text-gray-400">{report.frequency}</div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-sm font-medium text-white">{report.nextDue}</div>
-                                <Chip
-                                  size="sm"
-                                  color={getStatusColor(report.status)}
-                                  variant="flat"
-                                  className={report.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}
-                                >
-                                  {report.status}
-                                </Chip>
-                              </div>
-                            </div>
-                          ))}
+                  <h3 className="text-xl font-semibold text-white">{selectedReport.title}</h3>
+                  <p className="text-gray-400">{selectedReport.client}</p>
                         </div>
                       </div>
 
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">NEXT REPORTS DUE</h5>
-                        <div className="space-y-2 text-sm text-gray-300">
-                          <div>• High-Risk Summary: Tomorrow 9:00 AM</div>
-                          <div>• TechCorp Quarterly: Dec 5, 2024</div>
-                          <div>• Regulatory Digest: Friday 5:00 PM</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 rounded-xl p-4">
+                  <p className="text-gray-400 text-sm">Type</p>
+                  <p className="text-white font-medium">{selectedReport.type}</p>
+                        </div>
+                <div className="bg-white/5 rounded-xl p-4">
+                  <p className="text-gray-400 text-sm">Date</p>
+                  <p className="text-white font-medium">{selectedReport.date}</p>
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+              <div className="flex space-x-3">
                         <Button 
-                          color="primary" 
-                          variant="solid"
-                          className="bg-blue-500 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-600 transition-all duration-200"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                  startContent={<Download className="w-4 h-4" />}
                         >
-                          Add Schedule
+                  Download Report
                         </Button>
                         <Button 
-                          color="default" 
                           variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Modify Schedule
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Pause All
+                  className="bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 rounded-xl"
+                >
+                  Share
                         </Button>
                       </div>
-                    </div>
-                  </div>
-                </Tab>
-
-                <Tab key="archive" title="Archive">
-                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mt-4">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-gray-500 rounded-full"></div>
-                      <h4 className="text-lg font-semibold text-white">Report Archive</h4>
-                    </div>
-                    <div className="space-y-4">
-                      <div>
-                        <h5 className="font-semibold text-white mb-3">RECENT REPORTS (Last 30 Days)</h5>
-                        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                          <Table aria-label="Recent Reports" className="text-white">
-                            <TableHeader>
-                              <TableColumn className="text-white font-semibold">DATE</TableColumn>
-                              <TableColumn className="text-white font-semibold">TITLE</TableColumn>
-                              <TableColumn className="text-white font-semibold">TYPE</TableColumn>
-                              <TableColumn className="text-white font-semibold">FORMAT</TableColumn>
-                              <TableColumn className="text-white font-semibold">SIZE</TableColumn>
-                              <TableColumn className="text-white font-semibold">ACTIONS</TableColumn>
-                            </TableHeader>
-                            <TableBody>
-                              {recentReports.map((report) => (
-                                <TableRow key={report.id} className="hover:bg-white/5">
-                                  <TableCell className="text-gray-300">{report.date}</TableCell>
-                                  <TableCell>
-                                    <div>
-                                      <div className="font-medium text-white">{report.title}</div>
-                                      {report.client && (
-                                        <div className="text-sm text-gray-400">{report.client}</div>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Chip
-                                      size="sm"
-                                      color={getReportTypeColor(report.type)}
-                                      variant="flat"
-                                      className="bg-blue-500/20 text-blue-400"
-                                    >
-                                      {report.type.replace('-', ' ')}
-                                    </Chip>
-                                  </TableCell>
-                                  <TableCell className="text-gray-300">{report.format}</TableCell>
-                                  <TableCell className="text-gray-300">{report.size}</TableCell>
-                                  <TableCell>
-                                    <Button 
-                                      size="sm" 
-                                      color="primary" 
-                                      variant="light"
-                                      className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                                    >
-                                      Download
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Search Archive
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Filter by Client
-                        </Button>
-                        <Button 
-                          color="default" 
-                          variant="bordered"
-                          className="bg-white/10 text-white border-white/20 hover:bg-white/20 transition-all duration-200"
-                        >
-                          Export List
-                        </Button>
-                      </div>
-
-                      <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                        <h5 className="font-semibold text-white mb-2">STORAGE USAGE</h5>
-                        <div className="text-sm text-gray-300">
-                          2.3 GB used of 10 GB limit | 156 reports archived
-                        </div>
-                        <Progress 
-                          value={23} 
-                          className="mt-2"
-                          classNames={{
-                            track: "bg-white/10",
-                            indicator: "bg-blue-500"
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Tab>
-              </Tabs>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

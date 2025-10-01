@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Button, Card, CardBody, CardHeader, Chip, Badge } from "@nextui-org/react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { 
   Shield, 
   AlertTriangle, 
@@ -67,6 +68,7 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
@@ -125,8 +127,9 @@ export default function LandingPage() {
                 <Button 
                   variant="ghost"
                   className="text-gray-300 hover:text-white px-6 py-2 font-medium border border-white/20 hover:border-white/40 transition-all duration-200"
+                  onClick={() => router.push('/dashboard/managing-partner')}
                 >
-                  Sign In
+                  View Dashboard
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -164,7 +167,7 @@ export default function LandingPage() {
                 <a href="#about" className="text-gray-300 hover:text-white font-medium">About</a>
                 <a href="#contact" className="text-gray-300 hover:text-white font-medium">Contact</a>
                 <div className="flex flex-col space-y-2 pt-4 border-t border-white/10">
-                  <Button variant="ghost" className="text-gray-300 hover:text-white justify-start">Sign In</Button>
+                  <Button variant="ghost" className="text-gray-300 hover:text-white justify-start" onClick={() => router.push('/dashboard/managing-partner')}>View Dashboard</Button>
                   <Button className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">Get Started</Button>
                 </div>
               </div>

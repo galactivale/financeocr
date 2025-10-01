@@ -89,10 +89,10 @@ server/
 
 **✅ Successfully Running!**
 - Database: Connected to PostgreSQL
-- Port: 3001
+- Port: 3080
 - Environment: Development
-- Health Check: http://localhost:3001/health
-- API Docs: http://localhost:3001/api
+- Health Check: http://localhost:3080/health
+- API Docs: http://localhost:3080/api
 
 ### 🔗 Database Connection
 
@@ -132,7 +132,7 @@ The server includes a comprehensive database schema with:
 
 3. **Test the API**:
    ```bash
-   curl http://localhost:3001/health
+   curl http://localhost:3080/health
    ```
 
 ### 🔐 Authentication Flow

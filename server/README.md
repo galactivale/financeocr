@@ -94,7 +94,7 @@ Copy `env.example` to `.env` and configure:
 ```bash
 # Server Configuration
 NODE_ENV=development
-PORT=3001
+PORT=3080
 HOST=localhost
 
 # Database
@@ -235,7 +235,7 @@ npm run test:watch
 ### Health Check
 
 ```bash
-curl http://localhost:3001/health
+curl http://localhost:3080/health
 ```
 
 Response:
@@ -274,7 +274,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 COPY . .
 RUN npx prisma generate
-EXPOSE 3001
+EXPOSE 3080
 CMD ["npm", "start"]
 ```
 

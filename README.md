@@ -125,7 +125,7 @@ npm run dev
 
 ### 5. Access the Application
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
+- **Backend API**: http://localhost:3080
 - **Database Admin**: http://localhost:8080 (admin@vaultcpa.com / admin123)
 
 ## 📊 Database Setup
@@ -227,14 +227,14 @@ npx prisma generate  # Generate Prisma client
 
 ### Frontend (.env.local)
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3080
 NEXT_PUBLIC_APP_NAME=VaultCPA
 ```
 
 ### Backend (server/.env)
 ```bash
 NODE_ENV=development
-PORT=3001
+PORT=3080
 DATABASE_URL=postgresql://vaultcpa_user:password@localhost:5432/vaultcpa
 JWT_SECRET=your_jwt_secret
 FRONTEND_URL=http://localhost:3000

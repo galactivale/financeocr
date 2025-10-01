@@ -14,13 +14,13 @@ import { ViewIcon } from "../icons/sidebar/view-icon";
 import { SettingsIcon } from "../icons/sidebar/settings-icon";
 import { MonitoringIcon } from "../icons/sidebar/monitoring-icon";
 import { AlertsIcon } from "../icons/sidebar/alerts-icon";
-import { AdvisoryIcon } from "../icons/sidebar/advisory-icon";
 import { LiabilityIcon } from "../icons/sidebar/liability-icon";
 import { RegulatoryIcon } from "../icons/sidebar/regulatory-icon";
 import { NexusIcon } from "../icons/sidebar/nexus-icon";
 import { AuditTrailIcon } from "../icons/sidebar/audit-trail-icon";
 import { ComplianceIcon } from "../icons/sidebar/compliance-icon";
 import { RiskManagementIcon } from "../icons/sidebar/risk-management-icon";
+import { CommunicationIcon } from "../icons/sidebar/communication-icon";
 import { AnalyticsIcon } from "../icons/sidebar/analytics-icon";
 import { TasksIcon } from "../icons/sidebar/tasks-icon";
 import { DataIcon } from "../icons/sidebar/data-icon";
@@ -144,10 +144,10 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             </SidebarMenu>
             <SidebarMenu title="Tools">
               <SidebarItem
-                isActive={pathname === "/dashboard/tax-manager/advisory"}
-                title="Advisory"
-                icon={<AdvisoryIcon />}
-                href="/dashboard/tax-manager/advisory"
+                isActive={pathname === "/dashboard/tax-manager/communications"}
+                title="Communications"
+                icon={<CommunicationIcon />}
+                href="/dashboard/tax-manager/communications"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/liability"}

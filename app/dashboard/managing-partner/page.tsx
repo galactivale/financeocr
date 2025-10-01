@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import { TableWrapper } from "@/components/table/table";
-import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
+import { useClients, useAlerts, useAnalytics } from "@/hooks/useApi";
 
 // Firm performance data for states - Managing Partner perspective
 const firmPerformanceData = {
@@ -161,96 +162,114 @@ const EnhancedUSMap = () => {
   );
 };
 
-// Managing Partner specific cards with Apple design
-const CardRevenueGrowth = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Revenue Growth</h3>
-          <p className="text-gray-400 text-xs font-medium">YTD performance</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">+18.2%</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-medium">+2.1% vs Q3</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-green-500 h-1 rounded-full" style={{width: '82%'}}></div>
-      </div>
-    </div>
-  </div>
-);
+// Managing Partner specific cards with real data
+const CardRevenueGrowth = ({ metrics }: { metrics: any[] }) => {
+  const revenueGrowth = metrics.find(m => m.metricType === 'revenue_growth')?.value || 18.2;
+  const previousGrowth = metrics.find(m => m.metricType === 'revenue_growth_previous')?.value || 16.1;
+  const variance = revenueGrowth - previousGrowth;
 
-const CardClientRetention = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-sm tracking-tight">Revenue Growth</h3>
+            <p className="text-gray-400 text-xs font-medium">YTD performance</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Client Retention</h3>
-          <p className="text-gray-400 text-xs font-medium">Annual rate</p>
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-3xl font-bold text-white">+{revenueGrowth.toFixed(1)}%</span>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-400 text-sm font-medium">+{variance.toFixed(1)}% vs Q3</span>
+          </div>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1">
+          <div className="bg-green-500 h-1 rounded-full" style={{width: `${Math.min(revenueGrowth * 4, 100)}%`}}></div>
         </div>
       </div>
     </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">94.8%</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-          <span className="text-blue-400 text-sm font-medium">+1.2% vs last year</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-blue-500 h-1 rounded-full" style={{width: '95%'}}></div>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
-const CardTeamPerformance = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-          </svg>
+const CardClientRetention = ({ metrics }: { metrics: any[] }) => {
+  const retention = metrics.find(m => m.metricType === 'client_retention')?.value || 94.8;
+  const previousRetention = metrics.find(m => m.metricType === 'client_retention_previous')?.value || 93.6;
+  const variance = retention - previousRetention;
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-sm tracking-tight">Client Retention</h3>
+            <p className="text-gray-400 text-xs font-medium">Annual rate</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Team Performance</h3>
-          <p className="text-gray-400 text-xs font-medium">Productivity index</p>
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-3xl font-bold text-white">{retention.toFixed(1)}%</span>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-blue-400 text-sm font-medium">+{variance.toFixed(1)}% vs last year</span>
+          </div>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1">
+          <div className="bg-blue-500 h-1 rounded-full" style={{width: `${retention}%`}}></div>
         </div>
       </div>
     </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">87.3</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-          <span className="text-purple-400 text-sm font-medium">+3.1 vs target</span>
+  );
+};
+
+const CardTeamPerformance = ({ metrics }: { metrics: any[] }) => {
+  const performance = metrics.find(m => m.metricType === 'team_performance')?.value || 87.3;
+  const target = metrics.find(m => m.metricType === 'team_performance_target')?.value || 85;
+  const variance = performance - target;
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-sm tracking-tight">Team Performance</h3>
+            <p className="text-gray-400 text-xs font-medium">Productivity index</p>
+          </div>
         </div>
       </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-purple-500 h-1 rounded-full" style={{width: '87%'}}></div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-3xl font-bold text-white">{performance.toFixed(1)}</span>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            <span className="text-purple-400 text-sm font-medium">+{variance.toFixed(1)} vs target</span>
+          </div>
+        </div>
+        <div className="w-full bg-white/10 rounded-full h-1">
+          <div className="bg-purple-500 h-1 rounded-full" style={{width: `${performance}%`}}></div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CardStrategicInitiatives = () => (
   <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
@@ -364,99 +383,8 @@ const CardMarketAnalysis = () => (
       </div>
 );
 
-// Executive Activity Table Component
-const ExecutiveActivityTable = () => {
-  const executiveActivities = [
-    {
-      time: "2 hours ago",
-      client: "TechCorp Global",
-      activity: "Strategic Review",
-      activityDetail: "Q4 performance analysis",
-      region: "CA",
-      impact: "$2.1M revenue",
-      impactDetail: "15% growth target",
-      status: "Completed",
-      user: "M.Partner"
-    },
-    {
-      time: "4 hours ago",
-      client: "Enterprise Solutions",
-      activity: "Partnership Agreement",
-      activityDetail: "New market expansion",
-      region: "NY",
-      impact: "Strategic alliance",
-      impactDetail: "3-year contract",
-      status: "Approved",
-      user: "M.Partner"
-    },
-    {
-      time: "Yesterday 3:45 PM",
-      client: "Regional Firm",
-      activity: "Merger Discussion",
-      activityDetail: "Due diligence phase",
-      region: "TX",
-      impact: "Market consolidation",
-      impactDetail: "Pending review",
-      status: "In Progress",
-      user: "M.Partner"
-    },
-    {
-      time: "Yesterday 1:20 PM",
-      client: "Investment Group",
-      activity: "Portfolio Review",
-      activityDetail: "Risk assessment",
-      region: "FL",
-      impact: "$5M portfolio",
-      impactDetail: "Diversification strategy",
-      status: "Completed",
-      user: "M.Partner"
-    },
-    {
-      time: "Nov 20 4:15 PM",
-      client: "Government Contract",
-      activity: "Compliance Audit",
-      activityDetail: "Annual review process",
-      region: "WA",
-      impact: "Regulatory compliance",
-      impactDetail: "Zero findings",
-      status: "Passed",
-      user: "M.Partner"
-    },
-    {
-      time: "Nov 20 10:30 AM",
-      client: "International Corp",
-      activity: "Tax Strategy",
-      activityDetail: "Cross-border optimization",
-      region: "CA",
-      impact: "Tax efficiency",
-      impactDetail: "15% savings achieved",
-      status: "Implemented",
-      user: "M.Partner"
-    },
-    {
-      time: "Nov 19 2:10 PM",
-      client: "Startup Accelerator",
-      activity: "Investment Decision",
-      activityDetail: "Series A funding",
-      region: "NY",
-      impact: "$500K investment",
-      impactDetail: "Equity stake 8%",
-      status: "Approved",
-      user: "M.Partner"
-    },
-    {
-      time: "Nov 19 11:45 AM",
-      client: "Family Office",
-      activity: "Estate Planning",
-      activityDetail: "Multi-generational strategy",
-      region: "IL",
-      impact: "Wealth preservation",
-      impactDetail: "Tax optimization",
-      status: "Completed",
-      user: "M.Partner"
-    }
-  ];
-
+// Executive Activity Table Component with real data
+const ExecutiveActivityTable = ({ alerts, clients }: { alerts: any[], clients: any[] }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed': return 'text-success';
@@ -465,7 +393,18 @@ const ExecutiveActivityTable = () => {
       case 'implemented': return 'text-success';
       case 'in progress': return 'text-warning';
       case 'pending': return 'text-primary';
+      case 'open': return 'text-warning';
+      case 'closed': return 'text-success';
       default: return 'text-default';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
   };
 
@@ -476,61 +415,60 @@ const ExecutiveActivityTable = () => {
           <TableColumn>TIME</TableColumn>
           <TableColumn>CLIENT</TableColumn>
           <TableColumn>ACTIVITY</TableColumn>
-          <TableColumn>REGION</TableColumn>
-          <TableColumn>IMPACT</TableColumn>
+          <TableColumn>PRIORITY</TableColumn>
           <TableColumn>STATUS</TableColumn>
-          <TableColumn>USER</TableColumn>
+          <TableColumn>IMPACT</TableColumn>
         </TableHeader>
         <TableBody>
-          {executiveActivities.map((activity, index) => (
-            <TableRow key={index}>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.time}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="font-semibold text-default-900">
-                  {activity.client}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div className="font-medium text-default-900">
-                    {activity.activity}
+          {alerts.slice(0, 8).map((alert, index) => {
+            const client = clients.find(c => c.id === alert.clientId);
+            const timeAgo = new Date(alert.createdAt).toLocaleDateString();
+            
+            return (
+              <TableRow key={alert.id}>
+                <TableCell>
+                  <div className="text-sm font-medium text-default-600">
+                    {timeAgo}
                   </div>
-                  <div className="text-sm text-default-500">
-                    {activity.activityDetail}
+                </TableCell>
+                <TableCell>
+                  <div className="font-semibold text-default-900">
+                    {client?.name || 'Unknown Client'}
                   </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  {activity.region}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div className="font-medium text-default-900">
-                    {activity.impact}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium text-default-900">
+                      {alert.title}
+                    </div>
+                    <div className="text-sm text-default-500">
+                      {alert.description || 'No description'}
+                    </div>
                   </div>
-                  <div className="text-sm text-default-500">
-                    {activity.impactDetail}
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(alert.priority)}`}>
+                    {alert.priority}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(alert.status)}`}>
+                    {alert.status}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium text-default-900">
+                      {alert.currentAmount ? `$${(alert.currentAmount / 1000000).toFixed(1)}M` : 'N/A'}
+                    </div>
+                    <div className="text-sm text-default-500">
+                      {alert.thresholdAmount ? `Threshold: $${(alert.thresholdAmount / 1000000).toFixed(1)}M` : 'No threshold'}
+                    </div>
                   </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                  {activity.status}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.user}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
@@ -538,6 +476,25 @@ const ExecutiveActivityTable = () => {
 };
 
 export default function ManagingPartnerDashboard() {
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
+  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 10 });
+  const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();
+
+  const clients = clientsData?.clients || [];
+  const alerts = alertsData?.alerts || [];
+  const metrics = analyticsData?.metrics || [];
+
+  if (clientsLoading || alertsLoading || analyticsLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" color="primary" />
+          <p className="text-white mt-4">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black">
     <div className="h-full lg:px-6">
@@ -548,11 +505,12 @@ export default function ManagingPartnerDashboard() {
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Executive Overview</h2>
+                <span className="text-sm text-gray-400">Demo Mode - No Authentication Required</span>
               </div>
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
-              <CardRevenueGrowth />
-              <CardClientRetention />
-              <CardTeamPerformance />
+              <CardRevenueGrowth metrics={metrics} />
+              <CardClientRetention metrics={metrics} />
+              <CardTeamPerformance metrics={metrics} />
             </div>
           </div>
 
@@ -600,7 +558,7 @@ export default function ManagingPartnerDashboard() {
           </Link>
           </div>
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-            <ExecutiveActivityTable />
+            <ExecutiveActivityTable alerts={alerts} clients={clients} />
           </div>
         </div>
       </div>

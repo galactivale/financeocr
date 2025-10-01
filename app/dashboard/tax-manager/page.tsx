@@ -1,21 +1,16 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import { TableWrapper } from "@/components/table/table";
-import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
+import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useNexusActivities, useClientStates, useNexusDashboardSummary } from "@/hooks/useApi";
 
-// Nexus data for states - Only highlighting 4 key states for cleaner appearance
-const nexusData = {
-  'CA': { status: 'critical', clients: 15, revenue: 2850000, alerts: 3 },
-  'TX': { status: 'warning', clients: 8, revenue: 1200000, alerts: 2 },
-  'NY': { status: 'pending', clients: 12, revenue: 1800000, alerts: 1 },
-  'FL': { status: 'compliant', clients: 6, revenue: 800000, alerts: 0 }
-};
+// This will be populated with real data from clientStates
 
 // Enhanced US Map Component
-const EnhancedUSMap = () => {
+const EnhancedUSMap = ({ clientStates }: { clientStates: any[] }) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   const handleMapStateClick = (stateCode: string) => {
@@ -26,11 +21,38 @@ const EnhancedUSMap = () => {
     }
   };
 
+  // Generate nexus data from clientStates
+  const nexusData = useMemo(() => {
+    const stateData: Record<string, { status: string; clients: number; revenue: number; alerts: number }> = {};
+    
+    clientStates.forEach(clientState => {
+      const stateCode = clientState.stateCode;
+      if (!stateData[stateCode]) {
+        stateData[stateCode] = {
+          status: clientState.status,
+          clients: 1,
+          revenue: clientState.currentAmount || 0,
+          alerts: 0
+        };
+      } else {
+        stateData[stateCode].clients += 1;
+        stateData[stateCode].revenue += clientState.currentAmount || 0;
+        // Update status to most critical if needed
+        if (clientState.status === 'critical' || 
+            (clientState.status === 'warning' && stateData[stateCode].status !== 'critical')) {
+          stateData[stateCode].status = clientState.status;
+        }
+      }
+    });
+
+    return stateData;
+  }, [clientStates]);
+
   const customStates = useMemo(() => {
     const settings: any = {};
 
     StateAbbreviations.forEach((state) => {
-      const data = nexusData[state as keyof typeof nexusData];
+      const data = nexusData[state];
       
       // Always set label configuration for all states
       const labelConfig = {
@@ -104,7 +126,7 @@ const EnhancedUSMap = () => {
     });
 
     return settings;
-  }, [selectedState]);
+  }, [selectedState, nexusData]);
 
   return (
     <div className="w-full h-full relative">
@@ -137,6 +159,34 @@ const EnhancedUSMap = () => {
         }}
       />
       
+      {/* State Info Tooltip */}
+      {selectedState && nexusData[selectedState] && (
+        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-sm rounded-xl border border-white/20 p-4 min-w-[200px]">
+          <h4 className="text-white font-semibold text-sm mb-2">{selectedState}</h4>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-gray-400">Status:</span>
+              <span className={`font-medium ${
+                nexusData[selectedState].status === 'critical' ? 'text-red-400' :
+                nexusData[selectedState].status === 'warning' ? 'text-orange-400' :
+                nexusData[selectedState].status === 'pending' ? 'text-blue-400' :
+                'text-green-400'
+              }`}>
+                {nexusData[selectedState].status.charAt(0).toUpperCase() + nexusData[selectedState].status.slice(1)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">Clients:</span>
+              <span className="text-white font-medium">{nexusData[selectedState].clients}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">Revenue:</span>
+              <span className="text-white font-medium">${(nexusData[selectedState].revenue / 1000).toFixed(0)}K</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-xl border border-white/10 p-4">
         <h4 className="text-white font-medium text-sm mb-3">Status Legend</h4>
@@ -163,8 +213,16 @@ const EnhancedUSMap = () => {
   );
 };
 
-// Tax Manager specific cards with Apple design
-const CardActiveAlerts = () => (
+// Tax Manager specific cards with real data
+const CardActiveAlerts = ({ alerts }: { alerts: any[] }) => {
+  const criticalAlerts = alerts.filter(alert => alert.priority === 'high' || alert.severity === 'critical').length;
+  const newAlerts = alerts.filter(alert => {
+    const alertDate = new Date(alert.createdAt);
+    const today = new Date();
+    return alertDate.toDateString() === today.toDateString();
+  }).length;
+
+  return (
   <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
@@ -181,20 +239,30 @@ const CardActiveAlerts = () => (
     </div>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">8</span>
+          <span className="text-3xl font-bold text-white">{criticalAlerts}</span>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-red-400 text-sm font-medium">+2 new</span>
+            <span className="text-red-400 text-sm font-medium">+{newAlerts} new</span>
         </div>
       </div>
       <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-red-500 h-1 rounded-full" style={{width: '75%'}}></div>
+          <div className="bg-red-500 h-1 rounded-full" style={{width: `${Math.min(criticalAlerts * 10, 100)}%`}}></div>
       </div>
     </div>
   </div>
 );
+};
 
-const CardThresholdMonitoring = () => (
+const CardThresholdMonitoring = ({ alerts }: { alerts: any[] }) => {
+  const thresholdAlerts = alerts.filter(alert => 
+    alert.type === 'threshold' || alert.category === 'threshold'
+  ).length;
+  const approachingThreshold = alerts.filter(alert => 
+    alert.currentAmount && alert.thresholdAmount && 
+    (alert.currentAmount / alert.thresholdAmount) > 0.8
+  ).length;
+
+  return (
   <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
@@ -211,20 +279,42 @@ const CardThresholdMonitoring = () => (
     </div>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">23</span>
+          <span className="text-3xl font-bold text-white">{thresholdAlerts}</span>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-          <span className="text-orange-400 text-sm font-medium">+5 approaching</span>
+            <span className="text-orange-400 text-sm font-medium">+{approachingThreshold} approaching</span>
         </div>
       </div>
       <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-orange-500 h-1 rounded-full" style={{width: '60%'}}></div>
+          <div className="bg-orange-500 h-1 rounded-full" style={{width: `${Math.min(thresholdAlerts * 4, 100)}%`}}></div>
       </div>
     </div>
   </div>
 );
+};
 
-const CardResolvedToday = () => (
+const CardResolvedToday = ({ activities }: { activities: any[] }) => {
+  // Ensure activities is always an array
+  const safeActivities = Array.isArray(activities) ? activities : [];
+  
+  const today = new Date();
+  const resolvedToday = safeActivities.filter(activity => {
+    if (!activity || !activity.createdAt) return false;
+    const activityDate = new Date(activity.createdAt);
+    return activity.status === 'completed' && activityDate.toDateString() === today.toDateString();
+  }).length;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const resolvedYesterday = safeActivities.filter(activity => {
+    if (!activity || !activity.createdAt) return false;
+    const activityDate = new Date(activity.createdAt);
+    return activity.status === 'completed' && activityDate.toDateString() === yesterday.toDateString();
+  }).length;
+
+  const variance = resolvedToday - resolvedYesterday;
+
+  return (
   <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3">
@@ -241,224 +331,154 @@ const CardResolvedToday = () => (
     </div>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">15</span>
+          <span className="text-3xl font-bold text-white">{resolvedToday}</span>
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-400 text-sm font-medium">+3 vs yesterday</span>
+            <span className="text-green-400 text-sm font-medium">+{variance} vs yesterday</span>
         </div>
       </div>
       <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-green-500 h-1 rounded-full" style={{width: '85%'}}></div>
+          <div className="bg-green-500 h-1 rounded-full" style={{width: `${Math.min(resolvedToday * 6, 100)}%`}}></div>
       </div>
     </div>
   </div>
 );
+};
 
-const CardPriorityAlerts = () => (
+const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[] }) => {
+  const priorityAlerts = alerts.slice(0, 3);
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'bg-red-500/10 border-red-500/20 text-red-400';
+      case 'medium': return 'bg-orange-500/10 border-orange-500/20 text-orange-400';
+      case 'low': return 'bg-blue-500/10 border-blue-500/20 text-blue-400';
+      default: return 'bg-gray-500/10 border-gray-500/20 text-gray-400';
+    }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'CRITICAL';
+      case 'medium': return 'HIGH';
+      case 'low': return 'PENDING';
+      default: return 'INFO';
+    }
+  };
+
+  return (
   <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-white font-semibold text-lg tracking-tight">Priority Alerts</h3>
       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
     </div>
       <div className="space-y-3">
-      <div className="group bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20 p-4 hover:bg-red-500/15 transition-all duration-200">
+        {priorityAlerts.map((alert, index) => {
+          const client = clients.find(c => c.id === alert.clientId);
+          const amount = alert.currentAmount ? `$${(alert.currentAmount / 1000).toFixed(0)}K` : 'N/A';
+          
+          return (
+            <div key={alert.id} className={`group backdrop-blur-sm rounded-xl border p-4 hover:bg-opacity-15 transition-all duration-200 ${getPriorityColor(alert.priority)}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getPriorityColor(alert.priority)}`}>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
           <div>
-              <p className="font-medium text-white text-sm">TechCorp Inc - California</p>
-              <p className="text-xs text-red-400">$850K sales, 15 days to register</p>
+                    <p className="font-medium text-white text-sm">{client?.name || 'Unknown Client'}</p>
+                    <p className="text-xs">{alert.description || 'No description'}</p>
             </div>
           </div>
-          <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
-            CRITICAL
+                <span className={`px-2 py-1 text-white text-xs font-medium rounded-full ${alert.priority === 'high' ? 'bg-red-500' : alert.priority === 'medium' ? 'bg-orange-500' : 'bg-blue-500'}`}>
+                  {getPriorityBadge(alert.priority)}
           </span>
         </div>
-      </div>
-      <div className="group bg-orange-500/10 backdrop-blur-sm rounded-xl border border-orange-500/20 p-4 hover:bg-orange-500/15 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
             </div>
-          <div>
-              <p className="font-medium text-white text-sm">RetailPlus LLC - Texas</p>
-              <p className="text-xs text-orange-400">$600K sales, approaching threshold</p>
-            </div>
-          </div>
-          <span className="px-2 py-1 bg-orange-500 text-white text-xs font-medium rounded-full">
-            HIGH
-          </span>
-        </div>
-      </div>
-      <div className="group bg-blue-500/10 backdrop-blur-sm rounded-xl border border-blue-500/20 p-4 hover:bg-blue-500/15 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
-            </div>
-          <div>
-              <p className="font-medium text-white text-sm">ServiceCo - New York</p>
-              <p className="text-xs text-blue-400">Registration completed, awaiting confirmation</p>
-            </div>
-          </div>
-          <span className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
-            PENDING
-          </span>
-        </div>
-      </div>
+          );
+        })}
     </div>
   </div>
 );
+};
 
-const CardStateAnalysis = () => (
+const CardStateAnalysis = ({ alerts }: { alerts: any[] }) => {
+  const stateAnalysis = alerts.reduce((acc, alert) => {
+    if (alert.stateCode) {
+      if (!acc[alert.stateCode]) {
+        acc[alert.stateCode] = 0;
+      }
+      acc[alert.stateCode]++;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const getStateColor = (count: number) => {
+    if (count >= 3) return 'text-red-400';
+    if (count >= 2) return 'text-orange-400';
+    if (count >= 1) return 'text-blue-400';
+    return 'text-green-400';
+  };
+
+  const getStateWidth = (count: number) => {
+    return Math.min(count * 25, 100);
+  };
+
+  return (
   <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-white font-semibold text-lg tracking-tight">State Analysis</h3>
       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
     </div>
     <div className="space-y-4">
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
+        {Object.entries(stateAnalysis).slice(0, 4).map(([state, count]) => {
+          const alertCount = count as number;
+          return (
+            <div key={state} className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">California</span>
-          <span className="text-red-400 text-sm font-medium">3 alerts</span>
+                <span className="text-white font-medium text-sm">{state}</span>
+                <span className={`text-sm font-medium ${getStateColor(alertCount)}`}>{alertCount} alerts</span>
         </div>
         <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-red-500 h-1.5 rounded-full transition-all duration-500" style={{width: '75%'}}></div>
-            </div>
-          </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">Texas</span>
-          <span className="text-orange-400 text-sm font-medium">2 alerts</span>
+                <div className={`h-1.5 rounded-full transition-all duration-500 ${alertCount >= 3 ? 'bg-red-500' : alertCount >= 2 ? 'bg-orange-500' : alertCount >= 1 ? 'bg-blue-500' : 'bg-green-500'}`} style={{width: `${getStateWidth(alertCount)}%`}}></div>
         </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-500" style={{width: '50%'}}></div>
             </div>
-          </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">New York</span>
-          <span className="text-green-400 text-sm font-medium">1 alert</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '25%'}}></div>
-            </div>
-          </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">Florida</span>
-          <span className="text-green-400 text-sm font-medium">0 alerts</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '10%'}}></div>
-            </div>
-          </div>
+          );
+        })}
         </div>
       </div>
 );
+};
 
-// Nexus Activity Table Component
-const NexusActivityTable = () => {
-  const nexusActivities = [
+// Nexus Activity Table Component with real data
+const NexusActivityTable = ({ activities, clients }: { activities: any[], clients: any[] }) => {
+  // Ensure activities is always an array
+  const safeActivities = Array.isArray(activities) ? activities : [];
+  
+  // Debug logging
+  console.log('NexusActivityTable - activities:', activities);
+  console.log('NexusActivityTable - safeActivities:', safeActivities);
+  console.log('NexusActivityTable - safeActivities.length:', safeActivities.length);
+  
+  // Fallback data for testing
+  const fallbackActivities = [
     {
-      time: "2 hours ago",
-      client: "TechCorp SaaS",
-      activity: "Threshold Exceeded",
-      activityDetail: "Revenue: $525K > $500K",
-      state: "CA",
-      impact: "$25K exposure",
-      impactDetail: "Registration req'd",
-      status: "Critical",
-      user: "System"
-    },
-    {
-      time: "4 hours ago",
-      client: "RetailChain",
-      activity: "Data Processed",
-      activityDetail: "Q4 sales allocation",
-      state: "NY",
-      impact: "Quality: 95%",
-      impactDetail: "Threshold: 78%",
-      status: "Complete",
-      user: "S.Johnson"
-    },
-    {
-      time: "Yesterday 3:45 PM",
-      client: "StartupInc",
-      activity: "Professional Decision",
-      activityDetail: "Advisory consultation",
-      state: "TX",
-      impact: "Monitor status",
-      impactDetail: "No action needed",
-      status: "Resolved",
-      user: "J.Doe"
-    },
-    {
-      time: "Yesterday 1:20 PM",
-      client: "ManufacturingCo",
-      activity: "Approaching Threshold",
-      activityDetail: "Revenue trend analysis",
-      state: "FL",
-      impact: "$15K from limit",
-      impactDetail: "Monitor Q1 2025",
-      status: "Warning",
-      user: "System"
-    },
-    {
-      time: "Nov 20 4:15 PM",
-      client: "ServicesCorp",
-      activity: "Client Data Upload",
-      activityDetail: "Q4 financial statements",
-      state: "WA",
-      impact: "Processing required",
-      impactDetail: "B&O tax implications",
-      status: "Pending",
-      user: "Client"
-    },
-    {
-      time: "Nov 20 10:30 AM",
-      client: "TechCorp SaaS",
-      activity: "Regulation Update Applied",
-      activityDetail: "Marketplace sales rules",
-      state: "CA",
-      impact: "AB 234 rule change",
-      impactDetail: "Recalc required",
-      status: "Applied",
-      user: "System"
-    },
-    {
-      time: "Nov 19 2:10 PM",
-      client: "RetailChain",
-      activity: "Alert Escalated",
-      activityDetail: "Revenue + transaction",
-      state: "NY",
-      impact: "Combined threshold",
-      impactDetail: "Partner review",
-      status: "Escalated",
-      user: "T.Manager"
-    },
-    {
-      time: "Nov 19 11:45 AM",
-      client: "LocalBusiness",
-      activity: "Nexus Registration",
-      activityDetail: "Proactive compliance",
-      state: "CO",
-      impact: "Voluntary disclosure",
-      impactDetail: "Penalty avoided",
-      status: "Complete",
-      user: "J.Doe"
+      id: 'fallback-1',
+      clientId: 'client-1',
+      title: 'Sample Activity',
+      description: 'This is a sample activity for testing',
+      activityType: 'data_processed',
+      stateCode: 'CA',
+      amount: 50000,
+      thresholdAmount: 500000,
+      status: 'completed',
+      createdAt: new Date().toISOString()
     }
   ];
-
+  
+  // Use fallback data if no real data available
+  const dataToUse = safeActivities.length > 0 ? safeActivities : fallbackActivities;
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'critical': return 'text-danger';
@@ -468,7 +488,18 @@ const NexusActivityTable = () => {
       case 'pending': return 'text-primary';
       case 'applied': return 'text-secondary';
       case 'escalated': return 'text-danger';
+      case 'open': return 'text-warning';
+      case 'closed': return 'text-success';
       default: return 'text-default';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
   };
 
@@ -482,58 +513,126 @@ const NexusActivityTable = () => {
           <TableColumn>STATE</TableColumn>
           <TableColumn>IMPACT</TableColumn>
           <TableColumn>STATUS</TableColumn>
-          <TableColumn>USER</TableColumn>
+          <TableColumn>ACTIVITY TYPE</TableColumn>
         </TableHeader>
         <TableBody>
-          {nexusActivities.map((activity, index) => (
-            <TableRow key={index}>
+          {dataToUse.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-8">
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="text-4xl">📊</div>
+                  <div className="text-default-500">No nexus activities found</div>
+                  <div className="text-sm text-default-400">Activities will appear here as they are processed</div>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : (
+            dataToUse.slice(0, 8).filter(activity => {
+              // More comprehensive validation
+              return activity && 
+                     typeof activity === 'object' && 
+                     activity.id && 
+                     (activity.clientId || activity.title || activity.activityType);
+            }).map((activity, index) => {
+            const client = clients.find(c => c.id === activity.clientId);
+            const timeAgo = activity.createdAt ? new Date(activity.createdAt) : new Date();
+            const timeDisplay = timeAgo.toLocaleDateString() + ' ' + timeAgo.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const amount = activity.amount ? `$${(activity.amount / 1000).toFixed(0)}K` : 'N/A';
+            
+            // Ensure all required properties have default values
+            const safeActivity = {
+              id: activity.id || `activity-${index}`,
+              title: activity.title || 'Unknown Activity',
+              description: activity.description || 'No description available',
+              activityType: activity.activityType || 'unknown',
+              stateCode: activity.stateCode || 'N/A',
+              amount: activity.amount || 0,
+              thresholdAmount: activity.thresholdAmount || 0,
+              status: activity.status || 'unknown',
+              clientId: activity.clientId || 'unknown'
+            };
+            
+            // Get activity type display name
+            const getActivityTypeDisplay = (type: string) => {
+              switch (type) {
+                case 'threshold_exceeded': return 'Threshold Exceeded';
+                case 'registration_completed': return 'Registration Completed';
+                case 'data_processed': return 'Data Processed';
+                case 'registration_required': return 'Registration Required';
+                case 'deadline_approaching': return 'Deadline Approaching';
+                default: return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              }
+            };
+
+            // Get activity icon
+            const getActivityIcon = (type: string) => {
+              switch (type) {
+                case 'threshold_exceeded': return '⚠️';
+                case 'registration_completed': return '✅';
+                case 'data_processed': return '📊';
+                case 'registration_required': return '📋';
+                case 'deadline_approaching': return '⏰';
+                default: return '📝';
+              }
+            };
+            
+            return (
+              <TableRow key={safeActivity.id}>
               <TableCell>
                 <div className="text-sm font-medium text-default-600">
-                  {activity.time}
+                    {timeDisplay}
                 </div>
               </TableCell>
               <TableCell>
                 <div className="font-semibold text-default-900">
-                  {activity.client}
+                    {client?.name || 'Unknown Client'}
+                  </div>
+                  <div className="text-xs text-default-500">
+                    {client?.industry || 'N/A'}
                 </div>
               </TableCell>
               <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">{getActivityIcon(safeActivity.activityType)}</span>
                 <div>
                   <div className="font-medium text-default-900">
-                    {activity.activity}
+                        {safeActivity.title}
                   </div>
                   <div className="text-sm text-default-500">
-                    {activity.activityDetail}
+                        {safeActivity.description}
+                      </div>
                   </div>
                 </div>
               </TableCell>
               <TableCell>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  {activity.state}
+                    {safeActivity.stateCode}
                 </span>
               </TableCell>
               <TableCell>
                 <div>
                   <div className="font-medium text-default-900">
-                    {activity.impact}
+                      {amount}
                   </div>
                   <div className="text-sm text-default-500">
-                    {activity.impactDetail}
+                      {safeActivity.thresholdAmount ? `Threshold: $${(safeActivity.thresholdAmount / 1000).toFixed(0)}K` : 'No threshold set'}
                   </div>
                 </div>
               </TableCell>
               <TableCell>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                  {activity.status}
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(safeActivity.status)}`}>
+                    {safeActivity.status.charAt(0).toUpperCase() + safeActivity.status.slice(1)}
                 </span>
               </TableCell>
               <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.user}
-                </div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(safeActivity.activityType)}`}>
+                    {getActivityTypeDisplay(safeActivity.activityType)}
+                  </span>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })
+          )}
         </TableBody>
       </Table>
     </div>
@@ -541,6 +640,29 @@ const NexusActivityTable = () => {
 };
 
 export default function TaxManagerDashboard() {
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
+  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 10 });
+  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 10 });
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 10 });
+  const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary();
+
+  const clients = clientsData?.clients || [];
+  const nexusAlerts = nexusAlertsData?.alerts || [];
+  const nexusActivities = nexusActivitiesData?.activities || [];
+  const clientStates = clientStatesData?.clientStates || [];
+  const dashboardSummary = dashboardSummaryData || {};
+
+  if (clientsLoading || nexusAlertsLoading || nexusActivitiesLoading || clientStatesLoading || dashboardSummaryLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" color="primary" />
+          <p className="text-white mt-4">Loading Tax Manager dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black">
     <div className="h-full lg:px-6">
@@ -551,22 +673,36 @@ export default function TaxManagerDashboard() {
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Monitoring Overview</h2>
+                <span className="text-sm text-gray-400">Demo Mode - Real Data</span>
               </div>
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
-              <CardActiveAlerts />
-              <CardThresholdMonitoring />
-              <CardResolvedToday />
+              <CardActiveAlerts alerts={nexusAlerts} />
+              <CardThresholdMonitoring alerts={nexusAlerts} />
+              <CardResolvedToday activities={nexusActivities} />
             </div>
           </div>
 
           {/* U.S. States Map */}
             <div className="h-full flex flex-col gap-4">
+              <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-green-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Client Distribution Map</h2>
+                </div>
+                <Link
+                  href="/dashboard/tax-manager/nexus-monitoring"
+                  as={NextLink}
+                  className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+                >
+                  <span className="text-sm font-medium">View More</span>
+                  <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
+              
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <EnhancedUSMap />
+                <EnhancedUSMap clientStates={clientStates} />
               </div>
           </div>
         </div>
@@ -578,8 +714,8 @@ export default function TaxManagerDashboard() {
               <h2 className="text-2xl font-semibold text-white tracking-tight">Alert Management</h2>
             </div>
             <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
-            <CardPriorityAlerts />
-            <CardStateAnalysis />
+            <CardPriorityAlerts alerts={nexusAlerts} clients={clients} />
+            <CardStateAnalysis alerts={nexusAlerts} />
           </div>
         </div>
       </div>
@@ -603,7 +739,7 @@ export default function TaxManagerDashboard() {
           </Link>
           </div>
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-            <NexusActivityTable />
+            <NexusActivityTable activities={nexusActivities} clients={clients} />
           </div>
         </div>
       </div>

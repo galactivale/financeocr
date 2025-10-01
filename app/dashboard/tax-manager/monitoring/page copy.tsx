@@ -19,7 +19,6 @@ import {
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";
 import { SidebarContext } from "@/components/layout/layout-context";
-import { useNexusDashboardSummary, useClientStates, useNexusAlerts } from "@/hooks/useApi";
 
 // Client data structure for monitoring
 interface Client {
@@ -58,122 +57,6 @@ const TaxManagerMonitoring = () => {
   const [isStatusOverviewOpen, setIsStatusOverviewOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
-  const [hoveredState, setHoveredState] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [forceRefresh, setForceRefresh] = useState(0);
-
-  // API hooks for data fetching with refresh capability - fetch more data
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary();
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100 });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100 });
-
-  // Fallback data for testing when API is not available
-  const fallbackClientStates = [
-    {
-      id: "1",
-      clientId: "client-1",
-      stateCode: "CA",
-      status: "critical",
-      revenue: 525000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-1",
-        name: "TechCorp SaaS",
-        legalName: "TechCorp SaaS Inc.",
-        industry: "Technology"
-      }
-    },
-    {
-      id: "2",
-      clientId: "client-2", 
-      stateCode: "TX",
-      status: "warning",
-      revenue: 485000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-2",
-        name: "RetailChain LLC",
-        legalName: "RetailChain LLC",
-        industry: "Retail"
-      }
-    },
-    {
-      id: "3",
-      clientId: "client-3",
-      stateCode: "FL", 
-      status: "pending",
-      revenue: 280000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-3",
-        name: "GlobalFin Solutions",
-        legalName: "GlobalFin Solutions Inc.",
-        industry: "Finance"
-      }
-    },
-    {
-      id: "4",
-      clientId: "client-4",
-      stateCode: "IL",
-      status: "compliant", 
-      revenue: 180000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-4",
-        name: "HealthCare Inc.",
-        legalName: "HealthCare Inc.",
-        industry: "Healthcare"
-      }
-    },
-    {
-      id: "5",
-      clientId: "client-5",
-      stateCode: "WA",
-      status: "transit",
-      revenue: 160000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-5",
-        name: "Manufacturing Co.",
-        legalName: "Manufacturing Co.",
-        industry: "Manufacturing"
-      }
-    }
-  ];
-
-  const fallbackAlerts = [
-    {
-      id: "alert-1",
-      clientId: "client-1",
-      stateCode: "CA",
-      priority: "high",
-      status: "open"
-    },
-    {
-      id: "alert-2", 
-      clientId: "client-2",
-      stateCode: "TX",
-      priority: "medium",
-      status: "open"
-    }
-  ];
-
-  // Refresh all data
-  const refreshAllData = async () => {
-    try {
-      console.log('Refreshing all data...');
-      setForceRefresh(prev => prev + 1); // Force re-render
-      await Promise.all([
-        refetchSummary(),
-        refetchClientStates(),
-        refetchAlerts()
-      ]);
-      console.log('Data refresh completed');
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    }
-  };
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -209,98 +92,22 @@ const TaxManagerMonitoring = () => {
     }
   };
 
-  const handleMapStateHover = (stateCode: string, event?: any) => {
-    // Add hover effects for better interactivity - only for states with data
-    const stateData = nexusData[stateCode];
-    if (stateData && stateData.hasData) {
-      setHoveredState(stateCode);
-      if (event) {
-        setTooltipPosition({ x: event.clientX, y: event.clientY });
-      }
-    }
+  // Nexus data for states
+  const nexusData = {
+    "CA": { status: "critical", revenue: 525000, clients: 2, alerts: 3, companies: ["TechCorp SaaS", "RetailChain LLC"] },
+    "TX": { status: "warning", revenue: 485000, clients: 1, alerts: 2, companies: ["RetailChain LLC"] },
+    "FL": { status: "pending", revenue: 28000, clients: 1, alerts: 0, companies: ["GlobalFin Solutions"] },
+    "IL": { status: "compliant", revenue: 18000, clients: 1, alerts: 0, companies: ["HealthCare Inc."] },
+    "WA": { status: "transit", revenue: 16000, clients: 1, alerts: 2, companies: ["Manufacturing Co."] },
+    "NY": { status: "warning", revenue: 89000, clients: 1, alerts: 0, companies: ["TechCorp SaaS"] },
+    "PA": { status: "compliant", revenue: 12000, clients: 1, alerts: 0, companies: ["HealthCare Inc."] },
+    "GA": { status: "compliant", revenue: 15000, clients: 1, alerts: 0, companies: ["GlobalFin Solutions"] },
+    "AZ": { status: "compliant", revenue: 12000, clients: 1, alerts: 0, companies: ["E-commerce Hub"] },
+    "NV": { status: "compliant", revenue: 8000, clients: 1, alerts: 0, companies: ["E-commerce Hub"] },
+    "CO": { status: "warning", revenue: 89000, clients: 1, alerts: 1, companies: ["Logistics Corp"] },
+    "UT": { status: "compliant", revenue: 45000, clients: 1, alerts: 0, companies: ["Logistics Corp"] },
+    "OR": { status: "compliant", revenue: 8000, clients: 1, alerts: 0, companies: ["Manufacturing Co."] }
   };
-
-  const handleMapStateLeave = () => {
-    setHoveredState(null);
-  };
-
-  // Process nexus data from API with enhanced chart integration
-  const nexusData = useMemo(() => {
-    // If still loading, return empty object
-    if (clientStatesLoading || alertsLoading) {
-      return {};
-    }
-    
-    // Use fallback data if no API data available
-    const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-      ? clientStatesData.clientStates 
-      : fallbackClientStates;
-    
-    if (!dataToUse || dataToUse.length === 0) {
-      return {};
-    }
-
-    const stateData: any = {};
-    
-    // Process client states data with better state mapping
-    dataToUse.forEach((clientState: any) => {
-      const stateCode = clientState.stateCode?.toUpperCase();
-      if (!stateCode) return;
-      
-      if (!stateData[stateCode]) {
-        stateData[stateCode] = {
-          status: clientState.status || 'compliant',
-          revenue: clientState.revenue || 0,
-          clients: 1,
-          alerts: 0,
-          companies: [clientState.client?.name || 'Unknown Client'],
-          thresholdProgress: Math.min(100, Math.round((clientState.revenue || 0) / 500000 * 100)),
-          riskScore: Math.round((clientState.revenue || 0) / 500000 * 100),
-          lastUpdated: clientState.lastUpdated || new Date().toISOString(),
-          hasData: true
-        };
-      } else {
-        stateData[stateCode].clients += 1;
-        stateData[stateCode].revenue += clientState.revenue || 0;
-        stateData[stateCode].companies.push(clientState.client?.name || 'Unknown Client');
-        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / 500000 * 100));
-        stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / 500000 * 100);
-        stateData[stateCode].hasData = true;
-      }
-    });
-
-    // Process alerts data with enhanced status mapping
-    const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
-      ? nexusAlertsData.alerts 
-      : fallbackAlerts;
-    
-    if (alertsToUse && alertsToUse.length > 0) {
-      alertsToUse.forEach((alert: any) => {
-        const stateCode = alert.stateCode?.toUpperCase();
-        if (stateCode && stateData[stateCode]) {
-          stateData[stateCode].alerts += 1;
-          
-          // Enhanced status determination based on alert priority and threshold
-          const currentStatus = stateData[stateCode].status;
-          const thresholdProgress = stateData[stateCode].thresholdProgress;
-          
-          if (alert.priority === 'high' || thresholdProgress >= 95) {
-            stateData[stateCode].status = 'critical';
-          } else if (alert.priority === 'medium' || thresholdProgress >= 70) {
-            if (currentStatus !== 'critical') {
-              stateData[stateCode].status = 'warning';
-            }
-          } else if (alert.priority === 'low' && thresholdProgress < 50) {
-            if (currentStatus === 'compliant') {
-              stateData[stateCode].status = 'pending';
-            }
-          }
-        }
-      });
-    }
-
-    return stateData;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, forceRefresh]);
 
   // Custom states configuration for the map
   const customStates = useMemo(() => {
@@ -332,8 +139,7 @@ const TaxManagerMonitoring = () => {
         ),
       };
       
-      // Only apply special styling to states with actual data
-      if (data && data.hasData) {
+      if (data) {
         let fillColor = '#374151';
         let strokeColor = '#6b7280';
         
@@ -375,128 +181,122 @@ const TaxManagerMonitoring = () => {
           stroke: mapFocusState === state ? '#60a5fa' : (isPartiallyVisible ? '#6b7280' : '#9ca3af'),
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
-          onHover: (event: any) => handleMapStateHover(state, event),
-          onLeave: () => handleMapStateLeave(),
+          onHover: () => {},
+          onLeave: () => {},
           label: labelConfig,
-          // Add data attributes for better integration
-          'data-state': state,
-          'data-status': data.status,
-          'data-revenue': data.revenue,
-          'data-clients': data.clients,
-          'data-alerts': data.alerts,
-          'data-threshold-progress': data.thresholdProgress,
-          'data-risk-score': data.riskScore,
         };
       } else {
-        // Default styling for states without nexus data - neutral gray
-        const defaultFillColor = '#1f2937'; // Darker gray for no data
-        const defaultStrokeColor = '#374151';
+        // Default styling for states without nexus data
+        const defaultFillColor = isPartiallyVisible ? '#4b5563' : '#374151';
+        const defaultStrokeColor = isPartiallyVisible ? '#6b7280' : '#9ca3af';
         
         settings[state] = {
           fill: defaultFillColor,
           stroke: mapFocusState === state ? '#60a5fa' : defaultStrokeColor,
-          strokeWidth: mapFocusState === state ? 4 : 1,
+          strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
-          onHover: (event: any) => handleMapStateHover(state, event),
-          onLeave: () => handleMapStateLeave(),
           label: labelConfig,
         };
       }
     });
 
     return settings;
-  }, [selectedState, mapFocusState, nexusData]);
+  }, [selectedState, mapFocusState]);
 
-  // Process client data from API with better error handling and fallback
-  const clients: Client[] = useMemo(() => {
-    console.log('Processing client data:', { 
-      clientStatesData, 
-      nexusAlertsData, 
-      clientStatesLoading, 
-      alertsLoading 
-    });
-    
-    // If still loading, return empty array
-    if (clientStatesLoading || alertsLoading) {
-      console.log('Still loading data...');
-      return [];
-    }
-    
-    // If no client states data, use fallback data for testing
-    const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-      ? clientStatesData.clientStates 
-      : fallbackClientStates;
-    
-    if (!dataToUse || dataToUse.length === 0) {
-      console.log('No client states data available');
-      return [];
-    }
-
-    // Group client states by client
-    const clientMap = new Map<string, any>();
-    
-    dataToUse.forEach((clientState: any) => {
-      const clientId = clientState.clientId;
-      if (!clientId) return; // Skip if no client ID
-      
-      if (!clientMap.has(clientId)) {
-        clientMap.set(clientId, {
-          id: clientId,
-          name: clientState.client?.name || clientState.client?.legalName || 'Unknown Client',
-          state: clientState.stateCode || 'Unknown',
-          industry: clientState.client?.industry || 'Unknown',
-          revenue: `$${(clientState.revenue || 0).toLocaleString()}`,
-          nexusStatus: clientState.status || 'compliant',
-          thresholdProgress: Math.min(100, Math.round((clientState.revenue || 0) / 500000 * 100)),
-          lastUpdate: new Date(clientState.lastUpdated || Date.now()).toLocaleString(),
+  // Sample client data
+  const clients: Client[] = [
+    {
+      id: "1",
+      name: "TechCorp SaaS",
+      state: "California",
+      industry: "Technology",
+      revenue: "$2.1M",
+      nexusStatus: "critical",
+      thresholdProgress: 95,
+      lastUpdate: "2024-09-24 10:30",
+      alerts: 3,
+      riskScore: 85,
+      states: ["CA", "NY"],
+    },
+    {
+      id: "2",
+      name: "RetailChain LLC",
+      state: "Texas",
+      industry: "Retail",
+      revenue: "$1.8M",
+      nexusStatus: "warning",
+      thresholdProgress: 70,
+      lastUpdate: "2024-09-24 10:25",
+      alerts: 2,
+      riskScore: 60,
+      states: ["TX", "CA"],
+    },
+    {
+      id: "3",
+      name: "GlobalFin Solutions",
+      state: "Florida",
+      industry: "Finance",
+      revenue: "$1.6M",
+      nexusStatus: "pending",
+      thresholdProgress: 55,
+      lastUpdate: "2024-09-24 10:20",
       alerts: 0,
-          riskScore: Math.round((clientState.revenue || 0) / 500000 * 100),
-          states: [clientState.stateCode].filter(Boolean)
-        });
-      } else {
-        const client = clientMap.get(clientId);
-        if (clientState.stateCode && !client.states.includes(clientState.stateCode)) {
-          client.states.push(clientState.stateCode);
-        }
-        
-        // Update revenue calculation
-        const currentRevenue = parseInt(client.revenue.replace(/[$,]/g, '')) || 0;
-        const newRevenue = currentRevenue + (clientState.revenue || 0);
-        client.revenue = `$${newRevenue.toLocaleString()}`;
-        client.thresholdProgress = Math.min(100, Math.round(newRevenue / 500000 * 100));
-        client.riskScore = Math.round(newRevenue / 500000 * 100);
-        
-        // Update status based on highest risk state
-        if (clientState.status === 'critical' || client.nexusStatus === 'critical') {
-          client.nexusStatus = 'critical';
-        } else if (clientState.status === 'warning' && client.nexusStatus === 'compliant') {
-          client.nexusStatus = 'warning';
-        } else if (clientState.status === 'pending' && client.nexusStatus === 'compliant') {
-          client.nexusStatus = 'pending';
-        } else if (clientState.status === 'transit' && client.nexusStatus === 'compliant') {
-          client.nexusStatus = 'transit';
-        }
-      }
-    });
-
-    // Add alert counts
-    const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
-      ? nexusAlertsData.alerts 
-      : fallbackAlerts;
-    
-    if (alertsToUse && alertsToUse.length > 0) {
-      alertsToUse.forEach((alert: any) => {
-        const client = clientMap.get(alert.clientId);
-        if (client) {
-          client.alerts += 1;
-        }
-      });
-    }
-
-    const result = Array.from(clientMap.values());
-    console.log('Processed clients:', result);
-    return result;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, forceRefresh]);
+      riskScore: 30,
+      states: ["FL", "GA"],
+    },
+    {
+      id: "4",
+      name: "HealthCare Inc.",
+      state: "Illinois",
+      industry: "Healthcare",
+      revenue: "$1.2M",
+      nexusStatus: "compliant",
+      thresholdProgress: 40,
+      lastUpdate: "2024-09-24 10:15",
+      alerts: 0,
+      riskScore: 20,
+      states: ["IL", "PA"],
+    },
+    {
+      id: "5",
+      name: "Manufacturing Co.",
+      state: "Washington",
+      industry: "Manufacturing",
+      revenue: "$950K",
+      nexusStatus: "transit",
+      thresholdProgress: 88,
+      lastUpdate: "2024-09-24 10:10",
+      alerts: 2,
+      riskScore: 78,
+      states: ["WA", "OR"],
+    },
+    {
+      id: "6",
+      name: "E-commerce Hub",
+      state: "Arizona",
+      industry: "E-commerce",
+      revenue: "$700K",
+      nexusStatus: "compliant",
+      thresholdProgress: 65,
+      lastUpdate: "2024-09-24 10:05",
+      alerts: 0,
+      riskScore: 55,
+      states: ["AZ", "NV"],
+    },
+    {
+      id: "7",
+      name: "Logistics Corp",
+      state: "Colorado",
+      industry: "Logistics",
+      revenue: "$800K",
+      nexusStatus: "warning",
+      thresholdProgress: 75,
+      lastUpdate: "2024-09-24 09:55",
+      alerts: 1,
+      riskScore: 45,
+      states: ["CO", "UT"],
+    },
+  ];
 
   useEffect(() => {
     setIsMounted(true);
@@ -504,27 +304,9 @@ const TaxManagerMonitoring = () => {
     // Prevent body scrolling for full-screen experience
     document.body.style.overflow = 'hidden';
     
-    // Initial data fetch on mount
-    const initialDataFetch = async () => {
-      try {
-        await refreshAllData();
-      } catch (error) {
-        console.error('Error in initial data fetch:', error);
-      }
-    };
-    
-    // Fetch data immediately on mount
-    initialDataFetch();
-    
-    // Auto-refresh data every 30 seconds
-    const refreshInterval = setInterval(() => {
-      refreshAllData();
-    }, 30000);
-    
     // Cleanup: restore scrolling when component unmounts
     return () => {
       document.body.style.overflow = 'unset';
-      clearInterval(refreshInterval);
     };
   }, []);
 
@@ -547,30 +329,14 @@ const TaxManagerMonitoring = () => {
     }
     
     setFilteredClients(filtered);
-  }, [clients, searchQuery, mapFocusState]);
+  }, [searchQuery, mapFocusState]);
 
-  if (!isMounted || summaryLoading || clientStatesLoading || alertsLoading) {
+  if (!isMounted) {
     return (
       <div className="flex items-center justify-center h-screen w-full bg-black text-white">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
-          <p className="mt-4 text-lg">Loading Nexus Monitoring Data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (summaryError || clientStatesError || alertsError) {
-    return (
-      <div className="flex items-center justify-center h-screen w-full bg-black text-white">
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <p className="text-lg text-red-400 mb-2">Failed to load monitoring data</p>
-          <p className="text-sm text-gray-400">Please check your connection and try again</p>
+          <p className="mt-4 text-lg">Initializing Nexus Monitoring...</p>
         </div>
       </div>
     );
@@ -610,19 +376,9 @@ const TaxManagerMonitoring = () => {
                 )}
               </div>
               <div className="flex items-center space-x-2">
-                <button 
-                  onClick={refreshAllData}
-                  disabled={summaryLoading || clientStatesLoading || alertsLoading}
-                  className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Refresh Data"
-                >
-                  <svg 
-                    className={`w-4 h-4 ${(summaryLoading || clientStatesLoading || alertsLoading) ? 'animate-spin' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
                 </button>
                 <button className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10">
@@ -632,7 +388,6 @@ const TaxManagerMonitoring = () => {
                 </button>
               </div>
             </div>
-
 
             {/* Modern Search */}
             <div className="relative mb-4">
@@ -644,8 +399,6 @@ const TaxManagerMonitoring = () => {
               <input
                 type="text"
                 placeholder="Search clients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-sm text-white placeholder-gray-400 rounded-xl text-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
               />
             </div>
@@ -714,16 +467,8 @@ const TaxManagerMonitoring = () => {
             </div>
 
             {/* Apple-Style Client Cards */}
-            <div 
-              key={`client-cards-${forceRefresh}`}
-              className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50"
-            >
-              {clientStatesLoading || alertsLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
-                  <p className="text-gray-400 text-sm">Loading client data...</p>
-                </div>
-              ) : filteredClients.length > 0 ? (
+            <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
+              {filteredClients.length > 0 ? (
                 filteredClients.map((client) => {
                   const getStatusColor = (status: string) => {
                     switch (status) {
@@ -890,14 +635,8 @@ const TaxManagerMonitoring = () => {
                     </svg>
                   </div>
                   <div className="text-gray-400 text-sm font-medium mb-2">
-                    {mapFocusState ? `No clients found in ${mapFocusState}` : 
-                     searchQuery ? 'No clients match your search' :
-                     'No client data available'}
+                    {mapFocusState ? `No clients found in ${mapFocusState}` : 'No clients match your search'}
                   </div>
-                  <div className="text-gray-500 text-xs mb-4">
-                    {clientStatesError || alertsError ? 'Error loading data' : 'Try refreshing or check your connection'}
-                  </div>
-                  <div className="flex flex-col space-y-2">
                   {mapFocusState && (
                     <button 
                       onClick={() => setMapFocusState(null)}
@@ -906,13 +645,6 @@ const TaxManagerMonitoring = () => {
                       Clear filter
                     </button>
                   )}
-                    <button 
-                      onClick={refreshAllData}
-                      className="text-blue-400 text-sm hover:text-blue-300 font-medium transition-colors"
-                    >
-                      Refresh Data
-                    </button>
-                  </div>
                 </div>
               )}
             </div>
@@ -921,57 +653,6 @@ const TaxManagerMonitoring = () => {
           {/* Right Pane - US Nexus Map */}
           <div className="flex-1 bg-black/95 backdrop-blur-sm p-4">
             <div className="h-full flex flex-col">
-              {/* Apple-Style Monitoring Summary - Top Right Corner */}
-              <div className="absolute top-4 right-4 z-30">
-                <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-3 shadow-xl shadow-black/20">
-                  {Object.keys(nexusData).length > 0 ? (
-                    <div className="flex items-center space-x-4">
-                      {/* Clients */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          {Object.values(nexusData).reduce((sum: number, state: any) => sum + (state.clients || 0), 0)}
-                        </div>
-                        <div className="text-white/50 text-xs">Clients</div>
-                      </div>
-                      
-                      {/* Alerts */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          {Object.values(nexusData).reduce((sum: number, state: any) => sum + (state.alerts || 0), 0)}
-                        </div>
-                        <div className="text-white/50 text-xs">Alerts</div>
-                      </div>
-                      
-                      {/* Revenue */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          ${Object.values(nexusData).reduce((sum: number, state: any) => sum + (state.revenue || 0), 0).toLocaleString()}
-                        </div>
-                        <div className="text-white/50 text-xs">Revenue</div>
-                      </div>
-                      
-                      {/* Critical */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          {Object.keys(nexusData).filter(state => nexusData[state]?.status === 'critical').length}
-                        </div>
-                        <div className="text-white/50 text-xs">Critical</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-4">
-                      <div className="text-white/60 text-sm font-medium">No data available</div>
-                      <button 
-                        onClick={refreshAllData}
-                        className="bg-white/10 hover:bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20"
-                      >
-                        Refresh
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Interactive US Map */}
               <div className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out">
                 {/* Cool Background Pattern */}
@@ -1001,7 +682,7 @@ const TaxManagerMonitoring = () => {
                   <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
                 </div>
                 
-                <div key={`usa-map-${forceRefresh}`} className="w-full h-full relative z-10">
+                <div className="w-full h-full relative z-10">
                   <USAMap 
                     customStates={customStates}
                     hiddenStates={['AK', 'HI']}
@@ -1032,52 +713,6 @@ const TaxManagerMonitoring = () => {
                   />
                 </div>
 
-
-                {/* State Tooltip - Only show for states with data */}
-                {hoveredState && nexusData[hoveredState] && nexusData[hoveredState].hasData && (
-                  <div 
-                    className="absolute bg-gray-900/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-xl border border-white/10 z-20 pointer-events-none"
-                    style={{
-                      left: `${tooltipPosition.x + 10}px`,
-                      top: `${tooltipPosition.y - 10}px`,
-                      transform: 'translateY(-100%)'
-                    }}
-                  >
-                    <div className="text-white">
-                      <h3 className="font-semibold text-sm mb-2">{hoveredState}</h3>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Status:</span>
-                          <span className={`font-medium ${
-                            nexusData[hoveredState].status === 'critical' ? 'text-red-400' :
-                            nexusData[hoveredState].status === 'warning' ? 'text-orange-400' :
-                            nexusData[hoveredState].status === 'pending' ? 'text-blue-400' :
-                            nexusData[hoveredState].status === 'transit' ? 'text-cyan-400' :
-                            'text-green-400'
-                          }`}>
-                            {nexusData[hoveredState].status}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Revenue:</span>
-                          <span className="text-white">${nexusData[hoveredState].revenue.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Clients:</span>
-                          <span className="text-white">{nexusData[hoveredState].clients}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Alerts:</span>
-                          <span className="text-white">{nexusData[hoveredState].alerts}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Progress:</span>
-                          <span className="text-white">{nexusData[hoveredState].thresholdProgress}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Legend */}
                 <div className="absolute bottom-4 left-4 bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">

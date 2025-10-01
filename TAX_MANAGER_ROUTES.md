@@ -161,18 +161,6 @@ interface Report {
 
 ## Planned Routes (Not Yet Implemented)
 
-### 4. Advisory Services
-- **Path**: `/dashboard/tax-manager/advisory`
-- **Status**: Planned
-- **Description**: Client advisory services and consultation management
-
-#### Planned Features
-- Advisory call scheduling
-- Client consultation documentation
-- Professional recommendation tracking
-- Advisory service templates
-
----
 
 ### 5. Nexus Monitoring
 - **Path**: `/dashboard/tax-manager/nexus-monitoring`

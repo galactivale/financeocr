@@ -3,12 +3,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
-const rateLimit = require('express-rate-limit');
 require('express-async-errors');
 require('dotenv').config();
 
 // Import routes
-const authRoutes = require('./routes/auth');
 const organizationRoutes = require('./routes/organizations');
 const userRoutes = require('./routes/users');
 const clientRoutes = require('./routes/clients');
@@ -19,11 +17,13 @@ const decisionRoutes = require('./routes/decisions');
 const complianceRoutes = require('./routes/compliance');
 const integrationRoutes = require('./routes/integrations');
 const analyticsRoutes = require('./routes/analytics');
+const nexusRoutes = require('./routes/nexus');
+const consultationRoutes = require('./routes/consultations');
+const communicationRoutes = require('./routes/communications');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
-const { authenticateToken } = require('./middleware/auth');
 
 // Import database connection
 const { connectDatabase } = require('./config/database');
@@ -32,7 +32,7 @@ const { connectDatabase } = require('./config/database');
 const logger = require('./utils/logger');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3080;
 
 // Security middleware
 app.use(helmet({
@@ -46,18 +46,7 @@ app.use(helmet({
   },
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.use(limiter);
+// Rate limiting removed
 
 // CORS configuration
 app.use(cors({
@@ -77,7 +66,7 @@ app.use(compression());
 // Logging middleware
 app.use(morgan('combined', {
   stream: {
-    write: (message) => logger.info(message.trim()),
+    write: (message) => console.log(message.trim()),
   },
 }));
 
@@ -92,27 +81,28 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/organizations', authenticateToken, organizationRoutes);
-app.use('/api/users', authenticateToken, userRoutes);
-app.use('/api/clients', authenticateToken, clientRoutes);
-app.use('/api/alerts', authenticateToken, alertRoutes);
-app.use('/api/tasks', authenticateToken, taskRoutes);
-app.use('/api/documents', authenticateToken, documentRoutes);
-app.use('/api/decisions', authenticateToken, decisionRoutes);
-app.use('/api/compliance', authenticateToken, complianceRoutes);
-app.use('/api/integrations', authenticateToken, integrationRoutes);
-app.use('/api/analytics', authenticateToken, analyticsRoutes);
+// API routes (no authentication required for demo)
+app.use('/api/organizations', organizationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/decisions', decisionRoutes);
+app.use('/api/compliance', complianceRoutes);
+app.use('/api/integrations', integrationRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/nexus', nexusRoutes);
+app.use('/api/consultations', consultationRoutes);
+app.use('/api/communications', communicationRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
   res.json({
     name: 'VaultCPA API',
     version: '1.0.0',
-    description: 'VaultCPA Backend API Server',
+    description: 'VaultCPA Backend API Server - Demo Mode (No Authentication Required)',
     endpoints: {
-      auth: '/api/auth',
       organizations: '/api/organizations',
       users: '/api/users',
       clients: '/api/clients',
@@ -123,6 +113,7 @@ app.get('/api', (req, res) => {
       compliance: '/api/compliance',
       integrations: '/api/integrations',
       analytics: '/api/analytics',
+      nexus: '/api/nexus',
     },
     documentation: '/api/docs',
   });
