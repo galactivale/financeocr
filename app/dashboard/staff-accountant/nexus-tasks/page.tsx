@@ -4,21 +4,24 @@ import { useRouter } from "next/navigation";
 import { 
   Card, 
   CardBody, 
-  CardHeader, 
-  Table, 
-  TableHeader, 
-  TableColumn, 
-  TableBody, 
-  TableRow, 
-  TableCell, 
   Button, 
   Chip, 
   Progress,
-  Badge,
-  Avatar,
-  Tooltip,
   Input
 } from "@nextui-org/react";
+import { 
+  CheckCircle, 
+  Clock, 
+  AlertTriangle, 
+  TrendingUp, 
+  Users, 
+  FileText, 
+  MessageSquare, 
+  Shield, 
+  Search,
+  Filter,
+  RefreshCw
+} from "lucide-react";
 
 // Task data structure for Staff Accountant
 interface NexusTask {
@@ -273,201 +276,235 @@ export default function NexusTasks() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6 relative">
-        <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-          
-          {/* Main Content */}
-          <div className="mt-6 gap-6 flex flex-col w-full">
-            {/* Header */}
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Task Monitoring</h2>
-            </div>
-            
-            {/* Task Statistics */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <h3 className="text-white font-semibold text-sm tracking-tight">Staff Accountant Work Queue</h3>
-                    <p className="text-gray-400 text-xs font-medium">Supervised Economic Nexus Compliance Tasks</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs font-medium">Active</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{taskStats.total}</div>
-                    <div className="text-gray-400 text-xs font-medium">Total Tasks</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-orange-500">{taskStats.pending}</div>
-                    <div className="text-gray-400 text-xs font-medium">Pending</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-blue-500">{taskStats.inProgress}</div>
-                    <div className="text-gray-400 text-xs font-medium">In Progress</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-yellow-500">{taskStats.review}</div>
-                    <div className="text-gray-400 text-xs font-medium">Review</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-green-500">{taskStats.completed}</div>
-                    <div className="text-gray-400 text-xs font-medium">Completed</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-red-500">{taskStats.escalated}</div>
-                    <div className="text-gray-400 text-xs font-medium">Escalated</div>
-                  </div>
-                </div>
+      {/* Apple-style Sticky Header */}
+      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Nexus Tasks</h1>
+                <p className="text-gray-400 text-sm">Staff Accountant Work Queue</p>
               </div>
             </div>
+            <div className="flex items-center space-x-3">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+                startContent={<RefreshCw className="w-4 h-4" />}
+              >
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Filters */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
-              <div className="flex flex-wrap gap-4 items-center justify-between">
-                <div className="flex gap-2">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="space-y-8">
+            
+          {/* Clean Stats Overview */}
+          <div className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-white text-lg font-semibold">Task Overview</h3>
+                <p className="text-gray-400 text-sm">Current workload status</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-sm font-medium">Active</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-1">{taskStats.total}</div>
+                <div className="text-gray-400 text-sm font-medium">Total Tasks</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-orange-400 mb-1">{taskStats.pending}</div>
+                <div className="text-gray-400 text-sm font-medium">Pending</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-400 mb-1">{taskStats.inProgress}</div>
+                <div className="text-gray-400 text-sm font-medium">In Progress</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-400 mb-1">{taskStats.review}</div>
+                <div className="text-gray-400 text-sm font-medium">Review</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400 mb-1">{taskStats.completed}</div>
+                <div className="text-gray-400 text-sm font-medium">Completed</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-red-400 mb-1">{taskStats.escalated}</div>
+                <div className="text-gray-400 text-sm font-medium">Escalated</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Apple-style Search and Controls */}
+          <div className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl p-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     placeholder="Search tasks..."
                     value={searchQuery}
                     onValueChange={setSearchQuery}
-                    size="sm"
-                    className="w-64 bg-white/5 border-white/10 text-white placeholder-gray-400"
+                    className="w-80 bg-white/5 border-white/10 rounded-xl pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-200"
                     classNames={{
                       input: "text-white",
                       inputWrapper: "bg-white/5 border-white/10 hover:border-white/20 focus-within:border-blue-500/50"
                     }}
                   />
                 </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+                  startContent={<Filter className="w-4 h-4" />}
+                >
+                  Filters
+                </Button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      categoryFilter === "all" 
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setCategoryFilter("all")}
+                  >
+                    All Categories
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      categoryFilter === "sales-data" 
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setCategoryFilter("sales-data")}
+                  >
+                    Sales Data
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      categoryFilter === "client-communication" 
+                        ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setCategoryFilter("client-communication")}
+                  >
+                    Communication
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      categoryFilter === "threshold-monitoring" 
+                        ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setCategoryFilter("threshold-monitoring")}
+                  >
+                    Monitoring
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      categoryFilter === "quality-assurance" 
+                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setCategoryFilter("quality-assurance")}
+                  >
+                    QA
+                  </Button>
+                </div>
                 
-                <div className="flex gap-3 items-center">
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        categoryFilter === "all" 
-                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setCategoryFilter("all")}
-                    >
-                      All Categories
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        categoryFilter === "sales-data" 
-                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setCategoryFilter("sales-data")}
-                    >
-                      Sales Data
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        categoryFilter === "client-communication" 
-                          ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setCategoryFilter("client-communication")}
-                    >
-                      Communication
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        categoryFilter === "threshold-monitoring" 
-                          ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setCategoryFilter("threshold-monitoring")}
-                    >
-                      Monitoring
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        categoryFilter === "quality-assurance" 
-                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setCategoryFilter("quality-assurance")}
-                    >
-                      QA
-                    </Button>
-                  </div>
-                  
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        priorityFilter === "all" 
-                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setPriorityFilter("all")}
-                    >
-                      All Priorities
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        priorityFilter === "urgent" 
-                          ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setPriorityFilter("urgent")}
-                    >
-                      Urgent
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        priorityFilter === "high" 
-                          ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' 
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                      onPress={() => setPriorityFilter("high")}
-                    >
-                      High
-                    </Button>
-                  </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      priorityFilter === "all" 
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setPriorityFilter("all")}
+                  >
+                    All Priorities
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      priorityFilter === "urgent" 
+                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setPriorityFilter("urgent")}
+                  >
+                    Urgent
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      priorityFilter === "high" 
+                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                    onPress={() => setPriorityFilter("high")}
+                  >
+                    High
+                  </Button>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Task Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredTasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer"
-                  onClick={() => handleTaskSelect(task)}
-                >
+          {/* Apple-style Task Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredTasks.map((task) => (
+              <Card 
+                key={task.id} 
+                className="group bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer"
+                isPressable
+                onPress={() => handleTaskSelect(task)}
+              >
+                <CardBody className="p-6">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 bg-${getCategoryColor(task.category)}-500/20 rounded-xl flex items-center justify-center`}>
+                      <div className={`w-12 h-12 bg-${getCategoryColor(task.category)}-500/20 rounded-xl flex items-center justify-center shadow-lg shadow-${getCategoryColor(task.category)}-500/25`}>
                         <div className={`text-${getCategoryColor(task.category)}-400`}>
                           {getCategoryIcon(task.category)}
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-white font-semibold text-lg tracking-tight">{task.title}</h4>
+                        <h4 className="text-white font-bold text-lg tracking-tight">{task.title}</h4>
                         <p className="text-gray-400 text-sm font-medium">{task.client.name}</p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex flex-col gap-2">
                       <Chip 
                         color={getPriorityColor(task.priority)}
                         size="sm"
-                        className="mb-2"
+                        className="font-semibold"
                       >
                         {task.priority.toUpperCase()}
                       </Chip>
@@ -475,6 +512,7 @@ export default function NexusTasks() {
                         color={getStatusColor(task.status)}
                         size="sm"
                         variant="flat"
+                        className="font-medium"
                       >
                         {task.status.replace('-', ' ')}
                       </Chip>
@@ -482,51 +520,57 @@ export default function NexusTasks() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-300 text-sm mb-4 line-clamp-2">{task.description}</p>
+                  <p className="text-gray-300 text-sm mb-4 line-clamp-2 leading-relaxed">{task.description}</p>
 
                   {/* Progress */}
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-3 mb-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-white text-sm font-medium">Progress</span>
-                      <span className="text-gray-400 text-xs">{task.progress}%</span>
+                      <span className="text-white text-sm font-semibold">Progress</span>
+                      <span className="text-gray-400 text-sm font-medium">{task.progress}%</span>
                     </div>
                     <Progress 
                       value={task.progress}
                       className="w-full"
                       color="primary"
                       size="sm"
+                      classNames={{
+                        track: "bg-white/10",
+                        indicator: "bg-gradient-to-r from-blue-500 to-blue-600"
+                      }}
                     />
                   </div>
 
                   {/* Steps */}
-                  <div className="space-y-2 mb-4">
-                    <span className="text-white text-sm font-medium">Task Steps</span>
-                    <div className="flex flex-wrap gap-1">
+                  <div className="space-y-3 mb-4">
+                    <span className="text-white text-sm font-semibold">Task Steps</span>
+                    <div className="flex flex-wrap gap-2">
                       {task.steps.slice(0, 3).map((step, index) => (
-                        <div key={step.id} className="flex items-center space-x-1">
+                        <div key={step.id} className="flex items-center space-x-2">
                           <div className={`w-2 h-2 rounded-full ${
                             step.completed ? 'bg-green-500' : 'bg-gray-500'
                           }`}></div>
-                          <span className="text-gray-400 text-xs">{step.title}</span>
+                          <span className="text-gray-400 text-xs font-medium">{step.title}</span>
                         </div>
                       ))}
                       {task.steps.length > 3 && (
-                        <span className="text-gray-400 text-xs">+{task.steps.length - 3} more</span>
+                        <span className="text-gray-400 text-xs font-medium">+{task.steps.length - 3} more</span>
                       )}
                     </div>
                   </div>
 
                   {/* Footer */}
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center pt-4 border-t border-white/10">
                     <div className="flex items-center space-x-2">
-                      <span className="text-gray-400 text-xs">Due:</span>
-                      <span className="text-white text-xs font-medium">{formatDate(task.dueDate)}</span>
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-400 text-xs font-medium">Due:</span>
+                      <span className="text-white text-xs font-semibold">{formatDate(task.dueDate)}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       {task.qualityScore && (
                         <div className="flex items-center space-x-1">
-                          <span className="text-gray-400 text-xs">Quality:</span>
-                          <span className="text-white text-xs font-semibold">{task.qualityScore}%</span>
+                          <Shield className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-400 text-xs font-medium">Quality:</span>
+                          <span className="text-white text-xs font-bold">{task.qualityScore}%</span>
                         </div>
                       )}
                       {task.escalationNeeded && (
@@ -534,13 +578,12 @@ export default function NexusTasks() {
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                </CardBody>
+              </Card>
+            ))}
           </div>
         </div>
       </div>
-
     </div>
   );
 }

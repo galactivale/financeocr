@@ -518,6 +518,7 @@ export default function TaxManagerRegulatoryPage() {
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
                   startContent={<BookOpenIcon className="w-4 h-4" />}
+                  onPress={() => window.location.href = '/dashboard/tax-manager/regulatory/statutory-database'}
                 >
                   Statutory Database
                 </Button>
