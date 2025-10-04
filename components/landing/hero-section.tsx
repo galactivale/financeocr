@@ -3,7 +3,7 @@ import { Shield, AlertTriangle, CheckCircle } from "lucide-react"
 
 export function HeroSection() {
   return (
-    <section className="relative bg-gradient-to-b from-background to-muted/20 py-20 lg:py-32">
+    <section className="relative  py-20 lg:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           {/* Announcement Banner */}
@@ -13,16 +13,16 @@ export function HeroSection() {
           </div>
 
           {/* Hero Headline */}
-          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 text-balance">
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-black mb-6 text-balance">
             Protect Your License.
-            <span className="text-primary block">Your Professional Liability Shield</span>
-            <span className="text-muted-foreground text-3xl md:text-4xl lg:text-5xl block mt-2">
+            <span className="text-black block">Your Professional Liability Shield</span>
+            <span className="text-black text-3xl md:text-4xl lg:text-5xl block mt-2">
               Against Compliance Penalties.
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed text-pretty">
+          <p className="text-lg md:text-xl text-black max-w-3xl mx-auto mb-8 leading-relaxed text-pretty">
             FinanceOCR provides CPA firms with regulatory intelligence and audit-ready documentation to eliminate blind
             spots, justify every professional judgment, and secure your firm's future.
           </p>
