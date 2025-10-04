@@ -407,9 +407,9 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
         <div className={Sidebar.Overlay()} onClick={setCollapsed} />
       ) : null}
       <div
-        className={Sidebar({
+        className={`sidebar main-sidebar ${Sidebar({
           collapsed: collapsed,
-        })}
+        })}`}
       >
         <div className={Sidebar.Header()}>
           <CompaniesDropdown />

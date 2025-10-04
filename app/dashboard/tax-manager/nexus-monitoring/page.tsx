@@ -130,51 +130,51 @@ const DetailedUSMap = ({ clientStates, onStateClick }: { clientStates: any[], on
       
       {/* State Info Tooltip */}
       {selectedState && nexusData[selectedState] && (
-        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-sm rounded-xl border border-white/20 p-4 min-w-[200px]">
-          <h4 className="text-white font-semibold text-sm mb-2">{selectedState}</h4>
+        <div className="absolute top-4 right-4 bg-default-50 backdrop-blur-sm rounded-xl border border-default-200 p-4 min-w-[200px] shadow-lg">
+          <h4 className="text-default-900 font-semibold text-sm mb-2">{selectedState}</h4>
           <div className="space-y-1 text-xs">
             <div className="flex justify-between">
-              <span className="text-gray-400">Status:</span>
+              <span className="text-default-600">Status:</span>
               <span className={`font-medium ${
-                nexusData[selectedState].status === 'critical' ? 'text-red-400' :
-                nexusData[selectedState].status === 'warning' ? 'text-orange-400' :
-                nexusData[selectedState].status === 'pending' ? 'text-blue-400' :
-                'text-green-400'
+                nexusData[selectedState].status === 'critical' ? 'text-danger' :
+                nexusData[selectedState].status === 'warning' ? 'text-warning' :
+                nexusData[selectedState].status === 'pending' ? 'text-primary' :
+                'text-success'
               }`}>
                 {nexusData[selectedState].status.charAt(0).toUpperCase() + nexusData[selectedState].status.slice(1)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Clients:</span>
-              <span className="text-white font-medium">{nexusData[selectedState].clients}</span>
+              <span className="text-default-600">Clients:</span>
+              <span className="text-default-900 font-medium">{nexusData[selectedState].clients}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Revenue:</span>
-              <span className="text-white font-medium">${(nexusData[selectedState].revenue / 1000).toFixed(0)}K</span>
+              <span className="text-default-600">Revenue:</span>
+              <span className="text-default-900 font-medium">${(nexusData[selectedState].revenue / 1000).toFixed(0)}K</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-        <h4 className="text-white font-medium text-sm mb-3">Status Legend</h4>
+      <div className="absolute bottom-4 left-4 bg-default-50 backdrop-blur-sm rounded-xl border border-default-200 p-4 shadow-lg">
+        <h4 className="text-default-900 font-medium text-sm mb-3">Status Legend</h4>
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-white text-xs">Critical</span>
+            <div className="w-3 h-3 rounded-full bg-danger"></div>
+            <span className="text-default-900 text-xs">Critical</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-white text-xs">Warning</span>
+            <div className="w-3 h-3 rounded-full bg-warning"></div>
+            <span className="text-default-900 text-xs">Warning</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-white text-xs">Pending</span>
+            <div className="w-3 h-3 rounded-full bg-primary"></div>
+            <span className="text-default-900 text-xs">Pending</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-white text-xs">Compliant</span>
+            <div className="w-3 h-3 rounded-full bg-success"></div>
+            <span className="text-default-900 text-xs">Compliant</span>
           </div>
         </div>
       </div>
@@ -296,96 +296,94 @@ export default function NexusMonitoringPage() {
 
   if (clientsLoading || clientStatesLoading || stateTaxInfoLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="h-full lg:px-6 flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" color="primary" />
-          <p className="text-white mt-4">Loading nexus monitoring...</p>
+          <p className="text-default-600 mt-4">Loading nexus monitoring...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6">
-        <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
+    <div className="h-full lg:px-6">
+      <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
           
           {/* Left Section - Map and Summary */}
           <div className="mt-6 gap-8 flex flex-col w-full">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Monitoring Dashboard</h2>
-              </div>
+              <h3 className="text-xl font-semibold">Nexus Monitoring Dashboard</h3>
               <Link
                 href="/dashboard/tax-manager"
                 as={NextLink}
-                className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+                color="primary"
+                className="cursor-pointer"
               >
-                <svg className="w-4 h-4 mr-2 inline-block group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="text-sm font-medium">Back to Dashboard</span>
+                Back to Dashboard
               </Link>
             </div>
 
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-                <div className="text-2xl font-bold text-white">{clientStates.length}</div>
-                <div className="text-sm text-gray-400">Total Client States</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-                <div className="text-2xl font-bold text-red-400">
-                  {clientStates.filter(cs => cs.status === 'critical').length}
-                </div>
-                <div className="text-sm text-gray-400">Critical States</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-                <div className="text-2xl font-bold text-orange-400">
-                  {clientStates.filter(cs => cs.status === 'warning').length}
-                </div>
-                <div className="text-sm text-gray-400">Warning States</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-                <div className="text-2xl font-bold text-green-400">
-                  ${(clientStates.reduce((sum, cs) => sum + (cs.currentAmount || 0), 0) / 1000).toFixed(0)}K
-                </div>
-                <div className="text-sm text-gray-400">Total Revenue</div>
-              </div>
+              <Card className="bg-default-50 rounded-xl shadow-md px-3 w-full">
+                <CardBody className="py-5">
+                  <div className="text-2xl font-bold text-default-900">{clientStates.length}</div>
+                  <div className="text-sm text-default-600">Total Client States</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-danger rounded-xl shadow-md px-3 w-full">
+                <CardBody className="py-5">
+                  <div className="text-2xl font-bold text-white">
+                    {clientStates.filter(cs => cs.status === 'critical').length}
+                  </div>
+                  <div className="text-sm text-white">Critical States</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-warning rounded-xl shadow-md px-3 w-full">
+                <CardBody className="py-5">
+                  <div className="text-2xl font-bold text-white">
+                    {clientStates.filter(cs => cs.status === 'warning').length}
+                  </div>
+                  <div className="text-sm text-white">Warning States</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-success rounded-xl shadow-md px-3 w-full">
+                <CardBody className="py-5">
+                  <div className="text-2xl font-bold text-white">
+                    ${(clientStates.reduce((sum, cs) => sum + (cs.currentAmount || 0), 0) / 1000).toFixed(0)}K
+                  </div>
+                  <div className="text-sm text-white">Total Revenue</div>
+                </CardBody>
+              </Card>
             </div>
 
             {/* Interactive Map */}
-            <div className="h-full flex flex-col gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Interactive State Map</h2>
-                {selectedState && (
-                  <span className="text-sm text-gray-400">• Filtering by {selectedState}</span>
-                )}
-              </div>
-              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+            <div className="h-full flex flex-col gap-2">
+              <h3 className="text-xl font-semibold">Interactive State Map</h3>
+              {selectedState && (
+                <span className="text-sm text-default-600">Filtering by {selectedState}</span>
+              )}
+              <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
                 <DetailedUSMap clientStates={clientStates} onStateClick={setSelectedState} />
               </div>
             </div>
           </div>
 
           {/* Right Section - Client States Table */}
-          <div className="mt-4 gap-6 flex flex-col xl:max-w-4xl w-full">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Client States</h2>
+          <div className="mt-4 gap-2 flex flex-col xl:max-w-4xl w-full">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold">Client States</h3>
               {selectedState && (
                 <button
                   onClick={() => setSelectedState(null)}
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                  className="text-sm text-primary hover:text-primary-600 transition-colors"
                 >
                   Clear Filter
                 </button>
               )}
             </div>
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+            <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
               <ClientStatesTable clientStates={clientStates} clients={clients} selectedState={selectedState} />
             </div>
           </div>
