@@ -607,7 +607,7 @@ export default function TaxManagerClients() {
         </div>
 
         {/* Apple-style Search and Controls */}
-        <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl mb-8">
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl mb-4">
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 flex-1">
@@ -812,97 +812,180 @@ export default function TaxManagerClients() {
             ))}
           </div>
         ) : (
-          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
-            <CardBody className="p-0">
-              <div className="divide-y divide-white/10">
-                {filteredClients.map((client) => (
-                  <div
-                    key={client.id}
-                    className="p-6 hover:bg-white/5 transition-colors duration-200 cursor-pointer group"
-                    onClick={() => handleClientSelect(client)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 flex-1">
-                        <div className={`w-12 h-12 ${
-                          client.riskLevel === 'critical' ? 'bg-red-500/20' :
-                          client.riskLevel === 'high' ? 'bg-orange-500/20' :
-                          client.riskLevel === 'warning' ? 'bg-yellow-500/20' :
-                          'bg-green-500/20'
-                        } rounded-2xl flex items-center justify-center`}>
-                          <Building2 className={`w-6 h-6 ${
-                            client.riskLevel === 'critical' ? 'text-red-400' :
-                            client.riskLevel === 'high' ? 'text-orange-400' :
-                            client.riskLevel === 'warning' ? 'text-yellow-400' :
-                            'text-green-400'
-                          }`} />
-                        </div>
+          <div className="w-full">
                         
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-3 mb-1">
-                            <h3 className="text-white font-semibold text-base">{client.name}</h3>
-                            <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${
-                              client.riskLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
-                              client.riskLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                              client.riskLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-green-500/20 text-green-400'
-                            }`}>
-                              {client.riskLevel.toUpperCase()}
+            {/* Black Theme Table Design */}
+            <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  {/* Sortable Header */}
+                  <thead className="bg-white/5 border-b border-white/10">
+                    <tr>
+                      <th className="px-6 py-4 text-left">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                          <span>Client</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-left">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                          <span>Industry</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-left">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                          <span>Revenue</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-left">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                          <span>States</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-left">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                          <span>Exposure</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-left">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                          <span>Last Review</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-center">
+                        <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80 justify-center">
+                          <span>Risk</span>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                          </svg>
+                        </button>
+                      </th>
+                      <th className="px-6 py-4 text-left"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filteredClients.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-6 py-12 text-center">
+                          <div className="flex flex-col items-center space-y-3">
+                            <div className="text-white/60 font-medium">No clients found</div>
+                            <div className="text-sm text-white/50">Clients will appear here as they are added</div>
+                        </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredClients.map((client) => {
+                        const getRiskBadge = (risk: string) => {
+                          switch (risk.toLowerCase()) {
+                            case 'critical': return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                            case 'high': return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+                            case 'warning': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                            case 'low': return 'bg-green-500/20 text-green-400 border border-green-500/30';
+                            default: return 'bg-white/10 text-white/70 border border-white/20';
+                          }
+                        };
+
+                        return (
+                          <tr key={client.id} className="hover:bg-white/5 transition-colors duration-150">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-sm font-semibold">
+                                    {client.name.charAt(0).toUpperCase()}
                             </span>
                           </div>
-                          <p className="text-gray-300 text-sm mb-2">{client.industry}</p>
-                          
-                          <div className="flex items-center space-x-6 text-xs text-gray-400">
-                            <div className="flex items-center space-x-1">
-                              <DollarSign className="w-3 h-3" />
-                              <span>{formatCurrency(client.revenue)}</span>
+                                <div>
+                                  <div className="text-sm text-white font-medium">
+                                    {client.name}
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <AlertTriangle className="w-3 h-3" />
-                              <span>{formatCurrency(client.penaltyExposure)}</span>
+                                  <div className="text-xs text-white/60 mt-0.5">
+                                    {client.activeAlerts} active alerts
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="w-3 h-3" />
-                              <span>{client.states.length} states</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <Clock className="w-3 h-3" />
-                              <span>{client.activeAlerts} alerts</span>
                             </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-white/10 text-white/80">
+                                {client.industry}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div>
+                                <div className="text-sm text-white font-medium">
+                                  {formatCurrency(client.revenue)}
                           </div>
+                                <div className="text-xs text-white/60 mt-0.5">
+                                  Annual revenue
                         </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                          <p className="text-gray-300 text-sm">Last: {client.lastReview}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div>
+                                <div className="text-sm text-white font-medium">
+                                  {client.states.length}
                         </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
-                            onPress={() => handleViewDetails(client)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                          </Button>
+                                <div className="text-xs text-white/60 mt-0.5">
+                                  Active states
                         </div>
-                        
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
                       </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div>
+                                <div className="text-sm text-white font-medium">
+                                  {formatCurrency(client.penaltyExposure)}
                     </div>
+                                <div className="text-xs text-white/60 mt-0.5">
+                                  Penalty exposure
                   </div>
-                ))}
               </div>
-            </CardBody>
-          </Card>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-white/80 font-medium">
+                                {client.lastReview}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div className={`w-3 h-3 rounded-full mx-auto ${
+                                client.riskLevel === 'critical' ? 'bg-red-500' :
+                                client.riskLevel === 'high' ? 'bg-orange-500' :
+                                client.riskLevel === 'warning' ? 'bg-yellow-500' :
+                                'bg-green-500'
+                              }`}></div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <button 
+                                className="p-2 rounded-md transition-colors text-gray-400 hover:text-white hover:bg-white/10"
+                                onClick={() => handleViewDetails(client)}
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

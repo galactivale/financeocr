@@ -85,9 +85,28 @@ body {
 
 /* Landing page specific styles */
 .landing-page {
-  @apply bg-background text-foreground;
-  background-color: #F8F8F5 !important;
+  background-color: #f5f5f5 !important;
   color: #000000 !important;
+  min-height: 100vh;
+}
+
+.landing-page .hero-gradient {
+  background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 50%, #fdf2f8 100%);
+}
+
+.landing-page .section-card {
+  background-color: #ffffff !important;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin: 2rem auto;
+  max-width: 1200px;
+  padding: 3rem;
+  transition: all 0.3s ease;
+}
+
+.landing-page .section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 .landing-page h1,
@@ -96,20 +115,184 @@ body {
 .landing-page h4,
 .landing-page h5,
 .landing-page h6 {
-  @apply text-foreground;
   color: #000000 !important;
+  font-weight: 700;
 }
 
-.landing-page section {
-  background-color: #F8F8F5 !important;
+.landing-page .accent-green {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
 }
 
-.landing-page div {
-  background-color: transparent !important;
+.landing-page .text-muted {
+  color: #6b7280 !important;
+}
+
+/* Smooth transitions and animations */
+.landing-page {
+  scroll-behavior: smooth;
+}
+
+.landing-page .section-card {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-page .section-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.landing-page .section-card:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Hover animations */
+.landing-page button {
+  transition: all 0.3s ease;
+}
+
+.landing-page button:hover {
+  transform: translateY(-2px);
+}
+
+/* Phone animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.landing-page .phone-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Floating cards animation */
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--rotation, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--rotation, 0deg));
+  }
+}
+
+.landing-page .floating-card {
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+.landing-page .floating-card:nth-child(1) {
+  --rotation: 3deg;
+  animation-delay: 0s;
+}
+
+.landing-page .floating-card:nth-child(2) {
+  --rotation: -2deg;
+  animation-delay: 1s;
+}
+
+.landing-page .floating-card:nth-child(3) {
+  --rotation: 2deg;
+  animation-delay: 2s;
+}
+
+.landing-page .floating-card:nth-child(4) {
+  --rotation: -1deg;
+  animation-delay: 0.5s;
+}
+
+.landing-page .floating-card:nth-child(5) {
+  --rotation: 1deg;
+  animation-delay: 1.5s;
+}
+
+/* State Analysis Chart Animations */
+@keyframes chartBarGrow {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--bar-height);
+    opacity: 1;
+  }
+}
+
+@keyframes chartLineDraw {
+  from {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes markerPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.chart-bar {
+  animation: chartBarGrow 1.5s ease-out forwards;
+  animation-delay: calc(var(--index) * 0.1s);
+}
+
+.chart-line {
+  animation: chartLineDraw 2s ease-out forwards;
+  animation-delay: 0.5s;
+}
+
+.chart-marker {
+  animation: markerPulse 2s ease-in-out infinite;
+  animation-delay: calc(var(--index) * 0.1s + 1s);
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Hide sidebar for decision builder fullscreen mode */
+.decision-builder-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+}
+
+/* Hide the main sidebar when decision builder is active */
+body:has(.decision-builder-fullscreen) .sidebar,
+body:has(.decision-builder-fullscreen) [data-sidebar],
+body:has(.decision-builder-fullscreen) .main-sidebar {
+  display: none !important;
+}
+
+/* Ensure main content takes full width */
+body:has(.decision-builder-fullscreen) .main-content,
+body:has(.decision-builder-fullscreen) .dashboard-content {
+  margin-left: 0 !important;
+  width: 100% !important;
 }
 
 /* Custom scrollbar styles */

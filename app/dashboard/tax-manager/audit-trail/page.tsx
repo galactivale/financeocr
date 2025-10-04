@@ -4,12 +4,6 @@ import {
   Card, 
   CardBody, 
   CardHeader,
-  Table, 
-  TableHeader, 
-  TableColumn, 
-  TableBody, 
-  TableRow, 
-  TableCell,
   Button,
   Chip,
   Input,
@@ -27,7 +21,26 @@ import {
   Accordion,
   AccordionItem
 } from "@nextui-org/react";
-import { SearchIcon } from "@/components/icons/searchicon";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Eye, 
+  Shield, 
+  CheckCircle, 
+  AlertTriangle, 
+  Clock, 
+  FileText, 
+  Users, 
+  Calendar,
+  DollarSign,
+  Scale,
+  Lock,
+  ChevronRight,
+  RefreshCw,
+  Plus,
+  MoreHorizontal
+} from "lucide-react";
 
 // Professional liability audit trail data structure
 interface AuditTrailDecision {
@@ -295,228 +308,335 @@ export default function TaxManagerAuditTrailPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6">
-        {/* Header */}
-        <div className="flex items-center justify-between pt-6 px-4 lg:px-0 mb-8">
+      {/* Apple-style Header */}
+      <div className="sticky top-0 z-30 bg-black/80 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/25">
+                <Scale className="w-5 h-5 text-white" />
+              </div>
           <div>
-            <h1 className="text-3xl font-semibold text-white tracking-tight">Audit Trail</h1>
-            <p className="text-gray-400 mt-2">Professional liability documentation and legal evidence creation</p>
-          </div>
-        </div>
-
-        {/* Stats Section */}
-        <div className="flex justify-center px-4 lg:px-0 mb-8">
-          <div className="w-full max-w-[90rem]">
-            {/* Minimal Portfolio Stats */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <h3 className="text-white font-semibold text-sm tracking-tight">Jane Doe, Tax Manager</h3>
-                    <p className="text-gray-400 text-xs font-medium">Professional Liability Audit Trail</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-xs font-medium">Active</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{auditSummary.totalDecisions}</div>
-                    <div className="text-gray-400 text-xs font-medium">Total Decisions</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-green-500">{auditSummary.courtReadyDecisions}</div>
-                    <div className="text-gray-400 text-xs font-medium">Court-Ready</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-orange-500">{auditSummary.courtReadyPercentage}%</div>
-                    <div className="text-gray-400 text-xs font-medium">Complete</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">{formatCurrency(auditSummary.totalExposure)}</div>
-                    <div className="text-gray-400 text-xs font-medium">Total Exposure</div>
-                  </div>
-                </div>
+                <h1 className="text-2xl font-semibold text-white tracking-tight">Audit Trail</h1>
+                <p className="text-gray-400 text-sm">Professional liability documentation</p>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="flex justify-center px-4 lg:px-0 mb-6">
-          <div className="w-full max-w-[90rem]">
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-              <CardBody className="p-6">
-                <div className="flex flex-col lg:flex-row gap-4">
-                  <Input
-                    placeholder="Search decisions, clients, or statutory references..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    startContent={<SearchIcon />}
-                    className="flex-1"
-                    classNames={{
-                      input: "text-white",
-                      inputWrapper: "bg-white/10 border-white/20"
-                    }}
-                  />
-                  <select
-                    value={riskFilter}
-                    onChange={(e) => setRiskFilter(e.target.value)}
-                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                  >
-                    <option value="all">All Risk Levels</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                  <select
-                    value={decisionTypeFilter}
-                    onChange={(e) => setDecisionTypeFilter(e.target.value)}
-                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                  >
-                    <option value="all">All Decision Types</option>
-                    <option value="nexus-threshold-analysis">Nexus Threshold Analysis</option>
-                    <option value="registration-strategy">Registration Strategy</option>
-                    <option value="compliance-assessment">Compliance Assessment</option>
-                    <option value="penalty-mitigation">Penalty Mitigation</option>
-                    <option value="voluntary-disclosure">Voluntary Disclosure</option>
-                  </select>
-                </div>
-              </CardBody>
-            </Card>
           </div>
         </div>
 
-        {/* Decision Timeline */}
-        <div className="flex justify-center px-4 lg:px-0">
-          <div className="w-full max-w-[90rem]">
-            <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-              <CardHeader className="pb-0">
-                <div className="flex items-center space-x-3">
-                  <div className="w-1 h-8 bg-red-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white tracking-tight">Professional Decision Timeline</h2>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Apple-style Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                  <div>
+                  <p className="text-gray-400 text-sm font-medium">Total Decisions</p>
+                  <p className="text-3xl font-bold text-white mt-1">{auditSummary.totalDecisions}</p>
+                  </div>
+                <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-blue-400" />
                 </div>
-              </CardHeader>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Court-Ready</p>
+                  <p className="text-3xl font-bold text-green-500 mt-1">{auditSummary.courtReadyDecisions}</p>
+                  </div>
+                <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-green-400" />
+                  </div>
+                  </div>
+            </CardBody>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Completion Rate</p>
+                  <p className="text-3xl font-bold text-orange-500 mt-1">{auditSummary.courtReadyPercentage}%</p>
+                  </div>
+                <div className="w-12 h-12 bg-orange-500/20 rounded-2xl flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-orange-400" />
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl">
+            <CardBody className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Total Exposure</p>
+                  <p className="text-3xl font-bold text-white mt-1">{formatCurrency(auditSummary.totalExposure)}</p>
+                </div>
+                <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-red-400" />
+            </div>
+          </div>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Apple-style Search and Controls */}
+        <Card className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl mb-4">
               <CardBody className="p-6">
-                <Table
-                  aria-label="Audit trail decisions table"
-                  classNames={{
-                    wrapper: "bg-transparent shadow-none",
-                    table: "bg-transparent",
-                    thead: "bg-white/5",
-                    tbody: "bg-transparent",
-                    tr: "border-b border-white/10 hover:bg-white/5 cursor-pointer",
-                    td: "text-white border-none",
-                    th: "text-gray-300 border-none bg-transparent"
-                  }}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 flex-1">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search decisions, clients, or references..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all duration-200"
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Button
+                    size="sm"
+                    variant={riskFilter === "all" ? "solid" : "ghost"}
+                    className={riskFilter === "all" ? "bg-red-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
+                    onPress={() => setRiskFilter("all")}
+                  >
+                    All Risk
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={riskFilter === "critical" ? "solid" : "ghost"}
+                    className={riskFilter === "critical" ? "bg-red-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
+                    onPress={() => setRiskFilter("critical")}
+                  >
+                    Critical
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={riskFilter === "high" ? "solid" : "ghost"}
+                    className={riskFilter === "high" ? "bg-orange-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
+                    onPress={() => setRiskFilter("high")}
+                  >
+                    High
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={riskFilter === "medium" ? "solid" : "ghost"}
+                    className={riskFilter === "medium" ? "bg-yellow-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
+                    onPress={() => setRiskFilter("medium")}
+                  >
+                    Medium
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={riskFilter === "low" ? "solid" : "ghost"}
+                    className={riskFilter === "low" ? "bg-green-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
+                    onPress={() => setRiskFilter("low")}
+                  >
+                    Low
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Button
+                  size="sm"
+                  className="bg-white/5 text-gray-300 hover:bg-white/10 rounded-xl"
+                  startContent={<RefreshCw className="w-4 h-4" />}
                 >
-                  <TableHeader>
-                    <TableColumn>DECISION</TableColumn>
-                    <TableColumn>CLIENT</TableColumn>
-                    <TableColumn>RISK LEVEL</TableColumn>
-                    <TableColumn>EXPOSURE</TableColumn>
-                    <TableColumn>PROFESSIONAL STANDARDS</TableColumn>
-                    <TableColumn>LEGAL STATUS</TableColumn>
-                    <TableColumn>ACTIONS</TableColumn>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDecisions.map((decision) => (
-                      <TableRow key={decision.id} onClick={() => handleDecisionClick(decision)}>
-                        <TableCell>
-                          <div>
-                            <p className="font-semibold text-white">{getDecisionTypeLabel(decision.decisionType)}</p>
-                            <p className="text-sm text-gray-400">{decision.id}</p>
-                            <p className="text-xs text-gray-500">{formatDateTime(decision.decisionDate)}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-white font-medium">{decision.clientName}</p>
-                            <p className="text-sm text-gray-400">{decision.clientId}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="sm"
-                            color={getRiskColor(decision.riskLevel)}
-                            variant="flat"
-                          >
-                            {decision.riskLevel.toUpperCase()}
-                          </Chip>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-white font-medium">{formatCurrency(decision.financialExposure)}</p>
-                            <p className="text-xs text-gray-400">Potential</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col space-y-1">
-                            <div className="flex items-center space-x-2">
-                              <span className={`w-2 h-2 rounded-full ${decision.professionalStandards.sstsCompliance ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                              <span className="text-xs text-gray-400">SSTS</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className={`w-2 h-2 rounded-full ${decision.professionalStandards.peerReviewCompleted ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                              <span className="text-xs text-gray-400">Peer Review</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className={`w-2 h-2 rounded-full ${decision.professionalStandards.clientCommunicationDocumented ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                              <span className="text-xs text-gray-400">Communication</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col space-y-1">
-                            <Chip
-                              size="sm"
-                              color={decision.legalDefensibility.courtReady ? "success" : "warning"}
-                              variant="flat"
-                            >
-                              {decision.legalDefensibility.courtReady ? "COURT-READY" : "IN PROGRESS"}
-                            </Chip>
-                            <div className="flex items-center space-x-2">
-                              <span className={`w-2 h-2 rounded-full ${decision.digitalAuthentication.integrityVerified ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                              <span className="text-xs text-gray-400">Authenticated</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Tooltip content="View Complete Record">
-                              <Button
-                                size="sm"
-                                color="primary"
-                                variant="flat"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDecisionClick(decision);
-                                }}
-                              >
-                                View
-                              </Button>
-                            </Tooltip>
-                            <Tooltip content="Export Legal Package">
-                              <Button
-                                size="sm"
-                                color="success"
-                                variant="flat"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Export
-                              </Button>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                  Refresh
+                </Button>
+              </div>
+                </div>
               </CardBody>
             </Card>
+
+        {/* Apple-style Decisions List */}
+        <div className="w-full">
+          {/* Modern Table Header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-6 bg-red-500 rounded-full"></div>
+                <h3 className="text-white font-semibold text-lg">Professional Decisions</h3>
+              </div>
+              <button className="group bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white transition-all duration-200 hover:scale-105">
+                <span className="text-sm font-medium">Export All</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Black Theme Table Design */}
+          <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                {/* Sortable Header */}
+                <thead className="bg-white/5 border-b border-white/10">
+                  <tr>
+                    <th className="px-6 py-4 text-left">
+                      <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                        <span>Decision</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left">
+                      <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                        <span>Client</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                        </svg>
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left">
+                      <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                        <span>Risk</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                        </svg>
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left">
+                      <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                        <span>Exposure</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                        </svg>
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left">
+                      <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                        <span>Standards</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                        </svg>
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left">
+                      <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                        <span>Status</span>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                        </svg>
+                      </button>
+                    </th>
+                    <th className="px-6 py-4 text-left"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredDecisions.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="text-white/60 font-medium">No decisions found</div>
+                          <div className="text-sm text-white/50">Decisions will appear here as they are created</div>
+        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredDecisions.map((decision) => {
+                      const getRiskBadge = (risk: string) => {
+                        switch (risk.toLowerCase()) {
+                          case 'critical': return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                          case 'high': return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+                          case 'medium': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                          case 'low': return 'bg-green-500/20 text-green-400 border border-green-500/30';
+                          default: return 'bg-white/10 text-white/70 border border-white/20';
+                        }
+                      };
+
+                      const getStatusBadge = (isCourtReady: boolean) => {
+                        return isCourtReady 
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                      };
+
+                      return (
+                        <tr key={decision.id} className="hover:bg-white/5 transition-colors duration-150">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="text-sm text-white font-medium">
+                                {getDecisionTypeLabel(decision.decisionType)}
+                              </div>
+                              <div className="text-xs text-white/60 mt-0.5">
+                                {decision.id} • {formatDateTime(decision.decisionDate)}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-semibold">
+                                  {decision.clientName.charAt(0).toUpperCase()}
+                                </span>
+                </div>
+                          <div>
+                                <div className="text-sm text-white font-medium">
+                                  {decision.clientName}
+                          </div>
+                                <div className="text-xs text-white/60 mt-0.5">
+                                  {decision.clientId}
+                          </div>
+                          </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskBadge(decision.riskLevel)}`}>
+                              {decision.riskLevel.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="text-sm text-white font-medium">
+                                {formatCurrency(decision.financialExposure)}
+                              </div>
+                              <div className="text-xs text-white/60 mt-0.5">
+                                Potential exposure
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              <div className={`w-2 h-2 rounded-full ${decision.professionalStandards.sstsCompliance ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                              <div className={`w-2 h-2 rounded-full ${decision.professionalStandards.peerReviewCompleted ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                              <div className={`w-2 h-2 rounded-full ${decision.professionalStandards.clientCommunicationDocumented ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                              <div className={`w-2 h-2 rounded-full ${decision.professionalStandards.implementationVerified ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusBadge(decision.legalDefensibility.courtReady)}`}>
+                              {decision.legalDefensibility.courtReady ? 'COURT-READY' : 'IN PROGRESS'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-2">
+                              <button 
+                                className="p-2 rounded-md transition-colors text-gray-400 hover:text-white hover:bg-white/10"
+                                onClick={() => handleDecisionClick(decision)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button className="p-2 rounded-md transition-colors text-gray-400 hover:text-white hover:bg-white/10">
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+                          </div>
+          </div>
           </div>
         </div>
 
@@ -734,7 +854,6 @@ export default function TaxManagerAuditTrailPage() {
             )}
           </ModalContent>
         </Modal>
-      </div>
     </div>
   );
 }

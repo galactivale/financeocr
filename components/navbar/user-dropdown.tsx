@@ -11,6 +11,7 @@ import React, { useCallback } from "react";
 import { DarkModeSwitch } from "./darkmodeswitch";
 import { useRouter } from "next/navigation";
 import { deleteAuthCookie } from "@/actions/auth.action";
+import { User } from "lucide-react";
 
 export const UserDropdown = () => {
   const router = useRouter();
@@ -28,7 +29,7 @@ export const UserDropdown = () => {
             as='button'
             color='secondary'
             size='md'
-            src='https://i.pravatar.cc/150?u=a042581f4e29026704d'
+            icon={<User className="w-5 h-5" />}
           />
         </DropdownTrigger>
       </NavbarItem>

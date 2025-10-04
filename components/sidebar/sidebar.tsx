@@ -1,6 +1,5 @@
 import React from "react";
 import { Sidebar } from "./sidebar.styles";
-import { Avatar, Tooltip } from "@nextui-org/react";
 import { CompaniesDropdown } from "./companies-dropdown";
 import { HomeIcon } from "../icons/sidebar/home-icon";
 import { PaymentsIcon } from "../icons/sidebar/payments-icon";
@@ -11,11 +10,9 @@ import { ProductsIcon } from "../icons/sidebar/products-icon";
 import { ReportsIcon } from "../icons/sidebar/reports-icon";
 import { DevIcon } from "../icons/sidebar/dev-icon";
 import { ViewIcon } from "../icons/sidebar/view-icon";
-import { SettingsIcon } from "../icons/sidebar/settings-icon";
 import { CollapseItems } from "./collapse-items";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
-import { FilterIcon } from "../icons/sidebar/filter-icon";
 import { useSidebarContext } from "../layout/layout-context";
 import { ChangeLogIcon } from "../icons/sidebar/changelog-icon";
 import { usePathname } from "next/navigation";
@@ -106,27 +103,6 @@ export const SidebarWrapper = () => {
             </SidebarMenu>
           </div>
           <div className={Sidebar.Footer()}>
-            <div className="flex items-center gap-3">
-              <Tooltip content={"Settings"} color="primary">
-                <div className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
-                  <SettingsIcon />
-                </div>
-              </Tooltip>
-              <Tooltip content={"Adjustments"} color="primary">
-                <div className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
-                  <FilterIcon />
-                </div>
-              </Tooltip>
-              <Tooltip content={"Profile"} color="primary">
-                <div className="w-8 h-8 rounded-lg overflow-hidden hover:bg-white/10 transition-colors cursor-pointer">
-                  <Avatar
-                    src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                    size="sm"
-                    className="w-full h-full"
-                  />
-                </div>
-              </Tooltip>
-            </div>
           </div>
         </div>
       </div>

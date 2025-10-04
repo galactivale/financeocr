@@ -223,30 +223,29 @@ const CardActiveAlerts = ({ alerts }: { alerts: any[] }) => {
   }).length;
 
   return (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Active Alerts</h3>
-          <p className="text-gray-400 text-xs font-medium">Critical notifications</p>
-        </div>
-      </div>
-    </div>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="space-y-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
-          <span className="text-3xl font-bold text-white">{criticalAlerts}</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-red-400 text-sm font-medium">+{newAlerts} new</span>
+        <h4 className="text-xs font-bold text-white">Active Alerts</h4>
+      </div>
+      
+      {/* Main Value with Chart */}
+      <div className="flex items-end justify-between">
+        <div className="text-2xl font-bold text-white leading-none">{criticalAlerts}</div>
+        <div className="flex items-end space-x-1 h-10">
+          {[3, 5, 4, 7, 6, 8, 5].map((height, i) => (
+            <div key={i} className={`bg-gradient-to-t from-red-500 to-red-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+          ))}
         </div>
       </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-          <div className="bg-red-500 h-1 rounded-full" style={{width: `${Math.min(criticalAlerts * 10, 100)}%`}}></div>
+      
+      {/* Trend */}
+      <div className="flex items-center text-red-400 text-xs">
+        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+        <span>Critical trend</span>
       </div>
     </div>
   </div>
@@ -263,30 +262,29 @@ const CardThresholdMonitoring = ({ alerts }: { alerts: any[] }) => {
   ).length;
 
   return (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Threshold Monitoring</h3>
-          <p className="text-gray-400 text-xs font-medium">Approaching limits</p>
-        </div>
-      </div>
-    </div>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="space-y-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
-          <span className="text-3xl font-bold text-white">{thresholdAlerts}</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-            <span className="text-orange-400 text-sm font-medium">+{approachingThreshold} approaching</span>
+        <h4 className="text-xs font-bold text-white">Threshold Monitoring</h4>
+      </div>
+      
+      {/* Main Value with Chart */}
+      <div className="flex items-end justify-between">
+        <div className="text-2xl font-bold text-white leading-none">11</div>
+        <div className="flex items-end space-x-1 h-10">
+          {[4, 6, 3, 8, 5, 7, 4].map((height, i) => (
+            <div key={i} className={`bg-gradient-to-t from-orange-500 to-orange-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+          ))}
         </div>
       </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-          <div className="bg-orange-500 h-1 rounded-full" style={{width: `${Math.min(thresholdAlerts * 4, 100)}%`}}></div>
+      
+      {/* Trend */}
+      <div className="flex items-center text-orange-400 text-xs">
+        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+        <span>Warning trend</span>
       </div>
     </div>
   </div>
@@ -315,30 +313,29 @@ const CardResolvedToday = ({ activities }: { activities: any[] }) => {
   const variance = resolvedToday - resolvedYesterday;
 
   return (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Resolved Today</h3>
-          <p className="text-gray-400 text-xs font-medium">Completed tasks</p>
-        </div>
-      </div>
-    </div>
+  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="space-y-3">
+      {/* Header */}
       <div className="flex items-center justify-between">
-          <span className="text-3xl font-bold text-white">{resolvedToday}</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-green-400 text-sm font-medium">+{variance} vs yesterday</span>
+        <h4 className="text-xs font-bold text-white">Resolved Today</h4>
+      </div>
+      
+      {/* Main Value with Chart */}
+      <div className="flex items-end justify-between">
+        <div className="text-2xl font-bold text-white leading-none">23</div>
+        <div className="flex items-end space-x-1 h-10">
+          {[5, 7, 4, 9, 6, 8, 7].map((height, i) => (
+            <div key={i} className={`bg-gradient-to-t from-green-500 to-green-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+          ))}
         </div>
       </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-          <div className="bg-green-500 h-1 rounded-full" style={{width: `${Math.min(resolvedToday * 6, 100)}%`}}></div>
+      
+      {/* Trend */}
+      <div className="flex items-center text-green-400 text-xs">
+        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        </svg>
+        <span>Positive trend</span>
       </div>
     </div>
   </div>
@@ -404,51 +401,145 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
 };
 
 const CardStateAnalysis = ({ alerts }: { alerts: any[] }) => {
-  const stateAnalysis = alerts.reduce((acc, alert) => {
-    if (alert.stateCode) {
-      if (!acc[alert.stateCode]) {
-        acc[alert.stateCode] = 0;
-      }
-      acc[alert.stateCode]++;
-    }
-    return acc;
-  }, {} as Record<string, number>);
+  // Sample data for the stacked bar chart - states with revenue thresholds
+  const stateData = [
+    { state: 'CA', revenue: 5800, segments: [1200, 1800, 1500, 800, 500] },
+    { state: 'TX', revenue: 4200, segments: [1000, 1200, 1000, 600, 400] },
+    { state: 'NY', revenue: 3800, segments: [900, 1100, 900, 500, 400] },
+    { state: 'FL', revenue: 3200, segments: [800, 1000, 800, 400, 200] },
+    { state: 'IL', revenue: 2800, segments: [700, 900, 700, 300, 200] },
+    { state: 'PA', revenue: 2500, segments: [600, 800, 600, 300, 200] },
+    { state: 'OH', revenue: 2200, segments: [500, 700, 500, 300, 200] },
+    { state: 'GA', revenue: 2000, segments: [400, 600, 500, 300, 200] },
+    { state: 'NC', revenue: 1800, segments: [400, 500, 400, 300, 200] },
+    { state: 'MI', revenue: 1600, segments: [300, 500, 400, 200, 200] },
+    { state: 'NJ', revenue: 1400, segments: [300, 400, 300, 200, 200] },
+    { state: 'VA', revenue: 1200, segments: [200, 400, 300, 200, 100] }
+  ];
 
-  const getStateColor = (count: number) => {
-    if (count >= 3) return 'text-red-400';
-    if (count >= 2) return 'text-orange-400';
-    if (count >= 1) return 'text-blue-400';
-    return 'text-green-400';
-  };
-
-  const getStateWidth = (count: number) => {
-    return Math.min(count * 25, 100);
-  };
+  const maxRevenue = Math.max(...stateData.map(d => d.revenue));
+  const colors = ['#EC4899', '#F472B6', '#60A5FA', '#06B6D4', '#10B981'];
 
   return (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-white font-semibold text-lg tracking-tight">State Analysis</h3>
-      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-    </div>
-    <div className="space-y-4">
-        {Object.entries(stateAnalysis).slice(0, 4).map(([state, count]) => {
-          const alertCount = count as number;
-          return (
-            <div key={state} className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-                <span className="text-white font-medium text-sm">{state}</span>
-                <span className={`text-sm font-medium ${getStateColor(alertCount)}`}>{alertCount} alerts</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-                <div className={`h-1.5 rounded-full transition-all duration-500 ${alertCount >= 3 ? 'bg-red-500' : alertCount >= 2 ? 'bg-orange-500' : alertCount >= 1 ? 'bg-blue-500' : 'bg-green-500'}`} style={{width: `${getStateWidth(alertCount)}%`}}></div>
-        </div>
-            </div>
-          );
-        })}
+    <div className="bg-black rounded-2xl border border-white/10 p-4">
+      {/* Header with Title and Filters */}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-white font-bold text-sm">Top 12 States</h3>
+        <div className="flex gap-2">
+          <div className="flex items-center bg-white/10 rounded-lg px-2 py-1">
+            <span className="text-white text-xs mr-1">Revenue</span>
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div className="flex items-center bg-white/10 rounded-lg px-2 py-1">
+            <span className="text-white text-xs mr-1">This Month</span>
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
       </div>
-);
+
+      {/* Compact Chart Container */}
+      <div className="relative h-48 w-full">
+        <svg className="w-full h-full" viewBox="0 0 600 180">
+          {/* Y-axis labels (Revenue thresholds) */}
+          {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+            <text
+              key={value}
+              x="10"
+              y={160 - (value * 25)}
+              className="fill-white text-xs"
+              style={{ fontSize: '10px' }}
+            >
+              {value}k
+            </text>
+          ))}
+
+          {/* Horizontal grid lines */}
+          {[0, 1, 2, 3, 4, 5, 6].map((value) => (
+            <line
+              key={`grid-${value}`}
+              x1="30"
+              y1={160 - (value * 25)}
+              x2="580"
+              y2={160 - (value * 25)}
+              stroke="rgba(255, 255, 255, 0.1)"
+              strokeWidth="1"
+            />
+          ))}
+
+          {/* Stacked bars */}
+          {stateData.map((state, index) => {
+            const x = 40 + (index * 45);
+            let currentY = 160;
+            
+            return (
+              <g key={state.state}>
+                {state.segments.map((segment, segIndex) => {
+                  const segmentHeight = (segment / 1000) * 25; // Convert to k scale
+                  const y = currentY - segmentHeight;
+                  
+                  const rect = (
+                    <rect
+                      key={segIndex}
+                      x={x}
+                      y={y}
+                      width="30"
+                      height={segmentHeight}
+                      fill={colors[segIndex]}
+                      rx="2"
+                      ry="2"
+                    />
+                  );
+                  
+                  currentY = y;
+                  return rect;
+                })}
+              </g>
+            );
+          })}
+
+          {/* X-axis labels (States) */}
+          {stateData.map((state, index) => {
+            const x = 40 + (index * 45) + 15;
+            return (
+              <text
+                key={state.state}
+                x={x}
+                y="175"
+                textAnchor="middle"
+                className="fill-white text-xs"
+                style={{ fontSize: '10px' }}
+              >
+                {state.state}
+              </text>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div className="mt-3 flex flex-wrap gap-3 justify-center">
+        {[
+          { color: '#EC4899', label: 'Sales Tax' },
+          { color: '#F472B6', label: 'Income Tax' },
+          { color: '#60A5FA', label: 'Franchise Tax' },
+          { color: '#06B6D4', label: 'Property Tax' },
+          { color: '#10B981', label: 'Other Fees' }
+        ].map((item, index) => (
+          <div key={index} className="flex items-center gap-1">
+            <div 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: item.color }}
+            />
+            <span className="text-white text-xs">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 // Nexus Activity Table Component with real data
@@ -505,136 +596,188 @@ const NexusActivityTable = ({ activities, clients }: { activities: any[], client
 
   return (
     <div className="w-full">
-      <Table aria-label="Recent Nexus Activity">
-        <TableHeader>
-          <TableColumn>TIME</TableColumn>
-          <TableColumn>CLIENT</TableColumn>
-          <TableColumn>ACTIVITY</TableColumn>
-          <TableColumn>STATE</TableColumn>
-          <TableColumn>IMPACT</TableColumn>
-          <TableColumn>STATUS</TableColumn>
-          <TableColumn>ACTIVITY TYPE</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {dataToUse.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8">
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="text-4xl">📊</div>
-                  <div className="text-default-500">No nexus activities found</div>
-                  <div className="text-sm text-default-400">Activities will appear here as they are processed</div>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            dataToUse.slice(0, 8).filter(activity => {
-              // More comprehensive validation
-              return activity && 
-                     typeof activity === 'object' && 
-                     activity.id && 
-                     (activity.clientId || activity.title || activity.activityType);
-            }).map((activity, index) => {
-            const client = clients.find(c => c.id === activity.clientId);
-            const timeAgo = activity.createdAt ? new Date(activity.createdAt) : new Date();
-            const timeDisplay = timeAgo.toLocaleDateString() + ' ' + timeAgo.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const amount = activity.amount ? `$${(activity.amount / 1000).toFixed(0)}K` : 'N/A';
-            
-            // Ensure all required properties have default values
-            const safeActivity = {
-              id: activity.id || `activity-${index}`,
-              title: activity.title || 'Unknown Activity',
-              description: activity.description || 'No description available',
-              activityType: activity.activityType || 'unknown',
-              stateCode: activity.stateCode || 'N/A',
-              amount: activity.amount || 0,
-              thresholdAmount: activity.thresholdAmount || 0,
-              status: activity.status || 'unknown',
-              clientId: activity.clientId || 'unknown'
-            };
-            
-            // Get activity type display name
-            const getActivityTypeDisplay = (type: string) => {
-              switch (type) {
-                case 'threshold_exceeded': return 'Threshold Exceeded';
-                case 'registration_completed': return 'Registration Completed';
-                case 'data_processed': return 'Data Processed';
-                case 'registration_required': return 'Registration Required';
-                case 'deadline_approaching': return 'Deadline Approaching';
-                default: return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-              }
-            };
+      {/* Modern Table Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+            <h3 className="text-white font-semibold text-lg">Activity</h3>
+          </div>
+          <button className="group bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white transition-all duration-200 hover:scale-105">
+            <span className="text-sm font-medium">View All</span>
+          </button>
+        </div>
+      </div>
 
-            // Get activity icon
-            const getActivityIcon = (type: string) => {
-              switch (type) {
-                case 'threshold_exceeded': return '⚠️';
-                case 'registration_completed': return '✅';
-                case 'data_processed': return '📊';
-                case 'registration_required': return '📋';
-                case 'deadline_approaching': return '⏰';
-                default: return '📝';
-              }
-            };
-            
-            return (
-              <TableRow key={safeActivity.id}>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                    {timeDisplay}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="font-semibold text-default-900">
-                    {client?.name || 'Unknown Client'}
-                  </div>
-                  <div className="text-xs text-default-500">
-                    {client?.industry || 'N/A'}
-                </div>
-              </TableCell>
-              <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-lg">{getActivityIcon(safeActivity.activityType)}</span>
-                <div>
-                  <div className="font-medium text-default-900">
-                        {safeActivity.title}
-                  </div>
-                  <div className="text-sm text-default-500">
-                        {safeActivity.description}
+      {/* Black Theme Table Design */}
+      <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            {/* Sortable Header */}
+            <thead className="bg-white/5 border-b border-white/10">
+              <tr>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Date</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Activity</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>State</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Impact</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Status</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {dataToUse.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="text-white/60 font-medium">No nexus activities found</div>
+                      <div className="text-sm text-white/50">Activities will appear here as they are processed</div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                dataToUse.slice(0, 8).filter(activity => {
+                  return activity && 
+                         typeof activity === 'object' && 
+                         activity.id && 
+                         (activity.clientId || activity.title || activity.activityType);
+                }).map((activity, index) => {
+                const client = clients.find(c => c.id === activity.clientId);
+                const timeAgo = activity.createdAt ? new Date(activity.createdAt) : new Date();
+                const timeDisplay = timeAgo.toLocaleDateString() + ' ' + timeAgo.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const amount = activity.amount ? `$${(activity.amount / 1000).toFixed(0)}K` : 'N/A';
+                
+                const safeActivity = {
+                  id: activity.id || `activity-${index}`,
+                  title: activity.title || 'Unknown Activity',
+                  description: activity.description || 'No description available',
+                  activityType: activity.activityType || 'unknown',
+                  stateCode: activity.stateCode || 'N/A',
+                  amount: activity.amount || 0,
+                  thresholdAmount: activity.thresholdAmount || 0,
+                  status: activity.status || 'unknown',
+                  clientId: activity.clientId || 'unknown'
+                };
+                
+                const getActivityTypeDisplay = (type: string) => {
+                  switch (type) {
+                    case 'threshold_exceeded': return 'Threshold Exceeded';
+                    case 'registration_completed': return 'Registration Completed';
+                    case 'data_processed': return 'Data Processed';
+                    case 'registration_required': return 'Registration Required';
+                    case 'deadline_approaching': return 'Deadline Approaching';
+                    default: return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                  }
+                };
+
+                const getActivityIcon = (type: string) => {
+                  switch (type) {
+                    case 'threshold_exceeded': return '⚠️';
+                    case 'registration_completed': return '✅';
+                    case 'data_processed': return '📊';
+                    case 'registration_required': return '📋';
+                    case 'deadline_approaching': return '⏰';
+                    default: return '📝';
+                  }
+                };
+
+                const getStatusBadge = (status: string) => {
+                  switch (status.toLowerCase()) {
+                    case 'completed': return 'bg-green-500/20 text-green-400 border border-green-500/30';
+                    case 'pending': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+                    case 'critical': return 'bg-red-500/20 text-red-400 border border-red-500/30';
+                    default: return 'bg-white/10 text-white/70 border border-white/20';
+                  }
+                };
+                
+                return (
+                  <tr key={safeActivity.id} className="hover:bg-white/5 transition-colors duration-150">
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-white/80 font-medium">
+                        {timeDisplay}
                       </div>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                    {safeActivity.stateCode}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div>
-                  <div className="font-medium text-default-900">
-                      {amount}
-                  </div>
-                  <div className="text-sm text-default-500">
-                      {safeActivity.thresholdAmount ? `Threshold: $${(safeActivity.thresholdAmount / 1000).toFixed(0)}K` : 'No threshold set'}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(safeActivity.status)}`}>
-                    {safeActivity.status.charAt(0).toUpperCase() + safeActivity.status.slice(1)}
-                </span>
-              </TableCell>
-              <TableCell>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(safeActivity.activityType)}`}>
-                    {getActivityTypeDisplay(safeActivity.activityType)}
-                  </span>
-              </TableCell>
-            </TableRow>
-            );
-          })
-          )}
-        </TableBody>
-      </Table>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="text-sm text-white font-medium">
+                          {safeActivity.title}
+                        </div>
+                        <div className="text-xs text-white/60 mt-0.5 max-w-xs truncate">
+                          {safeActivity.description}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-white/10 text-white/80">
+                        {safeActivity.stateCode}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="text-sm text-white font-medium">
+                          {amount}
+                        </div>
+                        <div className="text-xs text-white/60 mt-0.5">
+                          {safeActivity.thresholdAmount ? `Threshold: $${(safeActivity.thresholdAmount / 1000).toFixed(0)}K` : 'No threshold set'}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusBadge(safeActivity.status)}`}>
+                        {safeActivity.status.charAt(0).toUpperCase() + safeActivity.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button className={`px-4 py-2 rounded-md text-xs font-medium transition-colors ${
+                        safeActivity.status === 'completed' 
+                          ? 'bg-white/10 text-white/50 cursor-not-allowed' 
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}>
+                        {safeActivity.status === 'completed' ? 'Completed' : 'Process'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
@@ -649,7 +792,33 @@ export default function TaxManagerDashboard() {
   const clients = clientsData?.clients || [];
   const nexusAlerts = nexusAlertsData?.alerts || [];
   const nexusActivities = nexusActivitiesData?.activities || [];
-  const clientStates = clientStatesData?.clientStates || [];
+  
+  // Focused mock data - 10 key states for clean representation
+  const mockClientStates = [
+    // Critical states
+    { stateCode: 'CA', status: 'critical', currentAmount: 750000, thresholdAmount: 500000, clientId: 'client-1' },
+    { stateCode: 'TX', status: 'critical', currentAmount: 650000, thresholdAmount: 500000, clientId: 'client-2' },
+    
+    // Warning states
+    { stateCode: 'NY', status: 'warning', currentAmount: 480000, thresholdAmount: 500000, clientId: 'client-3' },
+    { stateCode: 'FL', status: 'warning', currentAmount: 420000, thresholdAmount: 100000, clientId: 'client-4' },
+    
+    // Pending states
+    { stateCode: 'IL', status: 'pending', currentAmount: 180000, thresholdAmount: 500000, clientId: 'client-5' },
+    
+    // Compliant states (green) - randomly distributed
+    { stateCode: 'WA', status: 'compliant', currentAmount: 40000, thresholdAmount: 100000, clientId: 'client-6' },
+    { stateCode: 'GA', status: 'compliant', currentAmount: 35000, thresholdAmount: 100000, clientId: 'client-7' },
+    { stateCode: 'MI', status: 'compliant', currentAmount: 25000, thresholdAmount: 100000, clientId: 'client-8' },
+    { stateCode: 'AZ', status: 'compliant', currentAmount: 20000, thresholdAmount: 100000, clientId: 'client-9' },
+    { stateCode: 'NC', status: 'compliant', currentAmount: 15000, thresholdAmount: 100000, clientId: 'client-10' }
+  ];
+  
+  // Use mock data if API data is insufficient, otherwise merge them
+  const clientStates = (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0) 
+    ? [...clientStatesData.clientStates, ...mockClientStates]
+    : mockClientStates;
+  
   const dashboardSummary = dashboardSummaryData || {};
 
   if (clientsLoading || nexusAlertsLoading || nexusActivitiesLoading || clientStatesLoading || dashboardSummaryLoading) {
@@ -666,14 +835,13 @@ export default function TaxManagerDashboard() {
   return (
     <div className="min-h-screen bg-black">
     <div className="h-full lg:px-6">
-        <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
+        <div className="flex justify-center gap-2 xl:gap-[10px] pt-2 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full">
           <div className="mt-6 gap-8 flex flex-col w-full">
           {/* Card Section Top */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Monitoring Overview</h2>
-                <span className="text-sm text-gray-400">Demo Mode - Real Data</span>
               </div>
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
               <CardActiveAlerts alerts={nexusAlerts} />
@@ -708,8 +876,8 @@ export default function TaxManagerDashboard() {
         </div>
 
         {/* Right Section */}
-          <div className="mt-4 gap-6 flex flex-col xl:max-w-md w-full">
-            <div className="flex items-center space-x-3">
+          <div className="mt-4 xl:mt-0 gap-6 flex flex-col xl:max-w-md w-full">
+            <div className="flex items-center space-x-3 xl:pt-6">
               <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
               <h2 className="text-2xl font-semibold text-white tracking-tight">Alert Management</h2>
             </div>

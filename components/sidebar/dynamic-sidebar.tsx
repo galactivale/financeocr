@@ -1,38 +1,40 @@
 import React from "react";
 import { Sidebar } from "./sidebar.styles";
-import { Avatar, Tooltip } from "@nextui-org/react";
 import { CompaniesDropdown } from "./companies-dropdown";
-import { HomeIcon } from "../icons/sidebar/home-icon";
-import { PaymentsIcon } from "../icons/sidebar/payments-icon";
-import { BalanceIcon } from "../icons/sidebar/balance-icon";
-import { AccountsIcon } from "../icons/sidebar/accounts-icon";
-import { CustomersIcon } from "../icons/sidebar/customers-icon";
-import { ProductsIcon } from "../icons/sidebar/products-icon";
-import { ReportsIcon } from "../icons/sidebar/reports-icon";
-import { DevIcon } from "../icons/sidebar/dev-icon";
-import { ViewIcon } from "../icons/sidebar/view-icon";
-import { SettingsIcon } from "../icons/sidebar/settings-icon";
-import { MonitoringIcon } from "../icons/sidebar/monitoring-icon";
-import { AlertsIcon } from "../icons/sidebar/alerts-icon";
-import { LiabilityIcon } from "../icons/sidebar/liability-icon";
-import { RegulatoryIcon } from "../icons/sidebar/regulatory-icon";
-import { NexusIcon } from "../icons/sidebar/nexus-icon";
-import { AuditTrailIcon } from "../icons/sidebar/audit-trail-icon";
-import { ComplianceIcon } from "../icons/sidebar/compliance-icon";
-import { RiskManagementIcon } from "../icons/sidebar/risk-management-icon";
-import { CommunicationIcon } from "../icons/sidebar/communication-icon";
-import { AnalyticsIcon } from "../icons/sidebar/analytics-icon";
-import { TasksIcon } from "../icons/sidebar/tasks-icon";
-import { DataIcon } from "../icons/sidebar/data-icon";
-import { SupportIcon } from "../icons/sidebar/support-icon";
-import { NotificationsIcon } from "../icons/sidebar/notifications-icon";
-import { ProfileIcon } from "../icons/sidebar/profile-icon";
+import { 
+  Home, 
+  CreditCard, 
+  DollarSign, 
+  Users, 
+  Building2, 
+  Package, 
+  BarChart3, 
+  Code, 
+  Eye, 
+  Activity, 
+  AlertTriangle, 
+  Scale, 
+  FileText, 
+  MapPin, 
+  ClipboardCheck, 
+  Shield, 
+  MessageSquare, 
+  TrendingUp, 
+  CheckSquare, 
+  Database, 
+  HelpCircle, 
+  Bell, 
+  User, 
+  History,
+  Clock,
+  PieChart,
+  EyeIcon,
+  LineChart
+} from "lucide-react";
 import { CollapseItems } from "./collapse-items";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
-import { FilterIcon } from "../icons/sidebar/filter-icon";
 import { useSidebarContext } from "../layout/layout-context";
-import { ChangeLogIcon } from "../icons/sidebar/changelog-icon";
 import { usePathname } from "next/navigation";
 
 interface DynamicSidebarProps {
@@ -64,44 +66,44 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<HomeIcon />}
+              icon={<Home />}
               isActive={pathname === "/dashboard/managing-partner"}
               href="/dashboard/managing-partner"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/compliance"}
               title="Compliance"
-              icon={<ComplianceIcon />}
+              icon={<ClipboardCheck />}
               href="/dashboard/managing-partner/compliance"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/clients"}
               title="Clients"
-              icon={<CustomersIcon />}
+              icon={<Building2 />}
               href="/dashboard/managing-partner/clients"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/risk-management"}
               title="Risk Management"
-              icon={<RiskManagementIcon />}
+              icon={<Shield />}
               href="/dashboard/managing-partner/risk-management"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/analytics"}
               title="Analytics"
-              icon={<AnalyticsIcon />}
+              icon={<TrendingUp />}
               href="/dashboard/managing-partner/analytics"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/team-management"}
               title="Team Management"
-              icon={<CustomersIcon />}
+              icon={<Users />}
               href="/dashboard/managing-partner/team-management"
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/settings"}
               title="Settings"
-              icon={<SettingsIcon />}
+              icon={<User />}
               href="/dashboard/managing-partner/settings"
             />
           </>
@@ -112,7 +114,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<HomeIcon />}
+              icon={<Home />}
               isActive={pathname === "/dashboard/tax-manager"}
               href="/dashboard/tax-manager"
             />
@@ -120,25 +122,25 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/monitoring"}
                 title="Monitoring"
-                icon={<MonitoringIcon />}
+                icon={<Activity />}
                 href="/dashboard/tax-manager/monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/alerts"}
-                title="Alerts"
-                icon={<AlertsIcon />}
+                title="AI Alerts"
+                icon={<AlertTriangle />}
                 href="/dashboard/tax-manager/alerts"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/clients"}
                 title="Clients"
-                icon={<CustomersIcon />}
+                icon={<User />}
                 href="/dashboard/tax-manager/clients"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/reports"}
                 title="Reports"
-                icon={<ReportsIcon />}
+                icon={<LineChart />}
                 href="/dashboard/tax-manager/reports"
               />
             </SidebarMenu>
@@ -146,25 +148,25 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/communications"}
                 title="Communications"
-                icon={<CommunicationIcon />}
+                icon={<MessageSquare />}
                 href="/dashboard/tax-manager/communications"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/liability"}
                 title="Liability"
-                icon={<LiabilityIcon />}
+                icon={<Scale />}
                 href="/dashboard/tax-manager/liability"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/regulatory"}
                 title="Regulatory"
-                icon={<RegulatoryIcon />}
+                icon={<EyeIcon />}
                 href="/dashboard/tax-manager/regulatory"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/audit-trail"}
                 title="Audit Trail"
-                icon={<AuditTrailIcon />}
+                icon={<Clock />}
                 href="/dashboard/tax-manager/audit-trail"
               />
             </SidebarMenu>
@@ -172,7 +174,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/settings"}
                 title="Settings & Profile"
-                icon={<ProfileIcon />}
+                icon={<User />}
                 href="/dashboard/tax-manager/settings"
               />
             </SidebarMenu>
@@ -184,7 +186,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<HomeIcon />}
+              icon={<Home />}
               isActive={pathname === "/dashboard/staff-accountant"}
               href="/dashboard/staff-accountant"
             />
@@ -193,34 +195,34 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/nexus-tasks"}
                 title="Nexus Tasks"
-                icon={<TasksIcon />}
+                icon={<CheckSquare />}
                 href="/dashboard/staff-accountant/nexus-tasks"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/data-entry"}
                 title="Data Entry"
-                icon={<DataIcon />}
+                icon={<Database />}
                 href="/dashboard/staff-accountant/data-entry"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/clients"}
                 title="Client Management"
-                icon={<CustomersIcon />}
+                icon={<Building2 />}
                 href="/dashboard/staff-accountant/clients"
               />
             </SidebarMenu>
             
-            <SidebarMenu title="Monitoring & Alerts">
+            <SidebarMenu title="Monitoring & AI Alerts">
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/monitoring"}
                 title="Task Monitoring"
-                icon={<MonitoringIcon />}
+                icon={<Activity />}
                 href="/dashboard/staff-accountant/monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/alerts"}
-                title="Alerts & Notifications"
-                icon={<AlertsIcon />}
+                title="AI Alerts & Notifications"
+                icon={<AlertTriangle />}
                 href="/dashboard/staff-accountant/alerts"
               />
             </SidebarMenu>
@@ -229,7 +231,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/client-support"}
                 title="Client Support"
-                icon={<SupportIcon />}
+                icon={<HelpCircle />}
                 href="/dashboard/staff-accountant/client-support"
               />
             </SidebarMenu>
@@ -238,7 +240,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/settings"}
                 title="Settings"
-                icon={<SettingsIcon />}
+                icon={<User />}
                 href="/dashboard/staff-accountant/settings"
               />
             </SidebarMenu>
@@ -250,7 +252,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<HomeIcon />}
+              icon={<Home />}
               isActive={pathname === "/dashboard/system-admin"}
               href="/dashboard/system-admin"
             />
@@ -258,19 +260,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/system-monitoring"}
                 title="System Monitoring"
-                icon={<MonitoringIcon />}
+                icon={<Activity />}
                 href="/dashboard/system-admin/system-monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/user-management"}
                 title="User Management"
-                icon={<AccountsIcon />}
+                icon={<Users />}
                 href="/dashboard/system-admin/user-management"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/integrations"}
                 title="Integrations"
-                icon={<ProductsIcon />}
+                icon={<Package />}
                 href="/dashboard/system-admin/integrations"
               />
             </SidebarMenu>
@@ -278,19 +280,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/backup-recovery"}
                 title="Backup & Recovery"
-                icon={<ReportsIcon />}
+                icon={<Database />}
                 href="/dashboard/system-admin/backup-recovery"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/audit-logs"}
                 title="Audit Logs"
-                icon={<ViewIcon />}
+                icon={<Eye />}
                 href="/dashboard/system-admin/audit-logs"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/configuration"}
                 title="Configuration"
-                icon={<SettingsIcon />}
+                icon={<User />}
                 href="/dashboard/system-admin/configuration"
               />
             </SidebarMenu>
@@ -302,7 +304,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<HomeIcon />}
+              icon={<Home />}
               isActive={pathname === "/client-portal"}
               href="/client-portal"
             />
@@ -310,13 +312,13 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/compliance"}
                 title="Compliance"
-                icon={<BalanceIcon />}
+                icon={<DollarSign />}
                 href="/client-portal/compliance"
               />
               <SidebarItem
                 isActive={pathname === "/client-portal/reports"}
                 title="Reports"
-                icon={<ReportsIcon />}
+                icon={<BarChart3 />}
                 href="/client-portal/reports"
               />
             </SidebarMenu>
@@ -324,7 +326,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/upload"}
                 title="Upload"
-                icon={<PaymentsIcon />}
+                icon={<CreditCard />}
                 href="/client-portal/upload"
               />
             </SidebarMenu>
@@ -332,13 +334,13 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/communications"}
                 title="Communications"
-                icon={<AccountsIcon />}
+                icon={<Users />}
                 href="/client-portal/communications"
               />
               <SidebarItem
                 isActive={pathname === "/client-portal/help"}
                 title="Help"
-                icon={<DevIcon />}
+                icon={<Code />}
                 href="/client-portal/help"
               />
             </SidebarMenu>
@@ -346,7 +348,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/account"}
                 title="Account"
-                icon={<SettingsIcon />}
+                icon={<User />}
                 href="/client-portal/account"
               />
             </SidebarMenu>
@@ -358,7 +360,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Home"
-              icon={<HomeIcon />}
+              icon={<Home />}
               isActive={pathname === "/"}
               href="/"
             />
@@ -366,31 +368,31 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner"}
                 title="Partner"
-                icon={<BalanceIcon />}
+                icon={<DollarSign />}
                 href="/dashboard/managing-partner"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager"}
                 title="Manager"
-                icon={<PaymentsIcon />}
+                icon={<CreditCard />}
                 href="/dashboard/tax-manager"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant"}
                 title="Staff"
-                icon={<AccountsIcon />}
+                icon={<Users />}
                 href="/dashboard/staff-accountant"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin"}
                 title="Admin"
-                icon={<DevIcon />}
+                icon={<Code />}
                 href="/dashboard/system-admin"
               />
               <SidebarItem
                 isActive={pathname === "/client-portal"}
                 title="Client"
-                icon={<CustomersIcon />}
+                icon={<Building2 />}
                 href="/client-portal"
               />
             </SidebarMenu>
@@ -417,22 +419,6 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             {getNavigationItems()}
           </div>
           <div className={Sidebar.Footer()}>
-            <Tooltip content={"Settings"} color="primary">
-              <div className="max-w-fit">
-                <SettingsIcon />
-              </div>
-            </Tooltip>
-            <Tooltip content={"Adjustments"} color="primary">
-              <div className="max-w-fit">
-                <FilterIcon />
-              </div>
-            </Tooltip>
-            <Tooltip content={"Profile"} color="primary">
-              <Avatar
-                src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                size="sm"
-              />
-            </Tooltip>
           </div>
         </div>
       </div>
