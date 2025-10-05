@@ -4,12 +4,22 @@ import { SearchIcon } from "../icons/searchicon";
 import { BurguerButton } from "./burguer-button";
 import { NotificationsDropdown } from "./notifications-dropdown";
 import { UserDropdown } from "./user-dropdown";
+import { usePathname } from "next/navigation";
 
 interface Props {
   children: React.ReactNode;
 }
 
 export const NavbarWrapper = ({ children }: Props) => {
+  const pathname = usePathname();
+  
+  // Hide navbar completely for the generate route
+  const shouldShowNavbar = pathname !== "/generate";
+
+  if (!shouldShowNavbar) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden navbar-wrapper">
       <Navbar

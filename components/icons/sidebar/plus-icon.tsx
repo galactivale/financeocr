@@ -1,6 +1,6 @@
 import React from "react";
 
-export const ChevronDownIcon = ({ className = "w-4 h-4" }: { className?: string }) => {
+export const PlusIcon = ({ className = "w-4 h-4" }: { className?: string }) => {
   return (
     <svg
       className={className}
@@ -13,7 +13,7 @@ export const ChevronDownIcon = ({ className = "w-4 h-4" }: { className?: string 
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
-        d="M19 9l-7 7-7-7"
+        d="M12 4v16m8-8H4"
       />
     </svg>
   );

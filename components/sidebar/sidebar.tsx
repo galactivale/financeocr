@@ -15,6 +15,8 @@ import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
 import { useSidebarContext } from "../layout/layout-context";
 import { ChangeLogIcon } from "../icons/sidebar/changelog-icon";
+import { SettingsIcon } from "../icons/sidebar/settings-icon";
+import { DashboardList } from "./dashboard-list";
 import { usePathname } from "next/navigation";
 
 export const SidebarWrapper = () => {
@@ -36,13 +38,23 @@ export const SidebarWrapper = () => {
         </div>
         <div className="flex flex-col justify-between h-full">
           <div className={Sidebar.Body()}>
-            <SidebarItem
-              title="Home"
-              icon={<HomeIcon />}
-              isActive={pathname === "/"}
-              href="/"
-            />
-            <SidebarMenu title="Main Menu">
+            {/* Show different content based on route */}
+            {pathname === "/generate" ? (
+              /* ChatGPT-like sidebar for generate route */
+              <div className="flex flex-col h-full">
+                <DashboardList />
+              </div>
+            ) : (
+              /* Regular sidebar for other routes */
+              <>
+                <SidebarItem
+                  title="Home"
+                  icon={<HomeIcon />}
+                  isActive={pathname === "/"}
+                  href="/"
+                />
+                
+                <SidebarMenu title="Main Menu">
               <SidebarItem
                 isActive={pathname === "/accounts"}
                 title="Accounts"
@@ -94,13 +106,15 @@ export const SidebarWrapper = () => {
               />
             </SidebarMenu>
 
-            <SidebarMenu title="Updates">
-              <SidebarItem
-                isActive={pathname === "/changelog"}
-                title="Changelog"
-                icon={<ChangeLogIcon />}
-              />
-            </SidebarMenu>
+                <SidebarMenu title="Updates">
+                  <SidebarItem
+                    isActive={pathname === "/changelog"}
+                    title="Changelog"
+                    icon={<ChangeLogIcon />}
+                  />
+                </SidebarMenu>
+              </>
+            )}
           </div>
           <div className={Sidebar.Footer()}>
           </div>

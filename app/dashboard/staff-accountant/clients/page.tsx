@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   Card, 
@@ -13,10 +13,8 @@ import {
   TableCell, 
   Button, 
   Chip, 
-  Textarea,
   Input,
   Progress,
-  Badge,
   Avatar,
   Tooltip
 } from "@nextui-org/react";
@@ -319,12 +317,9 @@ const getTaskStatusColor = (status: string) => {
 
 export default function StaffAccountantClients() {
   const router = useRouter();
-  const [selectedClient, setSelectedClient] = useState<StaffClient | null>(null);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [taskFilter, setTaskFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const panelRef = useRef<HTMLDivElement>(null);
 
   // Filter clients based on search and task filter
   const filteredClients = staffClients.filter(client => {
@@ -335,33 +330,10 @@ export default function StaffAccountantClients() {
   });
 
   const handleClientSelect = (client: StaffClient) => {
-    setSelectedClient(client);
-    setIsPanelOpen(true);
+    // Navigate to individual client page instead of opening panel
+    router.push(`/dashboard/staff-accountant/clients/${client.id}`);
   };
 
-  const handleClosePanel = () => {
-    setIsPanelOpen(false);
-    setSelectedClient(null);
-  };
-
-  // Close panel when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-        if (isPanelOpen) {
-          handleClosePanel();
-        }
-      }
-    };
-
-    if (isPanelOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isPanelOpen]);
 
   // Calculate work queue stats
   const workQueueStats = {
@@ -744,265 +716,6 @@ export default function StaffAccountantClients() {
         </div>
       </div>
 
-      {/* Client Detail Panel */}
-      <div
-        ref={panelRef}
-        className={`fixed top-0 right-0 h-full w-1/2 bg-black/95 backdrop-blur-xl border-l border-white/10 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
-          isPanelOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="h-full flex flex-col">
-          {/* Panel Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/10">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-              <h3 className="text-white text-lg font-semibold tracking-tight">Client Work Details</h3>
-            </div>
-            <Button
-              isIconOnly
-              size="sm"
-              onPress={handleClosePanel}
-              className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
-            >
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
-          </div>
-
-          {/* Panel Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {selectedClient ? (
-              <div className="space-y-6">
-                {/* Client Overview */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                  <div className="flex justify-between items-start w-full mb-4">
-                    <div className="flex items-center space-x-3">
-                      <Avatar 
-                        name={selectedClient.avatar} 
-                        className="w-12 h-12 bg-blue-500/20 text-blue-400 font-semibold"
-                      />
-                      <div>
-                        <h4 className="text-white text-xl font-bold tracking-tight">{selectedClient.name}</h4>
-                        <p className="text-gray-400 text-sm font-medium">{selectedClient.industry}</p>
-                        <p className="text-gray-400 text-xs">Supervisor: {selectedClient.supervisor}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Chip 
-                        color={getPriorityColor(selectedClient.priority)}
-                        size="sm"
-                        className="mb-2"
-                      >
-                        {selectedClient.priority.toUpperCase()} PRIORITY
-                      </Chip>
-                      <p className="text-gray-400 text-xs">Assigned: {selectedClient.assignedSince}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Current Tasks */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-1 h-6 bg-green-500 rounded-full"></div>
-                    <h4 className="text-white text-lg font-semibold tracking-tight">Current Tasks</h4>
-                  </div>
-                  <div className="space-y-3">
-                    {selectedClient.currentTasks.map((task) => (
-                      <div key={task.id} className="p-4 bg-white/5 rounded-xl border border-white/10">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="text-blue-400">
-                              {getTaskTypeIcon(task.type)}
-                            </div>
-                            <div>
-                              <p className="text-white font-semibold">{task.title}</p>
-                              <p className="text-gray-400 text-sm">{task.description}</p>
-                            </div>
-                          </div>
-                          <Chip 
-                            color={getTaskStatusColor(task.status)}
-                            size="sm"
-                          >
-                            {task.status.replace('-', ' ')}
-                          </Chip>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400 text-xs">Due: {formatDate(task.dueDate)}</span>
-                          <div className="flex items-center space-x-2">
-                            <Progress 
-                              value={task.progress}
-                              className="w-20"
-                              color="primary"
-                              size="sm"
-                            />
-                            <span className="text-white text-sm font-semibold">{task.progress}%</span>
-                          </div>
-                        </div>
-                        {task.qualityScore && (
-                          <div className="mt-2 flex justify-between items-center">
-                            <span className="text-gray-400 text-xs">Quality Score:</span>
-                            <span className="text-white text-sm font-semibold">{task.qualityScore}%</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Data Status */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                    <h4 className="text-white text-lg font-semibold tracking-tight">Data Status</h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Sales Data:</span>
-                      <Chip 
-                        color={selectedClient.dataStatus.salesData === 'complete' ? 'success' : selectedClient.dataStatus.salesData === 'partial' ? 'warning' : 'danger'}
-                        size="sm"
-                      >
-                        {selectedClient.dataStatus.salesData}
-                      </Chip>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Documents:</span>
-                      <Chip 
-                        color={selectedClient.dataStatus.documents === 'complete' ? 'success' : selectedClient.dataStatus.documents === 'partial' ? 'warning' : 'danger'}
-                        size="sm"
-                      >
-                        {selectedClient.dataStatus.documents}
-                      </Chip>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Validation:</span>
-                      <Chip 
-                        color={selectedClient.dataStatus.validation === 'passed' ? 'success' : selectedClient.dataStatus.validation === 'pending' ? 'warning' : 'danger'}
-                        size="sm"
-                      >
-                        {selectedClient.dataStatus.validation}
-                      </Chip>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Last Update:</span>
-                      <span className="text-white">{formatDate(selectedClient.dataStatus.lastUpdate)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quality Metrics */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
-                    <h4 className="text-white text-lg font-semibold tracking-tight">Quality Metrics</h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Accuracy Score:</span>
-                      <div className="flex items-center space-x-2">
-                        <Progress 
-                          value={selectedClient.qualityMetrics.accuracyScore}
-                          className="w-16"
-                          color={selectedClient.qualityMetrics.accuracyScore >= 90 ? 'success' : selectedClient.qualityMetrics.accuracyScore >= 80 ? 'warning' : 'danger'}
-                          size="sm"
-                        />
-                        <span className="text-white font-semibold">{selectedClient.qualityMetrics.accuracyScore}%</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Completion Rate:</span>
-                      <span className="text-white font-semibold">{selectedClient.qualityMetrics.completionRate}%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Error Count:</span>
-                      <span className="text-white font-semibold">{selectedClient.qualityMetrics.errorCount}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Last Review:</span>
-                      <span className="text-white">{formatDate(selectedClient.qualityMetrics.lastReview)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Communication Status */}
-                <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                    <h4 className="text-white text-lg font-semibold tracking-tight">Communication</h4>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Last Contact:</span>
-                      <span className="text-white">{formatDate(selectedClient.communication.lastContact)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Pending Requests:</span>
-                      <Badge content={selectedClient.communication.pendingRequests} color="warning">
-                        <span className="text-white font-semibold">Requests</span>
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 font-medium">Escalation Needed:</span>
-                      <Chip 
-                        color={selectedClient.communication.escalationNeeded ? 'danger' : 'success'}
-                        size="sm"
-                      >
-                        {selectedClient.communication.escalationNeeded ? 'YES' : 'NO'}
-                      </Chip>
-                    </div>
-                    {selectedClient.communication.supervisorNotes && (
-                      <div className="mt-3 p-3 bg-white/5 rounded-lg">
-                        <p className="text-gray-400 text-xs font-medium mb-1">Supervisor Notes:</p>
-                        <p className="text-white text-sm">{selectedClient.communication.supervisorNotes}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <Button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-blue-500/25">
-                    Start Task
-                  </Button>
-                  <Button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 border border-white/20">
-                    Contact Client
-                  </Button>
-                  {selectedClient.communication.escalationNeeded && (
-                    <Button className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 shadow-lg shadow-red-500/25">
-                      Escalate to Supervisor
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                  </div>
-                  <h4 className="text-white text-lg font-semibold mb-2">
-                    Select a Client
-                  </h4>
-                  <p className="text-gray-400 text-sm">
-                    Choose a client from your work queue to view task details and progress
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Backdrop overlay when panel is open */}
-      {isPanelOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300"
-          onClick={handleClosePanel}
-        />
-      )}
     </div>
   );
 }

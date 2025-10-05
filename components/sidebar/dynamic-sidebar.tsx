@@ -84,7 +84,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/risk-management"}
-              title="Risk Management"
+              title="Risk"
               icon={<Shield />}
               href="/dashboard/managing-partner/risk-management"
             />
@@ -96,7 +96,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             />
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/team-management"}
-              title="Team Management"
+              title="Team"
               icon={<Users />}
               href="/dashboard/managing-partner/team-management"
             />
@@ -127,7 +127,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/alerts"}
-                title="AI Alerts"
+                title="Alerts"
                 icon={<AlertTriangle />}
                 href="/dashboard/tax-manager/alerts"
               />
@@ -147,7 +147,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarMenu title="Tools">
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/communications"}
-                title="Communications"
+                title="Messages"
                 icon={<MessageSquare />}
                 href="/dashboard/tax-manager/communications"
               />
@@ -165,7 +165,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/audit-trail"}
-                title="Audit Trail"
+                title="Audit"
                 icon={<Clock />}
                 href="/dashboard/tax-manager/audit-trail"
               />
@@ -173,7 +173,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarMenu title="Account">
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/settings"}
-                title="Settings & Profile"
+                title="Settings"
                 icon={<User />}
                 href="/dashboard/tax-manager/settings"
               />
@@ -191,10 +191,10 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               href="/dashboard/staff-accountant"
             />
             
-            <SidebarMenu title="Work Management">
+            <SidebarMenu title="Work">
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/nexus-tasks"}
-                title="Nexus Tasks"
+                title="Tasks"
                 icon={<CheckSquare />}
                 href="/dashboard/staff-accountant/nexus-tasks"
               />
@@ -206,31 +206,31 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/clients"}
-                title="Client Management"
+                title="Clients"
                 icon={<Building2 />}
                 href="/dashboard/staff-accountant/clients"
               />
             </SidebarMenu>
             
-            <SidebarMenu title="Monitoring & AI Alerts">
+            <SidebarMenu title="Monitoring">
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/monitoring"}
-                title="Task Monitoring"
+                title="Tasks"
                 icon={<Activity />}
                 href="/dashboard/staff-accountant/monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/alerts"}
-                title="AI Alerts & Notifications"
+                title="Alerts"
                 icon={<AlertTriangle />}
                 href="/dashboard/staff-accountant/alerts"
               />
             </SidebarMenu>
             
-            <SidebarMenu title="Support & Resources">
+            <SidebarMenu title="Support">
               <SidebarItem
                 isActive={pathname === "/dashboard/staff-accountant/client-support"}
-                title="Client Support"
+                title="Help"
                 icon={<HelpCircle />}
                 href="/dashboard/staff-accountant/client-support"
               />
@@ -259,13 +259,13 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarMenu title="System">
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/system-monitoring"}
-                title="System Monitoring"
+                title="Monitoring"
                 icon={<Activity />}
                 href="/dashboard/system-admin/system-monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/user-management"}
-                title="User Management"
+                title="Users"
                 icon={<Users />}
                 href="/dashboard/system-admin/user-management"
               />
@@ -279,19 +279,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarMenu title="Operations">
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/backup-recovery"}
-                title="Backup & Recovery"
+                title="Backup"
                 icon={<Database />}
                 href="/dashboard/system-admin/backup-recovery"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/audit-logs"}
-                title="Audit Logs"
+                title="Logs"
                 icon={<Eye />}
                 href="/dashboard/system-admin/audit-logs"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/configuration"}
-                title="Configuration"
+                title="Config"
                 icon={<User />}
                 href="/dashboard/system-admin/configuration"
               />
@@ -333,7 +333,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarMenu title="Support">
               <SidebarItem
                 isActive={pathname === "/client-portal/communications"}
-                title="Communications"
+                title="Messages"
                 icon={<Users />}
                 href="/client-portal/communications"
               />

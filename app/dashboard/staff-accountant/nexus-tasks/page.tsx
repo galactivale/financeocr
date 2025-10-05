@@ -7,7 +7,9 @@ import {
   Button, 
   Chip, 
   Progress,
-  Input
+  Input,
+  Select,
+  SelectItem
 } from "@nextui-org/react";
 import { 
   CheckCircle, 
@@ -19,8 +21,7 @@ import {
   MessageSquare, 
   Shield, 
   Search,
-  Filter,
-  RefreshCw
+  Filter
 } from "lucide-react";
 
 // Task data structure for Staff Accountant
@@ -289,15 +290,35 @@ export default function NexusTasks() {
                 <p className="text-gray-400 text-sm">Staff Accountant Work Queue</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
-                startContent={<RefreshCw className="w-4 h-4" />}
-              >
-                Refresh
-              </Button>
+            
+            <div className="flex items-center space-x-4">
+              {/* Task Statistics */}
+              <div className="flex items-center space-x-4">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-white">{taskStats.total}</div>
+                  <div className="text-gray-400 text-xs">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-orange-400">{taskStats.pending}</div>
+                  <div className="text-gray-400 text-xs">Pending</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-blue-400">{taskStats.inProgress}</div>
+                  <div className="text-gray-400 text-xs">Active</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-yellow-400">{taskStats.review}</div>
+                  <div className="text-gray-400 text-xs">Review</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-400">{taskStats.completed}</div>
+                  <div className="text-gray-400 text-xs">Done</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-red-400">{taskStats.escalated}</div>
+                  <div className="text-gray-400 text-xs">Alert</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -306,173 +327,106 @@ export default function NexusTasks() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="space-y-8">
             
-          {/* Clean Stats Overview */}
-          <div className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-white text-lg font-semibold">Task Overview</h3>
-                <p className="text-gray-400 text-sm">Current workload status</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm font-medium">Active</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">{taskStats.total}</div>
-                <div className="text-gray-400 text-sm font-medium">Total Tasks</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-400 mb-1">{taskStats.pending}</div>
-                <div className="text-gray-400 text-sm font-medium">Pending</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-1">{taskStats.inProgress}</div>
-                <div className="text-gray-400 text-sm font-medium">In Progress</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-400 mb-1">{taskStats.review}</div>
-                <div className="text-gray-400 text-sm font-medium">Review</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-1">{taskStats.completed}</div>
-                <div className="text-gray-400 text-sm font-medium">Completed</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-red-400 mb-1">{taskStats.escalated}</div>
-                <div className="text-gray-400 text-sm font-medium">Escalated</div>
-              </div>
-            </div>
-          </div>
 
-          {/* Apple-style Search and Controls */}
-          <div className="bg-white/5 backdrop-blur-xl border-white/10 rounded-2xl p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
+          {/* Modern Search and Filters */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+              
+              {/* Search Section - Takes More Space */}
+              <div className="flex items-center space-x-4 w-full lg:flex-1">
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
-                    placeholder="Search tasks..."
+                    placeholder="Search tasks or clients..."
                     value={searchQuery}
                     onValueChange={setSearchQuery}
-                    className="w-80 bg-white/5 border-white/10 rounded-xl pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-200"
+                    className="w-full bg-white/5 border-white/10 rounded-xl pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-200"
                     classNames={{
                       input: "text-white",
                       inputWrapper: "bg-white/5 border-white/10 hover:border-white/20 focus-within:border-blue-500/50"
                     }}
                   />
                 </div>
+              </div>
+              
+              {/* Filter Dropdowns */}
+              <div className="flex items-center gap-4 w-full lg:w-auto">
+                
+                {/* Category Dropdown */}
+                <div className="flex-1 lg:flex-none lg:w-48">
+                  <Select
+                    placeholder="Category"
+                    selectedKeys={categoryFilter === "all" ? [] : [categoryFilter]}
+                    onSelectionChange={(keys) => {
+                      const selected = Array.from(keys)[0] as string;
+                      setCategoryFilter(selected || "all");
+                    }}
+                    className="w-full"
+                    classNames={{
+                      trigger: "bg-white/5 border-white/10 hover:border-white/20 focus:border-blue-500/50",
+                      value: "text-white"
+                    }}
+                  >
+                    <SelectItem key="all" value="all" className="text-white">
+                      All Categories
+                    </SelectItem>
+                    <SelectItem key="sales-data" value="sales-data" className="text-white">
+                      Sales Data
+                    </SelectItem>
+                    <SelectItem key="client-communication" value="client-communication" className="text-white">
+                      Communication
+                    </SelectItem>
+                    <SelectItem key="threshold-monitoring" value="threshold-monitoring" className="text-white">
+                      Monitoring
+                    </SelectItem>
+                    <SelectItem key="quality-assurance" value="quality-assurance" className="text-white">
+                      QA
+                    </SelectItem>
+                  </Select>
+                </div>
+                
+                {/* Priority Dropdown */}
+                <div className="flex-1 lg:flex-none lg:w-40">
+                  <Select
+                    placeholder="Priority"
+                    selectedKeys={priorityFilter === "all" ? [] : [priorityFilter]}
+                    onSelectionChange={(keys) => {
+                      const selected = Array.from(keys)[0] as string;
+                      setPriorityFilter(selected || "all");
+                    }}
+                    className="w-full"
+                    classNames={{
+                      trigger: "bg-white/5 border-white/10 hover:border-white/20 focus:border-blue-500/50",
+                      value: "text-white"
+                    }}
+                  >
+                    <SelectItem key="all" value="all" className="text-white">
+                      All Priorities
+                    </SelectItem>
+                    <SelectItem key="urgent" value="urgent" className="text-white">
+                      Urgent
+                    </SelectItem>
+                    <SelectItem key="high" value="high" className="text-white">
+                      High
+                    </SelectItem>
+                    <SelectItem key="medium" value="medium" className="text-white">
+                      Medium
+                    </SelectItem>
+                    <SelectItem key="low" value="low" className="text-white">
+                      Low
+                    </SelectItem>
+                  </Select>
+                </div>
+                
+                {/* Filter Button */}
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+                  className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl shrink-0"
                   startContent={<Filter className="w-4 h-4" />}
                 >
                   Filters
                 </Button>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      categoryFilter === "all" 
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setCategoryFilter("all")}
-                  >
-                    All Categories
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      categoryFilter === "sales-data" 
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setCategoryFilter("sales-data")}
-                  >
-                    Sales Data
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      categoryFilter === "client-communication" 
-                        ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setCategoryFilter("client-communication")}
-                  >
-                    Communication
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      categoryFilter === "threshold-monitoring" 
-                        ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setCategoryFilter("threshold-monitoring")}
-                  >
-                    Monitoring
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      categoryFilter === "quality-assurance" 
-                        ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setCategoryFilter("quality-assurance")}
-                  >
-                    QA
-                  </Button>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      priorityFilter === "all" 
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setPriorityFilter("all")}
-                  >
-                    All Priorities
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      priorityFilter === "urgent" 
-                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setPriorityFilter("urgent")}
-                  >
-                    Urgent
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      priorityFilter === "high" 
-                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                    onPress={() => setPriorityFilter("high")}
-                  >
-                    High
-                  </Button>
-                </div>
               </div>
             </div>
           </div>
