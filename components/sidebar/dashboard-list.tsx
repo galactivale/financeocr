@@ -11,9 +11,10 @@ import { useDashboard } from "../../contexts/DashboardContext";
 
 interface DashboardListProps {
   className?: string;
+  onDashboardSelect?: (dashboardId: string) => void;
 }
 
-export const DashboardList = ({ className = "" }: DashboardListProps) => {
+export const DashboardList = ({ className = "", onDashboardSelect }: DashboardListProps) => {
   const [isArchiveExpanded, setIsArchiveExpanded] = useState(false);
   const { dashboards, archivedDashboards, setActiveDashboard } = useDashboard();
 
@@ -24,8 +25,7 @@ export const DashboardList = ({ className = "" }: DashboardListProps) => {
 
   const handleDashboardClick = (dashboardId: string) => {
     setActiveDashboard(dashboardId);
-    // Navigate to dashboard view
-    console.log("Navigate to dashboard:", dashboardId);
+    onDashboardSelect?.(dashboardId);
   };
 
   const formatDate = (date: Date) => {

@@ -71,6 +71,18 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               href="/dashboard/managing-partner"
             />
             <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/monitoring"}
+              title="Monitoring"
+              icon={<Activity />}
+              href="/dashboard/managing-partner/monitoring"
+            />
+            <SidebarItem
+              isActive={pathname === "/dashboard/managing-partner/alerts"}
+              title="Alerts"
+              icon={<AlertTriangle />}
+              href="/dashboard/managing-partner/alerts"
+            />
+            <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/compliance"}
               title="Compliance"
               icon={<ClipboardCheck />}

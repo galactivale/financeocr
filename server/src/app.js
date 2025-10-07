@@ -20,6 +20,7 @@ const analyticsRoutes = require('./routes/analytics');
 const nexusRoutes = require('./routes/nexus');
 const consultationRoutes = require('./routes/consultations');
 const communicationRoutes = require('./routes/communications');
+const dashboardRoutes = require('./routes/dashboards');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -95,6 +96,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/nexus', nexusRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/communications', communicationRoutes);
+app.use('/api/dashboards', dashboardRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -114,6 +116,7 @@ app.get('/api', (req, res) => {
       integrations: '/api/integrations',
       analytics: '/api/analytics',
       nexus: '/api/nexus',
+      dashboards: '/api/dashboards',
     },
     documentation: '/api/docs',
   });

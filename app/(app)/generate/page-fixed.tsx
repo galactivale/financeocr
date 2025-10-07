@@ -7,12 +7,12 @@ import { UserIcon } from "@/components/icons/profile/user-icon";
 import { MapPinIcon } from "@/components/icons/profile/map-pin-icon";
 import { DocumentTextIcon } from "@/components/icons/profile/document-text-icon";
 import { ClockIcon } from "@/components/icons/profile/clock-icon";
+import { UserIcon } from "@/components/icons/profile/user-icon";
 import { ChartBarIcon } from "@/components/icons/profile/chart-bar-icon";
 import { ExclamationTriangleIcon } from "@/components/icons/profile/exclamation-triangle-icon";
 import { ArrowLeftIcon } from "@/components/icons/profile/arrow-left-icon";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { DashboardDetails } from "@/components/dashboard/dashboard-details";
-import { apiClient } from "@/lib/api";
 
 type FormState = {
   clientName: string;
@@ -124,11 +124,11 @@ export default function GeneratePage() {
   const isStepValid = (step: number): boolean => {
     switch (step) {
       case 1:
-        return formData.clientName.trim() !== "" && formData.multiStateClientCount !== "";
+        return formData.clientName.trim() !== "";
       case 2:
         return formData.priorityStates.length > 0 && formData.painPoints.length > 0;
       case 3:
-        return formData.primaryIndustry !== "" && formData.qualificationStrategy !== "";
+        return formData.multiStateClientCount !== "" && formData.primaryIndustry !== "" && formData.qualificationStrategy !== "";
       case 4:
         return true; // Notes are optional
       default:
@@ -138,98 +138,79 @@ export default function GeneratePage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 1200));
     
-    try {
-      // For demo purposes, use a default organization ID
-      // In a real app, this would come from the authenticated user's context
-      const organizationId = "demo-org-id";
-      
-      // Call the backend API to generate the dashboard
-      const response = await apiClient.generateDashboard(formData, organizationId);
-      
-      if (response.success && response.data) {
-        // Create dashboard name from form data
-        const dashboardName = `${formData.clientName} Dashboard`;
-        
-        // Add the new dashboard to the context with the generated data
-        addDashboard({
-          name: dashboardName,
-          isActive: true,
-          uniqueUrl: response.data.uniqueUrl,
-          dashboardUrl: response.data.dashboardUrl,
-          clientInfo: response.data.clientInfo,
-          keyMetrics: response.data.keyMetrics,
-          statesMonitored: response.data.statesMonitored,
-          lastUpdated: response.data.lastUpdated
-        });
-        
-        alert(`Dashboard generated successfully! Unique URL: ${response.data.dashboardUrl}`);
-      } else {
-        throw new Error(response.error || 'Failed to generate dashboard');
-      }
-    } catch (error) {
-      console.error('Error generating dashboard:', error);
-      alert(`Error generating dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Create dashboard name from form data
+    const dashboardName = `${formData.clientName} Dashboard`;
+    
+    // Add the new dashboard to the context
+    addDashboard({
+      name: dashboardName,
+      isActive: true,
+    });
+    
+    // eslint-disable-next-line no-console
+    console.log("Form Data Submitted:", formData);
+    alert("Dashboard generation initiated! Check console for submitted data.");
+    setIsSubmitting(false);
+    
+    // Navigate back to home page
+    window.location.href = "/";
   };
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="w-full max-w-6xl mx-auto px-2.5">
+      <div className="w-full max-w-4xl mx-auto px-2.5">
         <div className="flex flex-col gap-6">
           {/* Header Section */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center space-x-3">
               <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-              <h2 className="text-3xl font-normal text-white tracking-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Dashboard Generator</h2>
+              <h2 className="text-3xl font-normal text-white tracking-normal">Dashboard Generator</h2>
             </div>
             
-            {/* Progress Steps - Only show when no dashboard is selected */}
-            {!selectedDashboardId && (
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="text-base text-white/70 font-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Step {currentStep} of {totalSteps}</div>
-                  <div className="text-base text-white/70 font-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>{Math.round((currentStep / totalSteps) * 100)}% Complete</div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  {steps.map((step, index) => {
-                    const isCompleted = currentStep > step.id;
-                    const isCurrent = currentStep === step.id;
-                    const Icon = step.icon;
-                    
-                    return (
-                      <div key={step.id} className="flex items-center">
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-                          isCompleted 
-                            ? 'bg-green-500 border-green-500 text-white' 
-                            : isCurrent 
-                              ? 'bg-blue-500 border-blue-500 text-white' 
-                              : 'bg-transparent border-white/20 text-white/40'
-                        }`}>
-                          {isCompleted ? (
-                            <CheckCircleIcon className="w-5 h-5" />
-                          ) : (
-                            <Icon className="w-5 h-5" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white ml-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>{step.title}</div>
-                          <div className="text-xs text-white/60 ml-3" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>{step.description}</div>
-                        </div>
-                        {index < steps.length - 1 && (
-                          <div className={`w-8 h-px transition-colors ${
-                            isCompleted ? 'bg-green-500' : 'bg-white/20'
-                          }`} />
+            {/* Progress Steps */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="text-base text-white/70 font-normal">Step {currentStep} of {totalSteps}</div>
+                <div className="text-base text-white/70 font-normal">{Math.round((currentStep / totalSteps) * 100)}% Complete</div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                {steps.map((step, index) => {
+                  const isCompleted = currentStep > step.id;
+                  const isCurrent = currentStep === step.id;
+                  const Icon = step.icon;
+                  
+                  return (
+                    <div key={step.id} className="flex items-center">
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+                        isCompleted 
+                          ? 'bg-green-500 border-green-500 text-white' 
+                          : isCurrent 
+                            ? 'bg-blue-500 border-blue-500 text-white' 
+                            : 'bg-transparent border-white/20 text-white/40'
+                      }`}>
+                        {isCompleted ? (
+                          <CheckCircleIcon className="w-5 h-5" />
+                        ) : (
+                          <Icon className="w-5 h-5" />
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white ml-3">{step.title}</div>
+                        <div className="text-xs text-white/60 ml-3">{step.description}</div>
+                      </div>
+                      {index < steps.length - 1 && (
+                        <div className={`w-8 h-px transition-colors ${
+                          isCompleted ? 'bg-green-500' : 'bg-white/20'
+                        }`} />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Main Content */}
@@ -245,7 +226,7 @@ export default function GeneratePage() {
                   <div className="space-y-6">
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                      <h3 className="text-2xl font-normal text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Client Information</h3>
+                      <h3 className="text-2xl font-normal text-white">Client Information</h3>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -259,6 +240,67 @@ export default function GeneratePage() {
                           inputWrapper: "bg-white/10 border-white/20 hover:border-white/30 focus-within:border-blue-500"
                         }}
                       />
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 2 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                      <h3 className="text-2xl font-normal text-white">Locations & Pain Points</h3>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-lg font-normal text-white mb-4">Priority States</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                          {US_STATES.map((state) => (
+                            <button
+                              key={state}
+                              onClick={() => handleStateToggle(state)}
+                              className={`px-3 py-2 rounded-lg text-sm transition-all ${
+                                formData.priorityStates.includes(state)
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                              }`}
+                            >
+                              {state}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-lg font-normal text-white mb-4">Pain Points</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {PAIN_POINTS.map((painPoint) => (
+                            <button
+                              key={painPoint}
+                              onClick={() => handlePainPointToggle(painPoint)}
+                              className={`px-4 py-3 rounded-lg text-sm transition-all text-left ${
+                                formData.painPoints.includes(painPoint)
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                              }`}
+                            >
+                              {painPoint}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                      <h3 className="text-2xl font-normal text-white">Industry & Strategy</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <Select
                         label="Multi-state Client Count"
                         placeholder="Select range"
@@ -279,69 +321,7 @@ export default function GeneratePage() {
                           </SelectItem>
                         ))}
                       </Select>
-                    </div>
-                  </div>
-                )}
-
-                {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                      <h3 className="text-2xl font-normal text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Locations & Pain Points</h3>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-lg font-normal text-white mb-4" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Priority States</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                          {US_STATES.map((state) => (
-                            <button
-                              key={state}
-                              onClick={() => handleStateToggle(state)}
-                              className={`px-3 py-2 rounded-lg text-sm transition-all ${
-                                formData.priorityStates.includes(state)
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
-                              }`}
-                              style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
-                            >
-                              {state}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
                       
-                      <div>
-                        <h4 className="text-lg font-normal text-white mb-4" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Pain Points</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {PAIN_POINTS.map((painPoint) => (
-                            <button
-                              key={painPoint}
-                              onClick={() => handlePainPointToggle(painPoint)}
-                              className={`px-4 py-3 rounded-lg text-sm transition-all text-left ${
-                                formData.painPoints.includes(painPoint)
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
-                              }`}
-                              style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
-                            >
-                              {painPoint}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {currentStep === 3 && (
-                  <div className="space-y-6">
-                    <div className="flex items-center space-x-3 mb-6">
-                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                      <h3 className="text-2xl font-normal text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Industry & Strategy</h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <Select
                         label="Primary Industry"
                         placeholder="Select industry"
@@ -383,7 +363,7 @@ export default function GeneratePage() {
                   <div className="space-y-6">
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-                      <h3 className="text-2xl font-normal text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Notes & Review</h3>
+                      <h3 className="text-2xl font-normal text-white">Notes & Review</h3>
                     </div>
                     
                     <div className="space-y-6">
@@ -399,8 +379,8 @@ export default function GeneratePage() {
                       />
                       
                       <div className="bg-white/5 rounded-xl p-6">
-                        <h4 className="text-lg font-normal text-white mb-4" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Review Summary</h4>
-                        <div className="space-y-2 text-white/70" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                        <h4 className="text-lg font-normal text-white mb-4">Review Summary</h4>
+                        <div className="space-y-2 text-white/70">
                           <p><strong>Client:</strong> {formData.clientName}</p>
                           <p><strong>States:</strong> {formData.priorityStates.join(", ")}</p>
                           <p><strong>Pain Points:</strong> {formData.painPoints.join(", ")}</p>
@@ -421,7 +401,7 @@ export default function GeneratePage() {
                     startContent={<ArrowLeftIcon />}
                     className="border-white/20 text-white hover:bg-white/10"
                   >
-                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Back</span>
+                    Back
                   </Button>
                   <Button 
                     onPress={currentStep === totalSteps ? handleSubmit : goNext} 
@@ -429,9 +409,7 @@ export default function GeneratePage() {
                     className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-normal text-base"
                     isLoading={isSubmitting}
                   >
-                    <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                      {currentStep === totalSteps ? (isSubmitting ? "Generating..." : "Generate Dashboard") : "Next"}
-                    </span>
+                    {currentStep === totalSteps ? (isSubmitting ? "Generating..." : "Generate Dashboard") : "Next"}
                   </Button>
                 </div>
               </div>
@@ -442,3 +420,4 @@ export default function GeneratePage() {
     </div>
   );
 }
+

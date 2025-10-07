@@ -57,6 +57,7 @@ model Organization {
   revenueBreakdowns       RevenueBreakdown[]
   tasks                   Task[]
   users                   User[]
+  generatedDashboards     GeneratedDashboard[]
 
   @@map("organizations")
 }
@@ -803,4 +804,24 @@ model Communication {
   @@index([type])
   @@index([sentDate])
   @@map("communications")
+}
+
+model GeneratedDashboard {
+  id                String       @id @default(uuid())
+  organizationId    String       @map("organization_id")
+  clientName        String       @map("client_name")
+  uniqueUrl         String       @unique @map("unique_url")
+  clientInfo        Json         @map("client_info")
+  keyMetrics        Json         @map("key_metrics")
+  statesMonitored   String[]     @map("states_monitored")
+  lastUpdated       DateTime     @map("last_updated")
+  isActive          Boolean      @default(true) @map("is_active")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([uniqueUrl])
+  @@index([clientName])
+  @@index([isActive])
+  @@map("generated_dashboards")
 }

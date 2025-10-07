@@ -1,21 +1,14 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import { TableWrapper } from "@/components/table/table";
-import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
-
-// Task data for states - Staff Accountant focused
-const taskData = {
-  'CA': { status: 'critical', tasks: 15, clients: 8, alerts: 3 },
-  'TX': { status: 'warning', tasks: 8, clients: 5, alerts: 2 },
-  'NY': { status: 'pending', tasks: 12, clients: 7, alerts: 1 },
-  'FL': { status: 'compliant', tasks: 6, clients: 4, alerts: 0 }
-};
+import { useClients, useTasks, useAlerts, useNexusAlerts, useNexusActivities, useClientStates } from "@/hooks/useApi";
 
 // Enhanced US Map Component for Staff Accountants
-const EnhancedUSMap = () => {
+const EnhancedUSMap = ({ clientStates, tasks }: { clientStates: any[], tasks: any[] }) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   const handleMapStateClick = (stateCode: string) => {
@@ -26,11 +19,45 @@ const EnhancedUSMap = () => {
     }
   };
 
+  // Generate task data from real API data
+  const taskData = useMemo(() => {
+    const stateData: Record<string, { status: string; tasks: number; clients: number; alerts: number }> = {};
+    
+    // Process client states
+    clientStates.forEach(clientState => {
+      const stateCode = clientState.stateCode;
+      if (!stateData[stateCode]) {
+        stateData[stateCode] = {
+          status: clientState.status,
+          tasks: 0,
+          clients: 1,
+          alerts: 0
+        };
+      } else {
+        stateData[stateCode].clients += 1;
+        // Update status to most critical if needed
+        if (clientState.status === 'critical' || 
+            (clientState.status === 'warning' && stateData[stateCode].status !== 'critical')) {
+          stateData[stateCode].status = clientState.status;
+        }
+      }
+    });
+
+    // Process tasks by state
+    tasks.forEach(task => {
+      if (task.stateCode && stateData[task.stateCode]) {
+        stateData[task.stateCode].tasks += 1;
+      }
+    });
+
+    return stateData;
+  }, [clientStates, tasks]);
+
   const customStates = useMemo(() => {
     const settings: any = {};
 
     StateAbbreviations.forEach((state) => {
-      const data = taskData[state as keyof typeof taskData];
+      const data = taskData[state];
       
       // Always set label configuration for all states
       const labelConfig = {
@@ -72,10 +99,6 @@ const EnhancedUSMap = () => {
             fillColor = '#10b981';
             strokeColor = '#059669';
             break;
-          case 'transit':
-            fillColor = '#06b6d4';
-            strokeColor = '#0891b2';
-            break;
         }
         
         if (selectedState === state) {
@@ -92,7 +115,7 @@ const EnhancedUSMap = () => {
           label: labelConfig,
         };
       } else {
-        // Default styling for states without task data
+        // Default styling for states without data
         settings[state] = {
           fill: '#374151',
           stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
@@ -104,7 +127,7 @@ const EnhancedUSMap = () => {
     });
 
     return settings;
-  }, [selectedState]);
+  }, [selectedState, taskData]);
 
   return (
     <div className="w-full h-full relative">
@@ -137,6 +160,34 @@ const EnhancedUSMap = () => {
         }}
       />
       
+      {/* State Info Tooltip */}
+      {selectedState && taskData[selectedState] && (
+        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-sm rounded-xl border border-white/20 p-4 min-w-[200px]">
+          <h4 className="text-white font-semibold text-sm mb-2">{selectedState}</h4>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between">
+              <span className="text-gray-400">Status:</span>
+              <span className={`font-medium ${
+                taskData[selectedState].status === 'critical' ? 'text-red-400' :
+                taskData[selectedState].status === 'warning' ? 'text-orange-400' :
+                taskData[selectedState].status === 'pending' ? 'text-blue-400' :
+                'text-green-400'
+              }`}>
+                {taskData[selectedState].status.charAt(0).toUpperCase() + taskData[selectedState].status.slice(1)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">Tasks:</span>
+              <span className="text-white font-medium">{taskData[selectedState].tasks}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">Clients:</span>
+              <span className="text-white font-medium">{taskData[selectedState].clients}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-xl border border-white/10 p-4">
         <h4 className="text-white font-medium text-sm mb-3">Task Status Legend</h4>
@@ -163,389 +214,278 @@ const EnhancedUSMap = () => {
   );
 };
 
-// Staff Accountant specific cards with Apple design
-const CardActiveTasks = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-          </svg>
+// Staff Accountant specific cards with real data
+const CardPendingTasks = ({ tasks }: { tasks: any[] }) => {
+  const pendingTasks = tasks.filter(task => task.status === 'pending').length;
+  const overdueTasks = tasks.filter(task => {
+    if (!task.dueDate) return false;
+    return new Date(task.dueDate) < new Date() && task.status !== 'completed';
+  }).length;
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-white">Pending Tasks</h4>
         </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Active Tasks</h3>
-          <p className="text-gray-400 text-xs font-medium">Current assignments</p>
+        
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-white leading-none">{pendingTasks}</div>
+          <div className="flex items-end space-x-1 h-10">
+            {[4, 6, 3, 8, 5, 7, 4].map((height, i) => (
+              <div key={i} className={`bg-gradient-to-t from-blue-500 to-blue-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+            ))}
+      </div>
+      </div>
+        
+        <div className="flex items-center text-blue-400 text-xs">
+          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+          <span>{overdueTasks} overdue</span>
         </div>
       </div>
     </div>
+  );
+};
+
+const CardCompletedToday = ({ tasks }: { tasks: any[] }) => {
+  const today = new Date();
+  const completedToday = tasks.filter(task => {
+    if (!task.completedAt) return false;
+    const completedDate = new Date(task.completedAt);
+    return completedDate.toDateString() === today.toDateString();
+  }).length;
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">12</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-          <span className="text-blue-400 text-sm font-medium">+3 new</span>
+          <h4 className="text-xs font-bold text-white">Completed Today</h4>
         </div>
+        
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-white leading-none">{completedToday}</div>
+          <div className="flex items-end space-x-1 h-10">
+            {[5, 7, 4, 9, 6, 8, 7].map((height, i) => (
+              <div key={i} className={`bg-gradient-to-t from-green-500 to-green-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+            ))}
       </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-blue-500 h-1 rounded-full" style={{width: '75%'}}></div>
+      </div>
+        
+        <div className="flex items-center text-green-400 text-xs">
+          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+          </svg>
+          <span>Good progress</span>
       </div>
       </div>
       </div>
 );
+};
 
-const CardPendingReview = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Pending Review</h3>
-          <p className="text-gray-400 text-xs font-medium">Awaiting approval</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">5</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-          <span className="text-orange-400 text-sm font-medium">+1 today</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-orange-500 h-1 rounded-full" style={{width: '60%'}}></div>
-      </div>
-      </div>
-      </div>
-);
+const CardDataEntryQueue = ({ tasks }: { tasks: any[] }) => {
+  const dataEntryTasks = tasks.filter(task => 
+    task.category === 'data_entry' || task.type === 'data_entry'
+  ).length;
 
-const CardCompletedToday = () => (
-  <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center">
-          <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-white font-semibold text-sm tracking-tight">Completed Today</h3>
-          <p className="text-gray-400 text-xs font-medium">Finished tasks</p>
-        </div>
-      </div>
-    </div>
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold text-white">8</span>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span className="text-green-400 text-sm font-medium">+2 vs yesterday</span>
-        </div>
-      </div>
-      <div className="w-full bg-white/10 rounded-full h-1">
-        <div className="bg-green-500 h-1 rounded-full" style={{width: '85%'}}></div>
-      </div>
-      </div>
-      </div>
-);
-
-const CardPriorityTasks = () => (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-white font-semibold text-lg tracking-tight">Priority Tasks</h3>
-      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-    </div>
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
       <div className="space-y-3">
-      <div className="group bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20 p-4 hover:bg-red-500/15 transition-all duration-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-          <div>
-              <p className="font-medium text-white text-sm">TechCorp Inc - Data Entry</p>
-              <p className="text-xs text-red-400">Q3 sales data validation overdue</p>
-            </div>
-          </div>
-          <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
-            CRITICAL
-          </span>
+          <h4 className="text-xs font-bold text-white">Data Entry Queue</h4>
         </div>
-      </div>
-      <div className="group bg-orange-500/10 backdrop-blur-sm rounded-xl border border-orange-500/20 p-4 hover:bg-orange-500/15 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-          <div>
-              <p className="font-medium text-white text-sm">RetailPlus LLC - State Allocation</p>
-              <p className="text-xs text-orange-400">California revenue breakdown needed</p>
-            </div>
+        
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-white leading-none">{dataEntryTasks}</div>
+          <div className="flex items-end space-x-1 h-10">
+            {[3, 5, 4, 7, 6, 8, 5].map((height, i) => (
+              <div key={i} className={`bg-gradient-to-t from-purple-500 to-purple-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+            ))}
           </div>
-          <span className="px-2 py-1 bg-orange-500 text-white text-xs font-medium rounded-full">
-            HIGH
-          </span>
         </div>
-      </div>
-      <div className="group bg-blue-500/10 backdrop-blur-sm rounded-xl border border-blue-500/20 p-4 hover:bg-blue-500/15 transition-all duration-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+        
+        <div className="flex items-center text-purple-400 text-xs">
+          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
-            </div>
-          <div>
-              <p className="font-medium text-white text-sm">ServiceCo - Quality Control</p>
-              <p className="text-xs text-blue-400">Data accuracy verification pending</p>
-            </div>
-          </div>
-          <span className="px-2 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
-            MEDIUM
-          </span>
-        </div>
+          <span>Awaiting processing</span>
       </div>
     </div>
   </div>
 );
+};
 
-const CardTaskAnalysis = () => (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-white font-semibold text-lg tracking-tight">Task Analysis</h3>
-      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-    </div>
-    <div className="space-y-4">
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">Data Entry</span>
-          <span className="text-red-400 text-sm font-medium">3 overdue</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-red-500 h-1.5 rounded-full transition-all duration-500" style={{width: '75%'}}></div>
-            </div>
-          </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">State Allocation</span>
-          <span className="text-orange-400 text-sm font-medium">2 pending</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-500" style={{width: '50%'}}></div>
-            </div>
-          </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">Quality Control</span>
-          <span className="text-green-400 text-sm font-medium">1 completed</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '25%'}}></div>
-            </div>
-          </div>
-      <div className="group bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-medium text-sm">Client Support</span>
-          <span className="text-green-400 text-sm font-medium">0 pending</span>
-        </div>
-        <div className="w-full bg-white/10 rounded-full h-1.5">
-          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-500" style={{width: '10%'}}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-);
-
-// Task Activity Table Component
-const TaskActivityTable = () => {
-  const taskActivities = [
-    {
-      time: "2 hours ago",
-      client: "TechCorp SaaS",
-      activity: "Data Entry Completed",
-      activityDetail: "Q3 sales data validation",
-      state: "CA",
-      impact: "Ready for review",
-      impactDetail: "Manager approval needed",
-      status: "Complete",
-      user: "S.Johnson"
-    },
-    {
-      time: "4 hours ago",
-      client: "RetailChain",
-      activity: "State Allocation",
-      activityDetail: "California revenue breakdown",
-      state: "NY",
-      impact: "Quality: 95%",
-      impactDetail: "Threshold: 78%",
-      status: "In Progress",
-      user: "M.Wilson"
-    },
-    {
-      time: "Yesterday 3:45 PM",
-      client: "StartupInc",
-      activity: "Quality Control",
-      activityDetail: "Data accuracy verification",
-      state: "TX",
-      impact: "Monitor status",
-      impactDetail: "No issues found",
-      status: "Complete",
-      user: "J.Doe"
-    },
-    {
-      time: "Yesterday 1:20 PM",
-      client: "ManufacturingCo",
-      activity: "Client Support",
-      activityDetail: "Upload format assistance",
-      state: "FL",
-      impact: "Issue resolved",
-      impactDetail: "Client satisfied",
-      status: "Resolved",
-      user: "A.Smith"
-    },
-    {
-      time: "Nov 20 4:15 PM",
-      client: "ServicesCorp",
-      activity: "Data Processing",
-      activityDetail: "Q4 financial statements",
-      state: "WA",
-      impact: "Processing required",
-      impactDetail: "B&O tax implications",
-      status: "Pending",
-      user: "Client"
-    },
-    {
-      time: "Nov 20 10:30 AM",
-      client: "TechCorp SaaS",
-      activity: "Task Assignment",
-      activityDetail: "New data entry task",
-      state: "CA",
-      impact: "Priority: High",
-      impactDetail: "Due: 2 days",
-      status: "Assigned",
-      user: "Manager"
-    },
-    {
-      time: "Nov 19 2:10 PM",
-      client: "RetailChain",
-      activity: "Review Completed",
-      activityDetail: "Data accuracy check",
-      state: "NY",
-      impact: "Approved",
-      impactDetail: "Ready for submission",
-      status: "Approved",
-      user: "T.Manager"
-    },
-    {
-      time: "Nov 19 11:45 AM",
-      client: "LocalBusiness",
-      activity: "Training Completed",
-      activityDetail: "New software training",
-      state: "CO",
-      impact: "Certified",
-      impactDetail: "Ready for advanced tasks",
-      status: "Complete",
-      user: "J.Doe"
-    }
-  ];
-
+// Task Table Component with real data
+const TaskTable = ({ tasks, clients }: { tasks: any[], clients: any[] }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'critical': return 'text-danger';
-      case 'warning': return 'text-warning';
-      case 'complete': return 'text-success';
-      case 'resolved': return 'text-success';
-      case 'pending': return 'text-primary';
-      case 'assigned': return 'text-secondary';
-      case 'approved': return 'text-success';
-      case 'in progress': return 'text-warning';
-      default: return 'text-default';
+      case 'completed': return 'bg-green-500/20 text-green-400 border border-green-500/30';
+      case 'pending': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+      case 'in_progress': return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+      case 'overdue': return 'bg-red-500/20 text-red-400 border border-red-500/30';
+      default: return 'bg-white/10 text-white/70 border border-white/20';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority?.toLowerCase()) {
+      case 'high': return 'bg-red-500/20 text-red-400 border border-red-500/30';
+      case 'medium': return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+      case 'low': return 'bg-green-500/20 text-green-400 border border-green-500/30';
+      default: return 'bg-white/10 text-white/70 border border-white/20';
     }
   };
 
   return (
     <div className="w-full">
-      <Table aria-label="Recent Task Activity">
-        <TableHeader>
-          <TableColumn>TIME</TableColumn>
-          <TableColumn>CLIENT</TableColumn>
-          <TableColumn>ACTIVITY</TableColumn>
-          <TableColumn>STATE</TableColumn>
-          <TableColumn>IMPACT</TableColumn>
-          <TableColumn>STATUS</TableColumn>
-          <TableColumn>USER</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {taskActivities.map((activity, index) => (
-            <TableRow key={index}>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.time}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="font-semibold text-default-900">
-                  {activity.client}
-                </div>
-              </TableCell>
-              <TableCell>
-          <div>
-                  <div className="font-medium text-default-900">
-                    {activity.activity}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+            <h3 className="text-white font-semibold text-lg">Recent Tasks</h3>
           </div>
-                  <div className="text-sm text-default-500">
-                    {activity.activityDetail}
+          <Link
+            href="/dashboard/staff-accountant/task-management"
+            as={NextLink}
+            className="group bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white transition-all duration-200 hover:scale-105"
+          >
+            <span className="text-sm font-medium">View All</span>
+            <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
           </div>
-              </TableCell>
-              <TableCell>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  {activity.state}
+
+      <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-white/5 border-b border-white/10">
+              <tr>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Task</span>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Client</span>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Priority</span>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Status</span>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <button className="flex items-center space-x-1 text-xs font-medium text-white/60 uppercase tracking-wider hover:text-white/80">
+                    <span>Due Date</span>
+                  </button>
+                </th>
+                <th className="px-6 py-4 text-left"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {tasks.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="text-white/60 font-medium">No tasks found</div>
+                      <div className="text-sm text-white/50">Tasks will appear here as they are assigned</div>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                tasks.slice(0, 8).map((task, index) => {
+                  const client = clients.find(c => c.id === task.clientId);
+                  const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
+                  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+                  
+                  return (
+                    <tr key={task.id || index} className="hover:bg-white/5 transition-colors duration-150">
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="text-sm text-white font-medium">
+                            {task.title || 'Untitled Task'}
+                          </div>
+                          <div className="text-xs text-white/60 mt-0.5 max-w-xs truncate">
+                            {task.description || 'No description'}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-white/80">
+                          {client?.name || 'Unknown Client'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                          {task.priority?.toUpperCase() || 'MEDIUM'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(isOverdue ? 'overdue' : task.status)}`}>
+                          {isOverdue ? 'OVERDUE' : (task.status?.toUpperCase() || 'PENDING')}
           </span>
-              </TableCell>
-              <TableCell>
-          <div>
-                  <div className="font-medium text-default-900">
-                    {activity.impact}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-white/80">
+                          {dueDate}
           </div>
-                  <div className="text-sm text-default-500">
-                    {activity.impactDetail}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button className={`px-4 py-2 rounded-md text-xs font-medium transition-colors ${
+                          task.status === 'completed' 
+                            ? 'bg-white/10 text-white/50 cursor-not-allowed' 
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}>
+                          {task.status === 'completed' ? 'Completed' : 'Start'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-              </TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
-                  {activity.status}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="text-sm font-medium text-default-600">
-                  {activity.user}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
     </div>
   );
 };
 
 export default function StaffAccountantDashboard() {
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
+  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20 });
+  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 10 });
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 50 });
+
+  const clients = clientsData?.clients || [];
+  const tasks = tasksData?.tasks || [];
+  const alerts = alertsData?.alerts || [];
+  const clientStates = clientStatesData?.clientStates || [];
+
+  if (clientsLoading || tasksLoading || alertsLoading || clientStatesLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" color="primary" />
+          <p className="text-white mt-4">Loading Staff Accountant dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black">
     <div className="h-full lg:px-6">
-        <div className="flex justify-center gap-6 xl:gap-8 pt-6 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-12 max-w-[90rem] mx-auto w-full">
+        <div className="flex justify-center gap-2 xl:gap-[10px] pt-2 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full">
           <div className="mt-6 gap-8 flex flex-col w-full">
           {/* Card Section Top */}
             <div className="flex flex-col gap-4">
@@ -554,57 +494,48 @@ export default function StaffAccountantDashboard() {
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Task Management Overview</h2>
               </div>
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
-              <CardActiveTasks />
-              <CardPendingReview />
-              <CardCompletedToday />
-            </div>
+                <CardPendingTasks tasks={tasks} />
+                <CardCompletedToday tasks={tasks} />
+                <CardDataEntryQueue tasks={tasks} />
+              </div>
           </div>
 
           {/* U.S. States Map */}
             <div className="h-full flex flex-col gap-4">
+              <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-green-500 rounded-full"></div>
                 <h2 className="text-2xl font-semibold text-white tracking-tight">Task Distribution Map</h2>
+                </div>
+                <Link
+                  href="/dashboard/staff-accountant/nexus-monitoring"
+                  as={NextLink}
+                  className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+                >
+                  <span className="text-sm font-medium">View More</span>
+                  <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
               </div>
+              
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <EnhancedUSMap />
+                <EnhancedUSMap clientStates={clientStates} tasks={tasks} />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Section */}
-          <div className="mt-4 gap-6 flex flex-col xl:max-w-md w-full">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Task Management</h2>
-            </div>
-            <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
-            <CardPriorityTasks />
-            <CardTaskAnalysis />
-          </div>
-        </div>
-      </div>
-
-      {/* Table Recent Task Activity */}
+        {/* Task Table */}
         <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
           <div className="flex flex-wrap justify-between items-center">
             <div className="flex items-center space-x-3">
               <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Recent Task Activity</h2>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">Recent Tasks</h2>
             </div>
-          <Link
-            href="/dashboard/staff-accountant/task-management"
-            as={NextLink}
-              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
-          >
-              <span className="text-sm font-medium">View All</span>
-              <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-          </Link>
         </div>
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-            <TaskActivityTable />
+            <TaskTable tasks={tasks} clients={clients} />
           </div>
         </div>
       </div>

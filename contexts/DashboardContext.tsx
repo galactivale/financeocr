@@ -8,6 +8,12 @@ interface Dashboard {
   createdAt: Date;
   isActive?: boolean;
   isArchived?: boolean;
+  uniqueUrl?: string;
+  dashboardUrl?: string;
+  clientInfo?: any;
+  keyMetrics?: any;
+  statesMonitored?: string[];
+  lastUpdated?: string;
 }
 
 interface DashboardContextType {

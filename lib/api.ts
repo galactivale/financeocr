@@ -625,6 +625,61 @@ class ApiClient {
       body: JSON.stringify({ status, deliveryDate, readDate, failureReason }),
     });
   }
+
+  // Dashboard generation methods
+  async generateDashboard(formData: {
+    clientName: string;
+    multiStateClientCount: string;
+    priorityStates: string[];
+    painPoints: string[];
+    primaryIndustry: string;
+    qualificationStrategy: string;
+    additionalNotes?: string;
+  }, organizationId: string): Promise<ApiResponse<{
+    id: string;
+    clientName: string;
+    uniqueUrl: string;
+    dashboardUrl: string;
+    clientInfo: any;
+    keyMetrics: any;
+    statesMonitored: string[];
+    lastUpdated: string;
+  }>> {
+    return this.request('/api/dashboards/generate', {
+      method: 'POST',
+      body: JSON.stringify({ formData, organizationId }),
+    });
+  }
+
+  async getDashboard(url: string): Promise<ApiResponse<{
+    id: string;
+    clientName: string;
+    uniqueUrl: string;
+    clientInfo: any;
+    keyMetrics: any;
+    statesMonitored: string[];
+    lastUpdated: string;
+    organization: {
+      name: string;
+      slug: string;
+    };
+  }>> {
+    return this.request(`/api/dashboards/${url}`);
+  }
+
+  async getDashboards(organizationId: string): Promise<ApiResponse<{
+    id: string;
+    clientName: string;
+    uniqueUrl: string;
+    dashboardUrl: string;
+    clientInfo: any;
+    keyMetrics: any;
+    statesMonitored: string[];
+    lastUpdated: string;
+    createdAt: string;
+  }[]>> {
+    return this.request(`/api/dashboards?organizationId=${organizationId}`);
+  }
 }
 
 // Create singleton instance

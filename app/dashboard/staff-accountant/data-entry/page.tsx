@@ -25,481 +25,635 @@ import {
   DropdownMenu,
   DropdownItem,
   Select,
-  SelectItem
+  SelectItem,
+  Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Textarea
 } from "@nextui-org/react";
 import { SearchIcon } from "@/components/icons/searchicon";
-import { CheckCircleIcon } from "@/components/icons/profile/check-circle-icon";
-import { ExclamationTriangleIcon } from "@/components/icons/profile/exclamation-triangle-icon";
-import { ClockIcon } from "@/components/icons/profile/clock-icon";
-import { ChartBarIcon } from "@/components/icons/profile/chart-bar-icon";
-import { DocumentTextIcon } from "@/components/icons/profile/document-text-icon";
-import { UserGroupIcon } from "@/components/icons/profile/user-group-icon";
-import { BuildingOfficeIcon } from "@/components/icons/profile/building-office-icon";
-import { MapPinIcon } from "@/components/icons/profile/map-pin-icon";
-import { CurrencyDollarIcon } from "@/components/icons/profile/currency-dollar-icon";
-import { CalendarIcon } from "@/components/icons/profile/calendar-icon";
-import { ShieldCheckIcon } from "@/components/icons/profile/shield-check-icon";
-import { AcademicCapIcon } from "@/components/icons/profile/academic-cap-icon";
-import { DotsIcon } from "@/components/icons/accounts/dots-icon";
-import { EyeIcon } from "@/components/icons/table/eye-icon";
-import { EditIcon } from "@/components/icons/table/edit-icon";
-import { DeleteIcon } from "@/components/icons/table/delete-icon";
-import { InfoIcon } from "@/components/icons/accounts/info-icon";
+import { useTasks, useClients, useAlerts } from "@/hooks/useApi";
 
-// Document data structure
-interface Document {
+// Data entry task structure
+interface DataEntryTask {
   id: string;
+  title: string;
+  description: string;
+  clientId: string;
   clientName: string;
-  clientCode: string;
-  state: string;
-  period: string;
-  salesAmount: number;
-  transactionCount: number;
-  businessType: string;
-  status: 'pending' | 'under-review' | 'approved' | 'rejected' | 'needs-revision';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  submittedBy: string;
-  submittedDate: string;
-  reviewedBy?: string;
-  reviewedDate?: string;
-  qualityScore: number;
-  nexusStatus: 'safe' | 'warning' | 'critical';
-  fileUploaded: boolean;
+  clientAvatar: string;
+  dataType: 'sales_data' | 'transaction_data' | 'client_info' | 'compliance_data' | 'financial_data';
+  status: 'pending' | 'in_progress' | 'review' | 'completed' | 'needs_correction';
+  priority: 'high' | 'medium' | 'low';
+  assignedBy: string;
+  assignedAt: string;
+  dueDate: string;
+  completedAt?: string;
+  estimatedHours: number;
+  actualHours?: number;
+  progress: number;
+  qualityScore?: number;
   notes?: string;
-  documentType: string;
-  category: string;
-  issuedBy: string;
-  expiryDate?: string;
+  attachments?: string[];
+  dataFields: string[];
+  validationRules: string[];
+  lastUpdated: string;
+  errorCount?: number;
+  correctionNotes?: string[];
 }
 
-// Sample document data
-const documents: Document[] = [
-  {
-    id: "DE-2024-001",
-    clientName: "TechCorp Solutions",
-    clientCode: "TC-001",
-    state: "CA",
-    period: "Q3 2024",
-    salesAmount: 750000,
-    transactionCount: 1250,
-    businessType: "SaaS",
-    status: "under-review",
-    priority: "high",
-    submittedBy: "Sarah Johnson",
-    submittedDate: "2024-01-15",
-    reviewedBy: "Michael Chen",
-    reviewedDate: "2024-01-16",
-    qualityScore: 95,
-    nexusStatus: "critical",
-    fileUploaded: true,
-    notes: "Approaching nexus threshold - requires immediate attention",
-    documentType: "Economic Nexus Report",
-    category: "Compliance",
-    issuedBy: "Sarah Johnson",
-    expiryDate: "2024-12-31"
-  },
-  {
-    id: "DE-2024-002",
-    clientName: "RetailMax Inc",
-    clientCode: "RM-002",
-    state: "TX",
-    period: "Q3 2024",
-    salesAmount: 450000,
-    transactionCount: 890,
-    businessType: "Retail",
-    status: "approved",
-    priority: "medium",
-    submittedBy: "David Wilson",
-    submittedDate: "2024-01-14",
-    reviewedBy: "Lisa Rodriguez",
-    reviewedDate: "2024-01-15",
-    qualityScore: 88,
-    nexusStatus: "warning",
-    fileUploaded: true,
-    documentType: "Sales Tax Return",
-    category: "Tax Filing",
-    issuedBy: "David Wilson"
-  },
-  {
-    id: "DE-2024-003",
-    clientName: "Manufacturing Plus",
-    clientCode: "MP-003",
-    state: "NY",
-    period: "Q3 2024",
-    salesAmount: 1200000,
-    transactionCount: 2100,
-    businessType: "Manufacturing",
-    status: "needs-revision",
-    priority: "critical",
-    submittedBy: "Emily Davis",
-    submittedDate: "2024-01-13",
-    qualityScore: 72,
-    nexusStatus: "critical",
-    fileUploaded: false,
-    notes: "Missing supporting documentation and transaction details",
-    documentType: "Nexus Analysis",
-    category: "Compliance",
-    issuedBy: "Emily Davis",
-    expiryDate: "2024-06-30"
-  },
-  {
-    id: "DE-2024-004",
-    clientName: "ServicePro LLC",
-    clientCode: "SP-004",
-    state: "FL",
-    period: "Q3 2024",
-    salesAmount: 85000,
-    transactionCount: 340,
-    businessType: "Services",
-    status: "pending",
-    priority: "low",
-    submittedBy: "James Brown",
-    submittedDate: "2024-01-17",
-    qualityScore: 92,
-    nexusStatus: "safe",
-    fileUploaded: true,
-    documentType: "Quarterly Report",
-    category: "Reporting",
-    issuedBy: "James Brown"
-  },
-  {
-    id: "DE-2024-005",
-    clientName: "E-commerce Giant",
-    clientCode: "EG-005",
-    state: "WA",
-    period: "Q3 2024",
-    salesAmount: 950000,
-    transactionCount: 1800,
-    businessType: "Retail",
-    status: "approved",
-    priority: "high",
-    submittedBy: "Maria Garcia",
-    submittedDate: "2024-01-12",
-    reviewedBy: "Robert Kim",
-    reviewedDate: "2024-01-13",
-    qualityScore: 96,
-    nexusStatus: "critical",
-    fileUploaded: true,
-    documentType: "Multi-State Filing",
-    category: "Tax Filing",
-    issuedBy: "Maria Garcia"
+// Transform API tasks to data entry tasks
+const transformToDataEntryTasks = (tasks: any[], clients: any[]): DataEntryTask[] => {
+  return tasks
+    .filter(task => 
+      task.category === 'data_entry' || 
+      task.type === 'data_entry' ||
+      task.title?.toLowerCase().includes('data entry') ||
+      task.title?.toLowerCase().includes('data processing')
+    )
+    .map(task => {
+      const client = clients.find(c => c.id === task.clientId);
+      
+      // Determine data type based on task title/description
+      let dataType: 'sales_data' | 'transaction_data' | 'client_info' | 'compliance_data' | 'financial_data' = 'sales_data';
+      const title = task.title?.toLowerCase() || '';
+      const description = task.description?.toLowerCase() || '';
+      
+      if (title.includes('transaction') || description.includes('transaction')) {
+        dataType = 'transaction_data';
+      } else if (title.includes('client') || description.includes('client info')) {
+        dataType = 'client_info';
+      } else if (title.includes('compliance') || description.includes('compliance')) {
+        dataType = 'compliance_data';
+      } else if (title.includes('financial') || description.includes('financial')) {
+        dataType = 'financial_data';
+      }
+      
+      // Calculate progress based on status
+      let progress = 0;
+      switch (task.status) {
+        case 'pending': progress = 0; break;
+        case 'in_progress': progress = 50; break;
+        case 'review': progress = 80; break;
+        case 'completed': progress = 100; break;
+        case 'needs_correction': progress = 30; break;
+        default: progress = 0;
+      }
+      
+      return {
+        id: task.id,
+        title: task.title || 'Data Entry Task',
+        description: task.description || 'Enter and validate data according to specifications',
+        clientId: task.clientId,
+        clientName: client?.name || 'Unknown Client',
+        clientAvatar: client?.name?.charAt(0).toUpperCase() || 'U',
+        dataType,
+        status: task.status || 'pending',
+        priority: task.priority || 'medium',
+        assignedBy: 'Jane Doe, CPA',
+        assignedAt: task.createdAt,
+        dueDate: task.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        completedAt: task.completedAt,
+        estimatedHours: 4,
+        actualHours: task.actualHours,
+        progress,
+        qualityScore: task.qualityScore,
+        notes: task.notes,
+        attachments: task.attachments || [],
+        dataFields: getDataFieldsForType(dataType),
+        validationRules: getValidationRulesForType(dataType),
+        lastUpdated: task.updatedAt || task.createdAt,
+        errorCount: Math.floor(Math.random() * 5), // Mock error count
+        correctionNotes: task.status === 'needs_correction' ? ['Data format incorrect', 'Missing required fields'] : []
+      };
+    });
+};
+
+// Helper functions
+const getDataFieldsForType = (dataType: string): string[] => {
+  switch (dataType) {
+    case 'sales_data': return ['Date', 'Amount', 'State', 'Product', 'Customer ID'];
+    case 'transaction_data': return ['Transaction ID', 'Date', 'Amount', 'Type', 'Reference'];
+    case 'client_info': return ['Name', 'Address', 'Tax ID', 'Industry', 'Contact'];
+    case 'compliance_data': return ['State', 'Threshold', 'Status', 'Deadline', 'Penalty'];
+    case 'financial_data': return ['Account', 'Amount', 'Category', 'Date', 'Description'];
+    default: return ['Field 1', 'Field 2', 'Field 3'];
   }
-];
+};
 
+const getValidationRulesForType = (dataType: string): string[] => {
+  switch (dataType) {
+    case 'sales_data': return ['Amount must be positive', 'Date must be valid', 'State code required'];
+    case 'transaction_data': return ['Transaction ID must be unique', 'Amount must be numeric', 'Date format required'];
+    case 'client_info': return ['Tax ID must be valid format', 'Address must be complete', 'Contact info required'];
+    case 'compliance_data': return ['State code must be valid', 'Threshold must be numeric', 'Deadline must be future date'];
+    case 'financial_data': return ['Account must exist', 'Amount must be numeric', 'Category must be valid'];
+    default: return ['Field validation required'];
+  }
+};
 
-// Status color mapping
-const getStatusColor = (status: Document['status']) => {
+// Utility functions
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+const getStatusColor = (status: string) => {
   switch (status) {
-    case 'approved': return 'success';
-    case 'under-review': return 'warning';
+    case 'completed': return 'success';
+    case 'in_progress': return 'primary';
+    case 'review': return 'warning';
+    case 'needs_correction': return 'danger';
     case 'pending': return 'default';
-    case 'needs-revision': return 'danger';
-    case 'rejected': return 'danger';
     default: return 'default';
   }
 };
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'Compliance': return 'success';
-    case 'Tax Filing': return 'primary';
-    case 'Reporting': return 'secondary';
-    case 'Analysis': return 'warning';
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'high': return 'danger';
+    case 'medium': return 'warning';
+    case 'low': return 'success';
     default: return 'default';
   }
 };
 
-// Table columns
-const columns = [
-  { name: "Document name", uid: "documentName" },
-  { name: "Document type", uid: "documentType" },
-  { name: "Associated with", uid: "associatedWith" },
-  { name: "Category", uid: "category" },
-  { name: "Issued by", uid: "issuedBy" },
-  { name: "Status", uid: "status" },
-  { name: "Actions", uid: "actions" }
-];
+const getDataTypeColor = (dataType: string) => {
+  switch (dataType) {
+    case 'sales_data': return 'primary';
+    case 'transaction_data': return 'secondary';
+    case 'client_info': return 'success';
+    case 'compliance_data': return 'warning';
+    case 'financial_data': return 'danger';
+    default: return 'default';
+  }
+};
 
-// Render cell component
-const RenderCell = ({ document, columnKey }: { document: Document; columnKey: string }) => {
-  switch (columnKey) {
-    case "documentName":
-      return (
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-            <DocumentTextIcon className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-white">{document.id}</p>
-            <p className="text-xs text-gray-400">{document.clientName}</p>
-          </div>
-        </div>
-      );
-    
-    case "documentType":
-      return (
-        <div>
-          <p className="text-sm text-white">{document.documentType}</p>
-          <p className="text-xs text-gray-400">{document.period}</p>
-        </div>
-      );
-    
-    case "associatedWith":
-      return (
-        <div>
-          <p className="text-sm text-white">{document.clientName}</p>
-          <p className="text-xs text-gray-400">{document.clientCode}</p>
-        </div>
-      );
-    
-    case "category":
-      return (
-        <Chip
-          color={getCategoryColor(document.category)}
-          size="sm"
-          variant="flat"
-          className="text-xs"
-        >
-          {document.category}
-        </Chip>
-      );
-    
-    case "issuedBy":
-      return (
-        <div>
-          <p className="text-sm text-white">{document.issuedBy}</p>
-          <p className="text-xs text-gray-400">{document.submittedDate}</p>
-        </div>
-      );
-    
-    case "status":
-      return (
-        <div className="flex items-center space-x-2">
-          <Chip
-            color={getStatusColor(document.status)}
-            size="sm"
-            variant="flat"
-            className="text-xs"
-          >
-            {document.status.replace('-', ' ').toUpperCase()}
-          </Chip>
-          {document.nexusStatus === 'critical' && (
-            <Tooltip content="Critical nexus threshold exceeded">
-              <ExclamationTriangleIcon className="w-4 h-4 text-red-400" />
-            </Tooltip>
-          )}
-        </div>
-      );
-    
-    case "actions":
-      return (
-        <div className="flex items-center space-x-2">
-          <Tooltip content="View Details">
-            <Button
-              isIconOnly
-              size="sm"
-              variant="light"
-              className="text-gray-400 hover:text-white"
-            >
-              <EyeIcon />
-            </Button>
-          </Tooltip>
-          <Tooltip content="Download">
-            <Button
-              isIconOnly
-              size="sm"
-              variant="light"
-              className="text-gray-400 hover:text-white"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </Button>
-          </Tooltip>
-          <Dropdown>
-            <DropdownTrigger>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                className="text-gray-400 hover:text-white"
-              >
-                <DotsIcon />
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Document actions">
-              <DropdownItem key="view">View</DropdownItem>
-              <DropdownItem key="edit">Edit</DropdownItem>
-              <DropdownItem key="rename">Rename doc</DropdownItem>
-              <DropdownItem key="replace">Replace doc</DropdownItem>
-              <DropdownItem key="delete" className="text-danger" color="danger">
-                Delete
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        </div>
-      );
-    
-    default:
-      return null;
+const getDataTypeIcon = (dataType: string) => {
+  switch (dataType) {
+    case 'sales_data': return '💰';
+    case 'transaction_data': return '💳';
+    case 'client_info': return '👤';
+    case 'compliance_data': return '📋';
+    case 'financial_data': return '📊';
+    default: return '📝';
   }
 };
 
 export default function StaffAccountantDataEntry() {
-  const [filterValue, setFilterValue] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dataTypeFilter, setDataTypeFilter] = useState('all');
+  const [selectedTask, setSelectedTask] = useState<DataEntryTask | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
-  // Filter documents based on search and filters
-  const filteredDocuments = useMemo(() => {
-    let filtered = documents;
+  // Fetch data from APIs
+  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 100 });
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50 });
+  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 50 });
 
-    // Filter by category
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(doc => doc.category === selectedCategory);
-    }
+  const tasks = tasksData?.tasks || [];
+  const clients = clientsData?.clients || [];
+  const alerts = alertsData?.alerts || [];
 
-    // Filter by status
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(doc => doc.status === selectedStatus);
-    }
+  // Transform to data entry tasks
+  const dataEntryTasks = transformToDataEntryTasks(tasks, clients);
 
-    // Filter by search
-    if (filterValue) {
-      filtered = filtered.filter(doc =>
-        doc.clientName.toLowerCase().includes(filterValue.toLowerCase()) ||
-        doc.clientCode.toLowerCase().includes(filterValue.toLowerCase()) ||
-        doc.id.toLowerCase().includes(filterValue.toLowerCase()) ||
-        doc.documentType.toLowerCase().includes(filterValue.toLowerCase())
-      );
-    }
+  // Filter tasks
+  const filteredTasks = dataEntryTasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+    const matchesDataType = dataTypeFilter === 'all' || task.dataType === dataTypeFilter;
+    const matchesTab = activeTab === 'all' || task.status === activeTab;
+    return matchesSearch && matchesStatus && matchesDataType && matchesTab;
+  });
 
-    return filtered;
-  }, [filterValue, selectedCategory, selectedStatus]);
+  const handleTaskClick = (task: DataEntryTask) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleTaskUpdate = (taskId: string, updates: Partial<DataEntryTask>) => {
+    console.log(`Updating task ${taskId} with:`, updates);
+    // Here you would implement the actual task update logic
+    setIsModalOpen(false);
+    setSelectedTask(null);
+  };
+
+  // Calculate statistics
+  const stats = {
+    total: dataEntryTasks.length,
+    pending: dataEntryTasks.filter(t => t.status === 'pending').length,
+    inProgress: dataEntryTasks.filter(t => t.status === 'in_progress').length,
+    review: dataEntryTasks.filter(t => t.status === 'review').length,
+    completed: dataEntryTasks.filter(t => t.status === 'completed').length,
+    needsCorrection: dataEntryTasks.filter(t => t.status === 'needs_correction').length,
+    overdue: dataEntryTasks.filter(t => 
+      t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
+    ).length,
+    highPriority: dataEntryTasks.filter(t => t.priority === 'high').length,
+    averageQuality: Math.round(dataEntryTasks.reduce((sum, t) => sum + (t.qualityScore || 0), 0) / dataEntryTasks.length) || 0,
+    totalErrors: dataEntryTasks.reduce((sum, t) => sum + (t.errorCount || 0), 0)
+  };
+
+  if (tasksLoading || clientsLoading || alertsLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" color="primary" />
+          <p className="text-white mt-4">Loading data entry tasks...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6">
+      <div className="h-full lg:px-6 relative">
         <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
           
           {/* Main Content */}
           <div className="mt-6 gap-6 flex flex-col w-full">
-            {/* Header Section - Tax Manager Style */}
-            <div className="flex flex-col gap-4">
+            
+            {/* Header */}
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Documents</h2>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">Data Entry Management</h2>
               </div>
               
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardBody className="p-4 text-center">
+                  <div className="text-2xl font-bold text-white">{stats.total}</div>
+                  <div className="text-gray-400 text-xs">Total Tasks</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardBody className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-500">{stats.inProgress}</div>
+                  <div className="text-gray-400 text-xs">In Progress</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardBody className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-500">{stats.completed}</div>
+                  <div className="text-gray-400 text-xs">Completed</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardBody className="p-4 text-center">
+                  <div className="text-2xl font-bold text-red-500">{stats.needsCorrection}</div>
+                  <div className="text-gray-400 text-xs">Needs Correction</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardBody className="p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-500">{stats.overdue}</div>
+                  <div className="text-gray-400 text-xs">Overdue</div>
+                </CardBody>
+              </Card>
+              <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
+                <CardBody className="p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-500">{stats.averageQuality}%</div>
+                  <div className="text-gray-400 text-xs">Avg Quality</div>
+                </CardBody>
+              </Card>
             </div>
 
-
-            {/* Documents Table */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-              {/* Table Controls */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button
-                        variant="bordered"
-                        startContent={
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
-                          </svg>
-                        }
-                        className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-                      >
-                        Filter
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Filter options">
-                      <DropdownItem key="all">All Categories</DropdownItem>
-                      <DropdownItem key="Compliance">Compliance</DropdownItem>
-                      <DropdownItem key="Tax Filing">Tax Filing</DropdownItem>
-                      <DropdownItem key="Reporting">Reporting</DropdownItem>
-                      <DropdownItem key="Analysis">Analysis</DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button
-                        variant="bordered"
-                        startContent={
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                          </svg>
-                        }
-                        className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-                      >
-                        Columns
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Column options">
-                      <DropdownItem key="all">Show All</DropdownItem>
-                      <DropdownItem key="essential">Essential Only</DropdownItem>
-                      <DropdownItem key="custom">Custom View</DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
+            {/* Tabs */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+              <Tabs 
+                selectedKey={activeTab} 
+                onSelectionChange={(key) => setActiveTab(key as string)}
+                className="w-full"
+                classNames={{
+                  tabList: "bg-white/5 border border-white/10",
+                  tab: "text-white/70 data-[selected=true]:text-white",
+                  cursor: "bg-blue-500"
+                }}
+              >
+                <Tab key="all" title={`All (${stats.total})`} />
+                <Tab key="pending" title={`Pending (${stats.pending})`} />
+                <Tab key="in_progress" title={`In Progress (${stats.inProgress})`} />
+                <Tab key="review" title={`Review (${stats.review})`} />
+                <Tab key="completed" title={`Completed (${stats.completed})`} />
+                <Tab key="needs_correction" title={`Corrections (${stats.needsCorrection})`} />
+              </Tabs>
                 </div>
 
-                <div className="flex items-center space-x-4">
+            {/* Filters */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 mb-6">
+              <div className="flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex gap-2">
                   <Input
-                    isClearable
-                    placeholder="Search documents..."
-                    startContent={<SearchIcon />}
-                    value={filterValue}
-                    onClear={() => setFilterValue("")}
-                    onValueChange={setFilterValue}
-                    className="w-80 bg-white/5 border-white/20 text-white placeholder-gray-400"
+                    placeholder="Search data entry tasks..."
+                    value={searchQuery}
+                    onValueChange={setSearchQuery}
+                    size="sm"
+                    className="w-64 bg-white/5 border-white/10 text-white placeholder-gray-400"
+                    classNames={{
+                      input: "text-white",
+                      inputWrapper: "bg-white/5 border-white/10 hover:border-white/20 focus-within:border-blue-500/50"
+                    }}
+                    startContent={<SearchIcon className="w-4 h-4 text-white/40" />}
                   />
-                  
-                  <Link href="/dashboard/staff-accountant/data-entry/wizard">
+                </div>
+                
+                <div className="flex gap-3 items-center">
+                  <div className="flex gap-1">
                     <Button
-                      color="primary"
-                      size="lg"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      startContent={<AcademicCapIcon className="w-5 h-5" />}
+                      size="sm"
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        dataTypeFilter === "all" 
+                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                      onPress={() => setDataTypeFilter("all")}
                     >
-                      Add Documents
+                      All Types
                     </Button>
-                  </Link>
+                    <Button
+                      size="sm"
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        dataTypeFilter === "sales_data" 
+                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                      onPress={() => setDataTypeFilter("sales_data")}
+                    >
+                      Sales Data
+                    </Button>
+                    <Button
+                      size="sm"
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        dataTypeFilter === "transaction_data" 
+                          ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25' 
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                      onPress={() => setDataTypeFilter("transaction_data")}
+                    >
+                      Transactions
+                    </Button>
+                    <Button
+                      size="sm"
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        dataTypeFilter === "client_info" 
+                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/25' 
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                      onPress={() => setDataTypeFilter("client_info")}
+                    >
+                      Client Info
+                    </Button>
+                    <Button
+                      size="sm"
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
+                        dataTypeFilter === "compliance_data" 
+                          ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' 
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                      onPress={() => setDataTypeFilter("compliance_data")}
+                    >
+                      Compliance
+                    </Button>
+                  </div>
+                </div>
                 </div>
               </div>
 
-              <Table aria-label="Documents table" removeWrapper>
-                <TableHeader columns={columns}>
-                  {(column) => (
-                    <TableColumn
-                      key={column.uid}
-                      hideHeader={column.uid === "actions"}
-                      align={column.uid === "actions" ? "center" : "start"}
-                      className="text-gray-400 font-medium text-sm"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>{column.name}</span>
-                        <InfoIcon className="w-3 h-3 text-gray-500" />
+            {/* Task Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTasks.length === 0 ? (
+                <div className="col-span-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-12 text-center">
+                  <div className="text-white/60 font-medium text-lg mb-2">No data entry tasks found</div>
+                  <div className="text-sm text-white/50">Try adjusting your filters or check back later</div>
+                </div>
+              ) : (
+                filteredTasks.map((task) => (
+                  <Card 
+                    key={task.id} 
+                    className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer"
+                    onClick={() => handleTaskClick(task)}
+                  >
+                    <CardBody className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 bg-${getDataTypeColor(task.dataType)}-500/20 rounded-xl flex items-center justify-center`}>
+                            <span className="text-lg">{getDataTypeIcon(task.dataType)}</span>
+                          </div>
+                          <div>
+                            <h4 className="text-white font-semibold text-sm">{task.title}</h4>
+                            <p className="text-white/60 text-xs">{task.clientName}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end space-y-1">
+                          <Chip 
+                            color={getStatusColor(task.status)}
+                            size="sm"
+                            variant="flat"
+                          >
+                            {task.status.replace('_', ' ')}
+                          </Chip>
+                          {task.errorCount && task.errorCount > 0 && (
+                            <Badge content={task.errorCount} color="danger" size="sm">
+                              <Chip color="danger" size="sm" variant="flat">
+                                Errors
+                              </Chip>
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </TableColumn>
-                  )}
-                </TableHeader>
-                <TableBody items={filteredDocuments}>
-                  {(document) => (
-                    <TableRow key={document.id} className="hover:bg-white/5">
-                      {(columnKey) => (
-                        <TableCell className="py-4">
-                          {RenderCell({ document, columnKey: columnKey as string })}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                      
+                      <p className="text-white/70 text-sm mb-4 line-clamp-2">{task.description}</p>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-white/60">Progress</span>
+                          <span className="text-white font-medium">{task.progress}%</span>
+                        </div>
+                        <Progress 
+                          value={task.progress}
+                          color={task.progress >= 80 ? 'success' : task.progress >= 50 ? 'primary' : 'warning'}
+                          size="sm"
+                        />
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Chip 
+                              color={getPriorityColor(task.priority)}
+                              size="sm"
+                              variant="flat"
+                            >
+                              {task.priority}
+                            </Chip>
+                            <Chip 
+                              color={getDataTypeColor(task.dataType)}
+                              size="sm"
+                              variant="flat"
+                            >
+                              {task.dataType.replace('_', ' ')}
+                            </Chip>
+                          </div>
+                          <div className="text-white/60 text-xs">
+                            Due: {formatDate(task.dueDate)}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white/5 rounded-lg p-3">
+                          <div className="text-xs text-white/60 mb-2">Data Fields Required:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {task.dataFields.slice(0, 3).map((field, index) => (
+                              <Chip key={index} size="sm" variant="flat" color="default">
+                                {field}
+                              </Chip>
+                            ))}
+                            {task.dataFields.length > 3 && (
+                              <Chip size="sm" variant="flat" color="default">
+                                +{task.dataFields.length - 3} more
+                              </Chip>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardBody>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Task Detail Modal */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onOpenChange={setIsModalOpen}
+        size="3xl"
+        className="bg-black border border-white/10"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 text-white">
+                {selectedTask?.title}
+              </ModalHeader>
+              <ModalBody>
+                {selectedTask && (
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-white font-medium mb-2">Description</h4>
+                      <p className="text-white/70 text-sm">{selectedTask.description}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Client</h4>
+                        <div className="flex items-center space-x-2">
+                          <Avatar 
+                            name={selectedTask.clientAvatar} 
+                            size="sm"
+                            className="bg-blue-500/20 text-blue-400"
+                          />
+                          <span className="text-white/70 text-sm">{selectedTask.clientName}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Data Type</h4>
+                        <Chip color={getDataTypeColor(selectedTask.dataType)} size="sm">
+                          {selectedTask.dataType.replace('_', ' ')}
+                        </Chip>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Status</h4>
+                        <Chip color={getStatusColor(selectedTask.status)} size="sm">
+                          {selectedTask.status.replace('_', ' ')}
+                        </Chip>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Priority</h4>
+                        <Chip color={getPriorityColor(selectedTask.priority)} size="sm">
+                          {selectedTask.priority}
+                        </Chip>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-white font-medium mb-2">Progress</h4>
+                      <Progress 
+                        value={selectedTask.progress}
+                        color={selectedTask.progress >= 80 ? 'success' : selectedTask.progress >= 50 ? 'primary' : 'warning'}
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-white font-medium mb-2">Data Fields Required</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedTask.dataFields.map((field, index) => (
+                          <div key={index} className="bg-white/5 rounded-lg p-2 text-center">
+                            <span className="text-white/70 text-sm">{field}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-white font-medium mb-2">Validation Rules</h4>
+                      <div className="space-y-1">
+                        {selectedTask.validationRules.map((rule, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                            <span className="text-white/70 text-sm">{rule}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {selectedTask.correctionNotes && selectedTask.correctionNotes.length > 0 && (
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Correction Notes</h4>
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                          {selectedTask.correctionNotes.map((note, index) => (
+                            <div key={index} className="flex items-center space-x-2 mb-1">
+                              <div className="w-1 h-1 bg-red-400 rounded-full"></div>
+                              <span className="text-red-400 text-sm">{note}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" onPress={() => {
+                  if (selectedTask) {
+                    handleTaskUpdate(selectedTask.id, { status: 'in_progress' });
+                  }
+                }}>
+                  Start Data Entry
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

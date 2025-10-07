@@ -42,7 +42,10 @@ export const SidebarWrapper = () => {
             {pathname === "/generate" ? (
               /* ChatGPT-like sidebar for generate route */
               <div className="flex flex-col h-full">
-                <DashboardList />
+                <DashboardList onDashboardSelect={(id) => {
+                  // This will be handled by the generate page
+                  window.dispatchEvent(new CustomEvent('dashboardSelected', { detail: { dashboardId: id } }));
+                }} />
               </div>
             ) : (
               /* Regular sidebar for other routes */
