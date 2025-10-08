@@ -6,6 +6,8 @@ import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useNexusActivities, useClientStates, useNexusDashboardSummary } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
 // This will be populated with real data from clientStates
 
@@ -547,10 +549,7 @@ const NexusActivityTable = ({ activities, clients }: { activities: any[], client
   // Ensure activities is always an array
   const safeActivities = Array.isArray(activities) ? activities : [];
   
-  // Debug logging
-  console.log('NexusActivityTable - activities:', activities);
-  console.log('NexusActivityTable - safeActivities:', safeActivities);
-  console.log('NexusActivityTable - safeActivities.length:', safeActivities.length);
+  // Debug logging removed for production
   
   // Fallback data for testing
   const fallbackActivities = [
@@ -783,14 +782,23 @@ const NexusActivityTable = ({ activities, clients }: { activities: any[], client
 };
 
 export default function TaxManagerDashboard() {
+  // Get personalized dashboard context
+  const { dashboardUrl, isPersonalizedMode, clientName } = usePersonalizedDashboard();
+  
+  // Personalized data hooks
+  const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
+  const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
+  
+  // Regular data hooks (used when not in personalized mode)
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
   const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 10 });
   const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 10 });
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 10 });
   const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary();
 
-  const clients = clientsData?.clients || [];
-  const nexusAlerts = nexusAlertsData?.alerts || [];
+  // Use personalized data if available, otherwise use regular data
+  const clients = isPersonalizedMode ? (personalizedClientStates || []) : (clientsData?.clients || []);
+  const nexusAlerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (nexusAlertsData?.alerts || []);
   const nexusActivities = nexusActivitiesData?.activities || [];
   
   // Focused mock data - 10 key states for clean representation
@@ -821,12 +829,19 @@ export default function TaxManagerDashboard() {
   
   const dashboardSummary = dashboardSummaryData || {};
 
-  if (clientsLoading || nexusAlertsLoading || nexusActivitiesLoading || clientStatesLoading || dashboardSummaryLoading) {
+  // Loading states
+  const isLoading = isPersonalizedMode 
+    ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading)
+    : (clientsLoading || nexusAlertsLoading || nexusActivitiesLoading || clientStatesLoading || dashboardSummaryLoading);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" color="primary" />
-          <p className="text-white mt-4">Loading Tax Manager dashboard...</p>
+          <p className="text-white mt-4">
+            {isPersonalizedMode ? `Loading ${clientName || 'personalized'} tax manager dashboard...` : 'Loading Tax Manager dashboard...'}
+          </p>
         </div>
       </div>
     );
@@ -841,7 +856,14 @@ export default function TaxManagerDashboard() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Monitoring Overview</h2>
+                <h2 className="text-2xl font-semibold text-white tracking-tight">
+                  {isPersonalizedMode && clientName ? `${clientName} - Nexus Monitoring Overview` : 'Nexus Monitoring Overview'}
+                </h2>
+                {isPersonalizedMode && (
+                  <div className="ml-4 px-3 py-1 bg-blue-500/20 rounded-full border border-blue-500/30">
+                    <span className="text-blue-400 text-sm font-medium">Personalized View</span>
+                  </div>
+                )}
               </div>
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
               <CardActiveAlerts alerts={nexusAlerts} />

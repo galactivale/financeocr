@@ -667,18 +667,84 @@ class ApiClient {
     return this.request(`/api/dashboards/${url}`);
   }
 
-  async getDashboards(organizationId: string): Promise<ApiResponse<{
-    id: string;
-    clientName: string;
-    uniqueUrl: string;
-    dashboardUrl: string;
-    clientInfo: any;
-    keyMetrics: any;
-    statesMonitored: string[];
-    lastUpdated: string;
-    createdAt: string;
-  }[]>> {
-    return this.request(`/api/dashboards?organizationId=${organizationId}`);
+  async getDashboards(organizationId: string): Promise<{
+    success: boolean;
+    dashboards?: {
+      id: string;
+      clientName: string;
+      uniqueUrl: string;
+      dashboardUrl: string;
+      clientInfo: any;
+      keyMetrics: any;
+      statesMonitored: string[];
+      lastUpdated: string;
+      createdAt: string;
+    }[];
+    error?: string;
+  }> {
+    const url = `${this.baseURL}/api/dashboards?organizationId=${organizationId}`;
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || 'Request failed',
+        };
+      }
+
+      return {
+        success: true,
+        dashboards: data.dashboards || [],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error',
+      };
+    }
+  }
+
+  // Personalized Dashboard API methods
+  async getPersonalizedClients(url: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/personalized-dashboard/${url}/clients`);
+  }
+
+  async getPersonalizedAlerts(url: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/personalized-dashboard/${url}/alerts`);
+  }
+
+  async getPersonalizedTasks(url: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/personalized-dashboard/${url}/tasks`);
+  }
+
+  async getPersonalizedAnalytics(url: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/personalized-dashboard/${url}/analytics`);
+  }
+
+  async getPersonalizedSystemHealth(url: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/personalized-dashboard/${url}/system-health`);
+  }
+
+  async getPersonalizedNexusAlerts(url: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/personalized-dashboard/${url}/nexus-alerts`);
+  }
+
+  async getPersonalizedNexusActivities(url: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/personalized-dashboard/${url}/nexus-activities`);
+  }
+
+  async getPersonalizedClientStates(url: string): Promise<ApiResponse<any[]>> {
+    return this.request(`/api/personalized-dashboard/${url}/client-states`);
   }
 }
 

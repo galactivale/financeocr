@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const SchemaBasedDataGenerator = require('../services/schemaBasedDataGenerator');
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -8,20 +9,19 @@ const prisma = new PrismaClient();
 const geminiConfig = {
   token: process.env.GEMINI_API_KEY,
   gemini: {
-    api: process.env.GEMINI_API_KEY,
-    name: "gemini-2.5-flash-lite",
+    name: "gemini-1.5-flash",
     generationConfig: {
-      temperature: 0.9,
+      temperature: 0.7,
       topK: 40,
-      topP: 0.8,
-      maxOutputTokens: 2048
+      topP: 0.95,
+      maxOutputTokens: 8192,
     }
   }
 };
 
 const genAI = new GoogleGenerativeAI(geminiConfig.token);
 
-// Generate unique URL slug
+// Generate unique URL for dashboard
 function generateUniqueUrl(clientName) {
   const timestamp = Date.now();
   const randomSuffix = Math.random().toString(36).substring(2, 8);
@@ -29,9 +29,21 @@ function generateUniqueUrl(clientName) {
   return `${cleanName}-${timestamp}-${randomSuffix}`;
 }
 
-// Generate fake dashboard data using Gemini AI
-async function generateDashboardData(formData) {
-  console.log('🤖 Starting dashboard data generation...');
+// Generate unique URLs for different dashboard roles
+function generateDashboardUrls(clientName, uniqueUrl) {
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  
+  return {
+    main: `${baseUrl}/dashboard/view/${uniqueUrl}`,
+    managingPartner: `${baseUrl}/dashboard/managing-partner`,
+    taxManager: `${baseUrl}/dashboard/tax-manager`,
+    systemAdmin: `${baseUrl}/dashboard/system-admin`
+  };
+}
+
+// Generate comprehensive dashboard data using schema-based approach
+async function generateDashboardData(formData, organizationId) {
+  console.log('🤖 Starting schema-based dashboard data generation...');
   console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
   
   try {
@@ -41,98 +53,187 @@ async function generateDashboardData(formData) {
     }
     console.log('✅ Gemini API key found');
     
-    const model = genAI.getGenerativeModel({ 
-      model: geminiConfig.gemini.name,
-      generationConfig: geminiConfig.gemini.generationConfig
-    });
-    console.log('🤖 Gemini model initialized with config:', geminiConfig.gemini);
+    console.log('🚀 Initializing schema-based data generator...');
+    const dataGenerator = new SchemaBasedDataGenerator();
     
-    const prompt = `
-    Generate realistic fake dashboard data for a tax compliance monitoring system based on the following client information:
+    console.log('📊 Generating comprehensive database records...');
+    const generatedData = await dataGenerator.generateCompleteClientData(formData, organizationId);
     
-    Client Name: ${formData.clientName}
-    Multi-state Client Count: ${formData.multiStateClientCount}
-    Priority States: ${formData.priorityStates.join(', ')}
-    Pain Points: ${formData.painPoints.join(', ')}
-    Primary Industry: ${formData.primaryIndustry}
-    Qualification Strategy: ${formData.qualificationStrategy}
-    Additional Notes: ${formData.additionalNotes}
+    console.log('✅ Schema-based data generation completed');
+    return generatedData;
     
-    Please generate a JSON response with the following structure:
-    {
-      "clientInfo": {
-        "description": "Multi-state client dashboard with comprehensive tax monitoring",
-        "industry": "${formData.primaryIndustry}",
-        "clientCount": "${formData.multiStateClientCount}",
-        "riskLevel": "medium|high|low",
-        "complianceScore": 85-95
-      },
-      "keyMetrics": {
-        "description": "Real-time compliance tracking and threshold monitoring",
-        "totalRevenue": "realistic revenue amount in USD",
-        "nexusStates": ${formData.priorityStates.length},
-        "activeAlerts": "number between 0-5",
-        "complianceRate": "percentage between 85-98%",
-        "lastAuditDate": "recent date in YYYY-MM-DD format"
-      },
-      "statesMonitored": ${JSON.stringify(formData.priorityStates)},
-      "lastUpdated": "current date in YYYY-MM-DD format"
-    }
-    
-    Make the data realistic and consistent with the client's industry and size. Use appropriate revenue ranges based on the client count range.
-    `;
+  } catch (error) {
+    console.error('❌ Error generating schema-based data:', error);
+    console.log('🔄 Using fallback data...');
+    console.log('💡 To enable AI data generation, set GEMINI_API_KEY in your .env file');
+    return getFallbackDashboardData(formData, organizationId);
+  }
+}
 
-    console.log('📝 Sending prompt to Gemini...');
-    const result = await model.generateContent(prompt);
+// Fallback data generation function
+async function getFallbackDashboardData(formData, organizationId) {
+  console.log('🔄 Generating fallback data with database records...');
+  
+  try {
+    // Create a basic client record in the database
+    const client = await prisma.client.create({
+      data: {
+        organizationId,
+        name: formData.clientName,
+        slug: generateSlug(formData.clientName),
+        industry: formData.industry || 'Technology',
+        annualRevenue: parseRevenue(formData.annualRevenue),
+        riskLevel: 'medium',
+        qualityScore: 85,
+        status: 'active',
+        tags: ['generated', 'fallback'],
+        primaryContactName: 'John Smith',
+        primaryContactEmail: 'john@company.com',
+        primaryContactPhone: '+1-555-0123',
+        addressLine1: '123 Business St',
+        city: 'San Francisco',
+        state: 'CA',
+        postalCode: '94105',
+        country: 'US',
+        notes: 'Fallback generated client'
+      }
+    });
+
+    console.log('✅ Fallback client created with ID:', client.id);
+
+    // Create basic client states
+    const clientStates = [];
+    for (const state of formData.priorityStates) {
+      const clientState = await prisma.clientState.create({
+        data: {
+          clientId: client.id,
+          organizationId,
+          stateCode: state,
+          stateName: getStateName(state),
+          status: 'monitoring',
+          thresholdAmount: 100000,
+          currentAmount: Math.floor(Math.random() * 100000) + 50000,
+          notes: 'Fallback generated state'
+        }
+      });
+      clientStates.push(clientState);
+    }
+
+    // Create basic nexus alerts
+    const nexusAlerts = [];
+    if (formData.priorityStates.length > 0) {
+      const nexusAlert = await prisma.nexusAlert.create({
+        data: {
+          clientId: client.id,
+          organizationId,
+          stateCode: formData.priorityStates[0],
+          alertType: 'threshold_breach',
+          priority: 'medium',
+          status: 'open',
+          title: 'Threshold Approaching',
+          description: 'Current revenue is approaching the threshold',
+          thresholdAmount: 100000,
+          currentAmount: 85000,
+          penaltyRisk: 15000
+        }
+      });
+      nexusAlerts.push(nexusAlert);
+    }
+
+    // Create basic tasks
+    const tasks = [];
+    const task = await prisma.task.create({
+      data: {
+        organizationId,
+        clientId: client.id,
+        title: 'Review Compliance Status',
+        description: 'Review compliance status for all states',
+        category: 'compliance',
+        type: 'review',
+        priority: 'high',
+        status: 'pending',
+        stateCode: formData.priorityStates[0] || 'CA',
+        estimatedHours: 4,
+        progress: 0
+      }
+    });
+    tasks.push(task);
+
+    return {
+      client,
+      clientStates,
+      nexusAlerts,
+      tasks,
+      alerts: [],
+      nexusActivities: [],
+      businessProfile: null,
+      contacts: [],
+      businessLocations: [],
+      revenueBreakdowns: [],
+      customerDemographics: null,
+      geographicDistributions: []
+    };
+
+  } catch (error) {
+    console.error('❌ Error creating fallback data:', error);
+    throw error;
+  }
+}
+
+// Utility functions
+function generateSlug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
+}
+
+function parseRevenue(revenueString) {
+  if (!revenueString) return 1000000;
+  const match = revenueString.match(/\$?([\d,]+)/);
+  if (match) {
+    return parseInt(match[1].replace(/,/g, '')) * 1000; // Convert K to actual number
+  }
+  return 1000000;
+}
+
+function getStateName(stateCode) {
+  const stateNames = {
+    'CA': 'California', 'NY': 'New York', 'TX': 'Texas', 'FL': 'Florida',
+    'IL': 'Illinois', 'PA': 'Pennsylvania', 'OH': 'Ohio', 'GA': 'Georgia',
+    'NC': 'North Carolina', 'MI': 'Michigan', 'NJ': 'New Jersey', 'VA': 'Virginia',
+    'WA': 'Washington', 'AZ': 'Arizona', 'MA': 'Massachusetts', 'TN': 'Tennessee',
+    'IN': 'Indiana', 'MO': 'Missouri', 'MD': 'Maryland', 'WI': 'Wisconsin'
+  };
+  return stateNames[stateCode] || stateCode;
+}
+
+// Test endpoint to check Gemini API
+router.get('/test-gemini', async (req, res) => {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(400).json({ error: 'GEMINI_API_KEY not found' });
+    }
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    
+    const result = await model.generateContent("Hello, respond with 'API working'");
     const response = await result.response;
     const text = response.text();
     
-    console.log('📄 Raw Gemini response:', text);
-    
-    // Extract JSON from the response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      console.log('✅ JSON extracted from response');
-      const parsedData = JSON.parse(jsonMatch[0]);
-      console.log('📊 Parsed dashboard data:', JSON.stringify(parsedData, null, 2));
-      return parsedData;
-    } else {
-      console.error('❌ Could not extract JSON from Gemini response');
-      throw new Error('Could not parse JSON from Gemini response');
-    }
-  } catch (error) {
-    console.error('❌ Error generating dashboard data:', error);
-    console.error('📋 Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+    res.json({ 
+      success: true, 
+      message: 'Gemini API is working',
+      response: text 
     });
-    
-    console.log('🔄 Using fallback data...');
-    // Fallback data if Gemini fails
-    const fallbackData = {
-      clientInfo: {
-        description: "Multi-state client dashboard with comprehensive tax monitoring",
-        industry: formData.primaryIndustry,
-        clientCount: formData.multiStateClientCount,
-        riskLevel: "medium",
-        complianceScore: 90
-      },
-      keyMetrics: {
-        description: "Real-time compliance tracking and threshold monitoring",
-        totalRevenue: "$2,500,000",
-        nexusStates: formData.priorityStates.length,
-        activeAlerts: 2,
-        complianceRate: "94%",
-        lastAuditDate: new Date().toISOString().split('T')[0]
-      },
-      statesMonitored: formData.priorityStates,
-      lastUpdated: new Date().toISOString().split('T')[0]
-    };
-    console.log('📊 Fallback data generated:', JSON.stringify(fallbackData, null, 2));
-    return fallbackData;
+  } catch (error) {
+    console.error('Gemini API test error:', error);
+    res.status(500).json({ 
+      error: 'Gemini API test failed',
+      details: error.message,
+      status: error.status,
+      statusText: error.statusText
+    });
   }
-}
+});
 
 // POST /api/dashboards/generate
 router.post('/generate', async (req, res) => {
@@ -145,100 +246,60 @@ router.post('/generate', async (req, res) => {
     if (!formData || !organizationId) {
       console.error('❌ Missing required fields:', { formData: !!formData, organizationId: !!organizationId });
       return res.status(400).json({ 
-        error: 'Form data and organization ID are required' 
+        error: 'Missing required fields: formData and organizationId are required' 
       });
     }
 
-    console.log('✅ Request validation passed');
-    console.log('📊 Form data:', JSON.stringify(formData, null, 2));
-    console.log('🏢 Organization ID:', organizationId);
-
-    // Check if organization exists, if not create a demo organization
-    let orgId = organizationId;
-    if (organizationId === 'demo-org-id') {
-      console.log('🔍 Checking for demo organization...');
-      let demoOrg = await prisma.organization.findFirst({
-        where: { slug: 'demo-organization' }
-      });
-      
-      if (!demoOrg) {
-        console.log('🏗️ Creating demo organization...');
-        demoOrg = await prisma.organization.create({
-          data: {
-            id: 'demo-org-id',
-            slug: 'demo-organization',
-            name: 'Demo Organization',
-            legalName: 'Demo Organization LLC',
-            taxId: '00-0000000',
-            subscriptionTier: 'professional',
-            subscriptionStatus: 'active',
-            email: 'demo@example.com',
-            phone: '+1-555-0000',
-            website: 'https://demo.example.com',
-            addressLine1: '123 Demo St',
-            city: 'Demo City',
-            state: 'DC',
-            postalCode: '00000',
-            country: 'US',
-            settings: {
-              timezone: 'America/New_York',
-              currency: 'USD',
-              dateFormat: 'MM/DD/YYYY'
-            },
-            branding: {
-              primaryColor: '#3B82F6',
-              logo: null
-            },
-            features: {
-              analytics: true,
-              integrations: true,
-              multiUser: true,
-              apiAccess: true
-            }
-          }
-        });
-        console.log('✅ Demo organization created with ID:', demoOrg.id);
-      } else {
-        console.log('✅ Demo organization found with ID:', demoOrg.id);
-      }
-      orgId = demoOrg.id;
-    }
-
-    // Generate unique URL
-    console.log('🔗 Generating unique URL...');
-    const uniqueUrl = generateUniqueUrl(formData.clientName);
-    console.log('✅ Unique URL generated:', uniqueUrl);
-
-    // Generate fake dashboard data using Gemini AI
-    console.log('🤖 Calling Gemini AI...');
-    const dashboardData = await generateDashboardData(formData);
-    console.log('✅ Dashboard data generated successfully');
-
-    // Store in database
-    console.log('💾 Storing in database...');
+    console.log('📊 Generating schema-based dashboard data...');
+    const generatedData = await generateDashboardData(formData, organizationId);
+    
+    console.log('💾 Creating dashboard reference...');
     const generatedDashboard = await prisma.generatedDashboard.create({
       data: {
-        organizationId: orgId,
+        organizationId,
         clientName: formData.clientName,
-        uniqueUrl,
-        clientInfo: dashboardData.clientInfo,
-        keyMetrics: dashboardData.keyMetrics,
-        statesMonitored: dashboardData.statesMonitored,
-        lastUpdated: new Date(dashboardData.lastUpdated)
+        uniqueUrl: generateUniqueUrl(formData.clientName),
+        clientInfo: {
+          name: generatedData.client.name,
+          industry: generatedData.client.industry,
+          annualRevenue: generatedData.client.annualRevenue,
+          riskLevel: generatedData.client.riskLevel,
+          qualityScore: generatedData.client.qualityScore
+        },
+        keyMetrics: {
+          totalRevenue: generatedData.client.annualRevenue,
+          complianceScore: generatedData.client.qualityScore,
+          riskScore: generatedData.client.riskLevel === 'high' ? 25 : generatedData.client.riskLevel === 'medium' ? 15 : 5,
+          statesMonitored: formData.priorityStates.length,
+          alertsActive: generatedData.nexusAlerts?.length || 0,
+          tasksCompleted: generatedData.tasks?.filter(t => t.status === 'completed').length || 0
+        },
+        statesMonitored: formData.priorityStates,
+        personalizedData: {
+          clientId: generatedData.client.id,
+          generatedAt: new Date().toISOString()
+        },
+        lastUpdated: new Date()
       }
     });
+
     console.log('✅ Dashboard stored in database with ID:', generatedDashboard.id);
 
+    // Generate all dashboard URLs for different roles
+    const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
+    
     const response = {
       success: true,
-      dashboard: {
+      data: {
         id: generatedDashboard.id,
         clientName: generatedDashboard.clientName,
         uniqueUrl: generatedDashboard.uniqueUrl,
-        dashboardUrl: `${process.env.FRONTEND_URL}/dashboard/view/${generatedDashboard.uniqueUrl}`,
+        dashboardUrl: dashboardUrls.main,
+        dashboardUrls: dashboardUrls, // Include all role-specific URLs
         clientInfo: generatedDashboard.clientInfo,
         keyMetrics: generatedDashboard.keyMetrics,
         statesMonitored: generatedDashboard.statesMonitored,
+        personalizedData: generatedDashboard.personalizedData,
         lastUpdated: generatedDashboard.lastUpdated
       }
     };
@@ -254,6 +315,7 @@ router.post('/generate', async (req, res) => {
       stack: error.stack,
       name: error.name
     });
+    
     res.status(500).json({ 
       error: 'Failed to generate dashboard',
       details: error.message 
@@ -265,9 +327,13 @@ router.post('/generate', async (req, res) => {
 router.get('/:url', async (req, res) => {
   try {
     const { url } = req.params;
+    console.log('🔍 Fetching dashboard for URL:', url);
 
     const dashboard = await prisma.generatedDashboard.findUnique({
-      where: { uniqueUrl: url },
+      where: { 
+        uniqueUrl: url,
+        isActive: true 
+      },
       include: {
         organization: {
           select: {
@@ -284,13 +350,14 @@ router.get('/:url', async (req, res) => {
 
     res.json({
       success: true,
-      dashboard: {
+      data: {
         id: dashboard.id,
         clientName: dashboard.clientName,
         uniqueUrl: dashboard.uniqueUrl,
         clientInfo: dashboard.clientInfo,
         keyMetrics: dashboard.keyMetrics,
         statesMonitored: dashboard.statesMonitored,
+        personalizedData: dashboard.personalizedData,
         lastUpdated: dashboard.lastUpdated,
         organization: dashboard.organization
       }

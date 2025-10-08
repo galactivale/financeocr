@@ -12,7 +12,7 @@ const register = async (req, res) => {
       firstName,
       lastName,
       organizationId,
-      role = 'staff-accountant',
+      role = 'tax-manager',
     } = req.body;
 
     // Check if user already exists

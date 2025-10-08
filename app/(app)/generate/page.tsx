@@ -11,6 +11,7 @@ import { ChartBarIcon } from "@/components/icons/profile/chart-bar-icon";
 import { ExclamationTriangleIcon } from "@/components/icons/profile/exclamation-triangle-icon";
 import { ArrowLeftIcon } from "@/components/icons/profile/arrow-left-icon";
 import { useDashboard } from "@/contexts/DashboardContext";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { DashboardDetails } from "@/components/dashboard/dashboard-details";
 import { apiClient } from "@/lib/api";
 
@@ -55,7 +56,8 @@ const CLIENT_COUNT_RANGES = [
 ];
 
 export default function GeneratePage() {
-  const { addDashboard, dashboards, archivedDashboards } = useDashboard();
+  const { addDashboard, dashboards, archivedDashboards, refreshDashboards } = useDashboard();
+  const { setDashboardSession } = usePersonalizedDashboard();
   const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormState>({
     clientName: "",
@@ -148,22 +150,27 @@ export default function GeneratePage() {
       const response = await apiClient.generateDashboard(formData, organizationId);
       
       if (response.success && response.data) {
-        // Create dashboard name from form data
-        const dashboardName = `${formData.clientName} Dashboard`;
+        console.log('Dashboard generation response:', response.data);
         
-        // Add the new dashboard to the context with the generated data
-        addDashboard({
-          name: dashboardName,
-          isActive: true,
-          uniqueUrl: response.data.uniqueUrl,
-          dashboardUrl: response.data.dashboardUrl,
-          clientInfo: response.data.clientInfo,
-          keyMetrics: response.data.keyMetrics,
-          statesMonitored: response.data.statesMonitored,
-          lastUpdated: response.data.lastUpdated
+        // Validate that we have the required data
+        if (!response.data.uniqueUrl || !response.data.dashboardUrl) {
+          throw new Error('Invalid dashboard data received from server');
+        }
+        
+        // Set dashboard session cookie
+        setDashboardSession({
+          dashboardUrl: response.data.uniqueUrl,
+          clientName: formData.clientName,
+          organizationId: organizationId,
+          createdAt: Date.now()
         });
         
-        alert(`Dashboard generated successfully! Unique URL: ${response.data.dashboardUrl}`);
+        // Refresh the dashboard list to include the new dashboard
+        await refreshDashboards();
+        
+        // Redirect to the main dashboard view
+        console.log('Redirecting to:', response.data.dashboardUrl);
+        window.location.href = response.data.dashboardUrl;
       } else {
         throw new Error(response.error || 'Failed to generate dashboard');
       }

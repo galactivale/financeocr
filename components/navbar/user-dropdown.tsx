@@ -35,7 +35,12 @@ export const UserDropdown = () => {
       </NavbarItem>
       <DropdownMenu
         aria-label='User menu actions'
-        onAction={(actionKey) => console.log({ actionKey })}>
+        onAction={(actionKey) => {
+          // Handle user menu actions
+          if (actionKey === 'logout') {
+            // Handle logout logic here
+          }
+        }}>
         <DropdownItem
           key='profile'
           className='flex flex-col justify-start w-full items-start'>

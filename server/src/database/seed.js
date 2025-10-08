@@ -114,7 +114,7 @@ const sampleUsers = [
     displayName: 'Mike Johnson',
     title: 'Senior Accountant',
     department: 'Client Services',
-    role: 'staff-accountant',
+    role: 'tax-manager',
     status: 'active'
   },
   // Smith Tax Pros Users

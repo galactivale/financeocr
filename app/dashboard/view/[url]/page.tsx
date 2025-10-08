@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
+import { Button } from "@nextui-org/react";
 import { apiClient } from "@/lib/api";
+
+// External link icon component
+const ExternalLinkIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+  </svg>
+);
 
 interface DashboardViewerProps {
   params: Promise<{
@@ -13,6 +21,7 @@ interface DashboardData {
   id: string;
   clientName: string;
   uniqueUrl: string;
+  dashboardUrl?: string;
   clientInfo?: {
     description?: string;
     industry?: string;
@@ -46,7 +55,15 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
+        console.log('Fetching dashboard for URL:', resolvedParams.url);
+        
+        if (!resolvedParams.url || resolvedParams.url === 'undefined') {
+          setError('Invalid dashboard URL');
+          return;
+        }
+        
         const response = await apiClient.getDashboard(resolvedParams.url);
+        console.log('Dashboard API response:', response);
         
         if (response.success && response.data) {
           setDashboard(response.data);
@@ -54,6 +71,7 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
           setError(response.error || 'Failed to load dashboard');
         }
       } catch (err) {
+        console.error('Error fetching dashboard:', err);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
       } finally {
         setLoading(false);
@@ -77,6 +95,11 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
         <div className="text-center">
           <div className="text-red-500 text-xl mb-4">Error</div>
           <div className="text-white/70">{error || 'Dashboard not found'}</div>
+          {resolvedParams.url === 'undefined' && (
+            <div className="text-yellow-400 text-sm mt-4">
+              The dashboard URL appears to be undefined. Please try generating a new dashboard.
+            </div>
+          )}
         </div>
       </div>
     );
@@ -246,6 +269,65 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Visit Dashboard Button */}
+        <div className="mt-8">
+          <h3 className="text-white text-lg font-semibold mb-4 text-center">Dashboard Access Links</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              color="primary"
+              variant="solid"
+              startContent={<ExternalLinkIcon />}
+              onClick={() => {
+                const url = dashboard.dashboardUrl || `${window.location.origin}/dashboard/view/${dashboard.uniqueUrl}`;
+                window.open(url, '_blank');
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl"
+              style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+            >
+              Main Dashboard
+            </Button>
+            <Button
+              color="secondary"
+              variant="solid"
+              startContent={<ExternalLinkIcon />}
+              onClick={() => {
+                const url = `${window.location.origin}/dashboard/managing-partner`;
+                window.open(url, '_blank');
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-xl"
+              style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+            >
+              Managing Partner
+            </Button>
+            <Button
+              color="secondary"
+              variant="solid"
+              startContent={<ExternalLinkIcon />}
+              onClick={() => {
+                const url = `${window.location.origin}/dashboard/tax-manager`;
+                window.open(url, '_blank');
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-xl"
+              style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+            >
+              Tax Manager
+            </Button>
+            <Button
+              color="secondary"
+              variant="solid"
+              startContent={<ExternalLinkIcon />}
+              onClick={() => {
+                const url = `${window.location.origin}/dashboard/system-admin`;
+                window.open(url, '_blank');
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-xl"
+              style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+            >
+              System Admin
+            </Button>
           </div>
         </div>
       </div>

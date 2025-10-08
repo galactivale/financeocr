@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { apiClient } from "../lib/api";
 
 interface Dashboard {
   id: string;
@@ -19,11 +20,14 @@ interface Dashboard {
 interface DashboardContextType {
   dashboards: Dashboard[];
   archivedDashboards: Dashboard[];
+  loading: boolean;
+  error: string | null;
   addDashboard: (dashboard: Omit<Dashboard, "id" | "createdAt">) => void;
   archiveDashboard: (id: string) => void;
   unarchiveDashboard: (id: string) => void;
   deleteDashboard: (id: string) => void;
   setActiveDashboard: (id: string) => void;
+  refreshDashboards: () => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -41,44 +45,68 @@ interface DashboardProviderProps {
 }
 
 export const DashboardProvider = ({ children }: DashboardProviderProps) => {
-  const [dashboards, setDashboards] = useState<Dashboard[]>([
-    {
-      id: "1",
-      name: "TechCorp Multi-State Dashboard",
-      createdAt: new Date("2024-01-15"),
-      isActive: true,
-    },
-    {
-      id: "2", 
-      name: "Healthcare Partners Analysis",
-      createdAt: new Date("2024-01-12"),
-    },
-    {
-      id: "3",
-      name: "Real Estate Portfolio Review",
-      createdAt: new Date("2024-01-10"),
-    },
-    {
-      id: "4",
-      name: "Manufacturing Compliance Report",
-      createdAt: new Date("2024-01-08"),
-    },
-  ]);
+  const [dashboards, setDashboards] = useState<Dashboard[]>([]);
+  const [archivedDashboards, setArchivedDashboards] = useState<Dashboard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [archivedDashboards, setArchivedDashboards] = useState<Dashboard[]>([
-    {
-      id: "5",
-      name: "Old Client Dashboard v1",
-      createdAt: new Date("2023-12-20"),
-      isArchived: true,
-    },
-    {
-      id: "6",
-      name: "Test Dashboard",
-      createdAt: new Date("2023-12-15"),
-      isArchived: true,
-    },
-  ]);
+  // Fetch dashboards from API
+  const fetchDashboards = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Use demo organization ID for now
+      const organizationId = "demo-org-id";
+      const response = await apiClient.getDashboards(organizationId);
+      
+      // Dashboard API response received
+      
+      if (response.success && response.dashboards && Array.isArray(response.dashboards)) {
+        // Convert API data to Dashboard format
+        const apiDashboards: Dashboard[] = response.dashboards.map((item: any) => ({
+          id: item.id,
+          name: `${item.clientName} Dashboard`,
+          createdAt: new Date(item.createdAt),
+          isActive: item.isActive,
+          isArchived: !item.isActive,
+          uniqueUrl: item.uniqueUrl,
+          dashboardUrl: item.dashboardUrl,
+          clientInfo: item.clientInfo,
+          keyMetrics: item.keyMetrics,
+          statesMonitored: item.statesMonitored,
+          lastUpdated: item.lastUpdated,
+        }));
+
+        // Separate active and archived dashboards
+        const activeDashboards = apiDashboards.filter(d => d.isActive);
+        const archivedDashboards = apiDashboards.filter(d => d.isArchived);
+        
+        setDashboards(activeDashboards);
+        setArchivedDashboards(archivedDashboards);
+      } else {
+        throw new Error(response.error || 'Failed to fetch dashboards');
+      }
+    } catch (err) {
+      console.error('Error fetching dashboards:', err);
+      console.error('Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        name: err instanceof Error ? err.name : undefined
+      });
+      setError(err instanceof Error ? err.message : 'Failed to fetch dashboards');
+      // Fallback to empty arrays on error
+      setDashboards([]);
+      setArchivedDashboards([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load dashboards on component mount
+  useEffect(() => {
+    fetchDashboards();
+  }, []);
 
   const addDashboard = (dashboardData: Omit<Dashboard, "id" | "createdAt">) => {
     const newDashboard: Dashboard = {
@@ -87,6 +115,10 @@ export const DashboardProvider = ({ children }: DashboardProviderProps) => {
       createdAt: new Date(),
     };
     setDashboards(prev => [newDashboard, ...prev]);
+  };
+
+  const refreshDashboards = async () => {
+    await fetchDashboards();
   };
 
   const archiveDashboard = (id: string) => {
@@ -119,11 +151,14 @@ export const DashboardProvider = ({ children }: DashboardProviderProps) => {
   const value: DashboardContextType = {
     dashboards,
     archivedDashboards,
+    loading,
+    error,
     addDashboard,
     archiveDashboard,
     unarchiveDashboard,
     deleteDashboard,
     setActiveDashboard,
+    refreshDashboards,
   };
 
   return (

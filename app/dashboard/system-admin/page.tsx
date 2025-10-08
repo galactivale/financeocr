@@ -25,6 +25,8 @@ import {
   Settings
 } from "lucide-react";
 import { useClients, useAlerts, useTasks, useAnalytics } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
 const ActivityLogChart = dynamic(
   () => import("@/components/charts/activity-log-chart").then((mod) => mod.ActivityLogChart),
@@ -413,22 +415,38 @@ const SystemActivityTable = ({ alerts, tasks }: { alerts: any[], tasks: any[] })
 };
 
 export default function SystemAdminDashboard() {
+  // Get personalized dashboard context
+  const { dashboardUrl, isPersonalizedMode, clientName } = usePersonalizedDashboard();
+  
+  // Personalized data hooks
+  const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
+  const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
+  
+  // Regular data hooks (used when not in personalized mode)
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
   const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20 });
   const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20 });
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();
 
-  const clients = clientsData?.clients || [];
-  const alerts = alertsData?.alerts || [];
+  // Use personalized data if available, otherwise use regular data
+  const clients = isPersonalizedMode ? (personalizedClientStates || []) : (clientsData?.clients || []);
+  const alerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (alertsData?.alerts || []);
   const tasks = tasksData?.tasks || [];
   const analytics = analyticsData || {};
 
-  if (clientsLoading || alertsLoading || tasksLoading || analyticsLoading) {
+  // Loading states
+  const isLoading = isPersonalizedMode 
+    ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading)
+    : (clientsLoading || alertsLoading || tasksLoading || analyticsLoading);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" color="primary" />
-          <p className="text-white mt-4">Loading system admin dashboard...</p>
+          <p className="text-white mt-4">
+            {isPersonalizedMode ? `Loading ${clientName || 'personalized'} system admin dashboard...` : 'Loading system admin dashboard...'}
+          </p>
         </div>
       </div>
     );
@@ -442,7 +460,14 @@ export default function SystemAdminDashboard() {
             {/* Header */}
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">System Administration</h2>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">
+                {isPersonalizedMode && clientName ? `${clientName} - System Administration` : 'System Administration'}
+              </h2>
+              {isPersonalizedMode && (
+                <div className="ml-4 px-3 py-1 bg-blue-500/20 rounded-full border border-blue-500/30">
+                  <span className="text-blue-400 text-sm font-medium">Personalized View</span>
+                </div>
+              )}
             </div>
 
             {/* Card Section Top */}

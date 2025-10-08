@@ -352,6 +352,18 @@ export default function ManagingPartnerClientsPage() {
             <h1 className="text-3xl font-semibold text-white tracking-tight">Client Nexus Risk Portfolio</h1>
             <p className="text-gray-400 mt-2">Strategic oversight and risk management for client portfolio</p>
           </div>
+          <Button
+            color="primary"
+            variant="solid"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl"
+            startContent={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            }
+          >
+            Add Client
+          </Button>
         </div>
 
         {/* Stats Section */}
@@ -413,10 +425,7 @@ export default function ManagingPartnerClientsPage() {
               }}
             >
               <Tab key="portfolio-overview" title="Portfolio Overview" />
-              <Tab key="risk-analysis" title="Risk Analysis" />
-              <Tab key="revenue-impact" title="Revenue Impact" />
               <Tab key="team-performance" title="Team Performance" />
-              <Tab key="compliance-dashboard" title="Compliance Dashboard" />
             </Tabs>
           </div>
         </div>
@@ -616,87 +625,6 @@ export default function ManagingPartnerClientsPage() {
               </div>
             )}
 
-            {selectedTab === "risk-analysis" && (
-              <div className="space-y-6">
-                <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
-                      <h2 className="text-2xl font-semibold text-white tracking-tight">Portfolio Risk Analysis</h2>
-                    </div>
-                  </CardHeader>
-                  <CardBody className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-4">Risk Distribution</h3>
-                        <div className="space-y-3">
-                          {Object.entries(portfolioSummary.riskDistribution).map(([level, count]) => (
-                            <div key={level} className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className={`w-3 h-3 rounded-full ${
-                                  level === 'critical' ? 'bg-red-500' :
-                                  level === 'high' ? 'bg-orange-500' :
-                                  level === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                                }`}></div>
-                                <span className="text-white capitalize">{level}</span>
-                              </div>
-                              <span className="text-white font-medium">{count}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-4">Risk Trends</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Escalations This Quarter</span>
-                            <span className="text-red-400 font-medium">5 clients</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Risk Mitigations</span>
-                            <span className="text-green-400 font-medium">8 clients</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">New High-Risk Clients</span>
-                            <span className="text-orange-400 font-medium">3 clients</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-            )}
-
-            {selectedTab === "revenue-impact" && (
-              <div className="space-y-6">
-                <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                      <h2 className="text-2xl font-semibold text-white tracking-tight">Revenue Impact Analysis</h2>
-                    </div>
-                  </CardHeader>
-                  <CardBody className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="text-center">
-                        <p className="text-3xl font-bold text-green-400">{formatCurrency(portfolioSummary.totalPreventedPenalties)}</p>
-                        <p className="text-gray-400">Total Value Created</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-3xl font-bold text-blue-400">{Math.round(portfolioSummary.averageROI)}%</p>
-                        <p className="text-gray-400">Average ROI</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-3xl font-bold text-purple-400">{portfolioSummary.totalClients}</p>
-                        <p className="text-gray-400">Active Clients</p>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-            )}
-
             {selectedTab === "team-performance" && (
               <div className="space-y-6">
                 <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
@@ -740,56 +668,6 @@ export default function ManagingPartnerClientsPage() {
               </div>
             )}
 
-            {selectedTab === "compliance-dashboard" && (
-              <div className="space-y-6">
-                <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-                      <h2 className="text-2xl font-semibold text-white tracking-tight">Compliance Dashboard</h2>
-                    </div>
-                  </CardHeader>
-                  <CardBody className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-4">Compliance Status</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Fully Compliant</span>
-                            <span className="text-green-400 font-medium">42 clients</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Requires Attention</span>
-                            <span className="text-orange-400 font-medium">5 clients</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Average Score</span>
-                            <span className="text-blue-400 font-medium">87%</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-4">Upcoming Deadlines</h3>
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">This Week</span>
-                            <span className="text-red-400 font-medium">3 deadlines</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Next Week</span>
-                            <span className="text-orange-400 font-medium">5 deadlines</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">This Month</span>
-                            <span className="text-yellow-400 font-medium">12 deadlines</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-            )}
           </div>
         </div>
       </div>

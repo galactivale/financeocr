@@ -20,6 +20,8 @@ import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/us
 import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";
 import { SidebarContext } from "@/components/layout/layout-context";
 import { useNexusDashboardSummary, useClientStates, useNexusAlerts } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
 // Client data structure for monitoring
 interface Client {
@@ -63,7 +65,14 @@ const ManagingPartnerMonitoring = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [forceRefresh, setForceRefresh] = useState(0);
 
-  // API hooks for data fetching with refresh capability - fetch more data
+  // Check if we're in personalized dashboard mode
+  const { dashboardUrl, isPersonalizedMode, clientName } = usePersonalizedDashboard();
+
+  // Personalized data hooks
+  const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
+  const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
+
+  // API hooks for data fetching with refresh capability - fetch more data (fallback when not in personalized mode)
   const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary();
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100 });
   const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100 });
@@ -162,14 +171,12 @@ const ManagingPartnerMonitoring = () => {
   // Refresh all data
   const refreshAllData = async () => {
     try {
-      console.log('Refreshing all data...');
       setForceRefresh(prev => prev + 1); // Force re-render
       await Promise.all([
         refetchSummary(),
         refetchClientStates(),
         refetchAlerts()
       ]);
-      console.log('Data refresh completed');
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
@@ -227,14 +234,22 @@ const ManagingPartnerMonitoring = () => {
   // Process nexus data from API with enhanced chart integration
   const nexusData = useMemo(() => {
     // If still loading, return empty object
-    if (clientStatesLoading || alertsLoading) {
-      return {};
+    if (isPersonalizedMode) {
+      if (personalizedClientStatesLoading || personalizedNexusAlertsLoading) {
+        return {};
+      }
+    } else {
+      if (clientStatesLoading || alertsLoading) {
+        return {};
+      }
     }
     
-    // Use fallback data if no API data available
-    const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-      ? clientStatesData.clientStates 
-      : fallbackClientStates;
+    // Use personalized data if in personalized mode, otherwise use API data or fallback
+    const dataToUse = isPersonalizedMode 
+      ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : [])
+      : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
+        ? clientStatesData.clientStates 
+        : fallbackClientStates);
     
     if (!dataToUse || dataToUse.length === 0) {
       return {};
@@ -270,9 +285,11 @@ const ManagingPartnerMonitoring = () => {
     });
 
     // Process alerts data with enhanced status mapping
-    const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
-      ? nexusAlertsData.alerts 
-      : fallbackAlerts;
+    const alertsToUse = isPersonalizedMode
+      ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 ? personalizedNexusAlerts : [])
+      : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
+        ? nexusAlertsData.alerts 
+        : fallbackAlerts);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -300,7 +317,18 @@ const ManagingPartnerMonitoring = () => {
     }
 
     return stateData;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, forceRefresh]);
+  }, [
+    isPersonalizedMode,
+    personalizedClientStates, 
+    personalizedNexusAlerts, 
+    personalizedClientStatesLoading, 
+    personalizedNexusAlertsLoading,
+    clientStatesData, 
+    nexusAlertsData, 
+    clientStatesLoading, 
+    alertsLoading, 
+    forceRefresh
+  ]);
 
   // Custom states configuration for the map
   const customStates = useMemo(() => {
@@ -409,26 +437,25 @@ const ManagingPartnerMonitoring = () => {
 
   // Process client data from API with better error handling and fallback
   const clients: Client[] = useMemo(() => {
-    console.log('Processing client data:', { 
-      clientStatesData, 
-      nexusAlertsData, 
-      clientStatesLoading, 
-      alertsLoading 
-    });
-    
     // If still loading, return empty array
-    if (clientStatesLoading || alertsLoading) {
-      console.log('Still loading data...');
-      return [];
+    if (isPersonalizedMode) {
+      if (personalizedClientStatesLoading || personalizedNexusAlertsLoading) {
+        return [];
+      }
+    } else {
+      if (clientStatesLoading || alertsLoading) {
+        return [];
+      }
     }
     
-    // If no client states data, use fallback data for testing
-    const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-      ? clientStatesData.clientStates 
-      : fallbackClientStates;
+    // Use personalized data if in personalized mode, otherwise use API data or fallback
+    const dataToUse = isPersonalizedMode
+      ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : [])
+      : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
+        ? clientStatesData.clientStates 
+        : fallbackClientStates);
     
     if (!dataToUse || dataToUse.length === 0) {
-      console.log('No client states data available');
       return [];
     }
 
@@ -480,9 +507,11 @@ const ManagingPartnerMonitoring = () => {
     });
 
     // Add alert counts
-    const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
-      ? nexusAlertsData.alerts 
-      : fallbackAlerts;
+    const alertsToUse = isPersonalizedMode
+      ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 ? personalizedNexusAlerts : [])
+      : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
+        ? nexusAlertsData.alerts 
+        : fallbackAlerts);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -494,9 +523,19 @@ const ManagingPartnerMonitoring = () => {
     }
 
     const result = Array.from(clientMap.values());
-    console.log('Processed clients:', result);
     return result;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, forceRefresh]);
+  }, [
+    isPersonalizedMode,
+    personalizedClientStates,
+    personalizedNexusAlerts,
+    personalizedClientStatesLoading,
+    personalizedNexusAlertsLoading,
+    clientStatesData, 
+    nexusAlertsData, 
+    clientStatesLoading, 
+    alertsLoading, 
+    forceRefresh
+  ]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -549,7 +588,8 @@ const ManagingPartnerMonitoring = () => {
     setFilteredClients(filtered);
   }, [clients, searchQuery, mapFocusState]);
 
-  if (!isMounted || summaryLoading || clientStatesLoading || alertsLoading) {
+  if (!isMounted || 
+      (isPersonalizedMode ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading) : (summaryLoading || clientStatesLoading || alertsLoading))) {
     return (
       <div className="flex items-center justify-center h-screen w-full bg-black text-white">
         <div className="flex flex-col items-center">
@@ -560,7 +600,7 @@ const ManagingPartnerMonitoring = () => {
     );
   }
 
-  if (summaryError || clientStatesError || alertsError) {
+  if (isPersonalizedMode ? (personalizedClientStatesError || personalizedNexusAlertsError) : (summaryError || clientStatesError || alertsError)) {
     return (
       <div className="flex items-center justify-center h-screen w-full bg-black text-white">
         <div className="flex flex-col items-center">
@@ -595,7 +635,9 @@ const ManagingPartnerMonitoring = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
-                  <h1 className="text-white text-lg font-semibold tracking-tight">Nexus Monitor</h1>
+                  <h1 className="text-white text-lg font-semibold tracking-tight">
+                    {isPersonalizedMode ? `${clientName} - Nexus Monitor` : 'Nexus Monitor'}
+                  </h1>
                 </div>
                 {mapFocusState && (
                   <div className="flex items-center space-x-2 bg-blue-500/20 rounded-full px-2 py-1">
@@ -718,7 +760,7 @@ const ManagingPartnerMonitoring = () => {
               key={`client-cards-${forceRefresh}`}
               className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50"
             >
-              {clientStatesLoading || alertsLoading ? (
+              {(isPersonalizedMode ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading) : (clientStatesLoading || alertsLoading)) ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
                   <p className="text-gray-400 text-sm">Loading client data...</p>
@@ -895,7 +937,7 @@ const ManagingPartnerMonitoring = () => {
                      'No client data available'}
                   </div>
                   <div className="text-gray-500 text-xs mb-4">
-                    {clientStatesError || alertsError ? 'Error loading data' : 'Try refreshing or check your connection'}
+                    {(isPersonalizedMode ? (personalizedClientStatesError || personalizedNexusAlertsError) : (clientStatesError || alertsError)) ? 'Error loading data' : 'Try refreshing or check your connection'}
                   </div>
                   <div className="flex flex-col space-y-2">
                   {mapFocusState && (

@@ -100,7 +100,6 @@ export default function TaxManagerReports() {
 
   const handleGenerateReport = () => {
     // Simple report generation logic
-    console.log('Generating report:', newReport);
     setShowGenerateForm(false);
     setNewReport({ title: "", client: "", type: "compliance" });
   };

@@ -4,6 +4,7 @@ import { NextUIProvider } from "@nextui-org/system";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProviderProps } from "next-themes/dist/types";
 import { DashboardProvider } from "../contexts/DashboardContext";
+import { PersonalizedDashboardProvider } from "../contexts/PersonalizedDashboardContext";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -12,17 +13,19 @@ export interface ProvidersProps {
 
 export function Providers({ children, themeProps }: ProvidersProps) {
   return (
-    <NextUIProvider>
-      <NextThemesProvider
-        defaultTheme='system'
-        attribute='class'
-        enableSystem={true}
-        disableTransitionOnChange={false}
-        {...themeProps}>
-        <DashboardProvider>
-          {children}
-        </DashboardProvider>
-      </NextThemesProvider>
-    </NextUIProvider>
+        <NextUIProvider>
+          <NextThemesProvider
+            defaultTheme='system'
+            attribute='class'
+            enableSystem={true}
+            disableTransitionOnChange={false}
+            {...themeProps}>
+            <DashboardProvider>
+              <PersonalizedDashboardProvider>
+                {children}
+              </PersonalizedDashboardProvider>
+            </DashboardProvider>
+          </NextThemesProvider>
+        </NextUIProvider>
   );
 }

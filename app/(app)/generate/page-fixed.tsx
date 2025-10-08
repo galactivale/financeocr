@@ -149,9 +149,7 @@ export default function GeneratePage() {
       isActive: true,
     });
     
-    // eslint-disable-next-line no-console
-    console.log("Form Data Submitted:", formData);
-    alert("Dashboard generation initiated! Check console for submitted data.");
+    alert("Dashboard generation initiated!");
     setIsSubmitting(false);
     
     // Navigate back to home page

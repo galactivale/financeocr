@@ -162,14 +162,12 @@ const TaxManagerMonitoring = () => {
   // Refresh all data
   const refreshAllData = async () => {
     try {
-      console.log('Refreshing all data...');
       setForceRefresh(prev => prev + 1); // Force re-render
       await Promise.all([
         refetchSummary(),
         refetchClientStates(),
         refetchAlerts()
       ]);
-      console.log('Data refresh completed');
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
@@ -409,16 +407,8 @@ const TaxManagerMonitoring = () => {
 
   // Process client data from API with better error handling and fallback
   const clients: Client[] = useMemo(() => {
-    console.log('Processing client data:', { 
-      clientStatesData, 
-      nexusAlertsData, 
-      clientStatesLoading, 
-      alertsLoading 
-    });
-    
     // If still loading, return empty array
     if (clientStatesLoading || alertsLoading) {
-      console.log('Still loading data...');
       return [];
     }
     
@@ -428,7 +418,6 @@ const TaxManagerMonitoring = () => {
       : fallbackClientStates;
     
     if (!dataToUse || dataToUse.length === 0) {
-      console.log('No client states data available');
       return [];
     }
 
@@ -494,7 +483,6 @@ const TaxManagerMonitoring = () => {
     }
 
     const result = Array.from(clientMap.values());
-    console.log('Processed clients:', result);
     return result;
   }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, forceRefresh]);
 

@@ -11,7 +11,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isManagingPartner: boolean;
   isTaxManager: boolean;
-  isStaffAccountant: boolean;
   isSystemAdmin: boolean;
 }
 
@@ -88,7 +87,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = !!user;
   const isManagingPartner = user?.role === 'managing-partner';
   const isTaxManager = user?.role === 'tax-manager';
-  const isStaffAccountant = user?.role === 'staff-accountant';
   const isSystemAdmin = user?.role === 'system-admin';
 
   const value: AuthContextType = {
@@ -99,7 +97,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isManagingPartner,
     isTaxManager,
-    isStaffAccountant,
     isSystemAdmin,
   };
 

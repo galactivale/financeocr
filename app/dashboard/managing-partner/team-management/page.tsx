@@ -179,7 +179,6 @@ export default function TeamManagementPage() {
 
   const handleAddMember = () => {
     // Here you would typically send the data to your backend
-    console.log('Adding new member:', newMember);
     
     // Reset form
     setNewMember({

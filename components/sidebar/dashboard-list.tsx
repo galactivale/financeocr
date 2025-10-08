@@ -9,6 +9,13 @@ import { ChevronRightIcon } from "../icons/sidebar/chevron-right-icon";
 import { DocumentIcon } from "../icons/sidebar/document-icon";
 import { useDashboard } from "../../contexts/DashboardContext";
 
+// External link icon component
+const ExternalLinkIcon = () => (
+  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+  </svg>
+);
+
 interface DashboardListProps {
   className?: string;
   onDashboardSelect?: (dashboardId: string) => void;
@@ -16,7 +23,7 @@ interface DashboardListProps {
 
 export const DashboardList = ({ className = "", onDashboardSelect }: DashboardListProps) => {
   const [isArchiveExpanded, setIsArchiveExpanded] = useState(false);
-  const { dashboards, archivedDashboards, setActiveDashboard } = useDashboard();
+  const { dashboards, archivedDashboards, loading, error, setActiveDashboard } = useDashboard();
 
   const handleNewDashboard = () => {
     // Navigate to generate page
@@ -26,6 +33,12 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
   const handleDashboardClick = (dashboardId: string) => {
     setActiveDashboard(dashboardId);
     onDashboardSelect?.(dashboardId);
+  };
+
+  const handleViewLink = (dashboard: any, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent dashboard selection when clicking the view link
+    const url = dashboard.dashboardUrl || `${window.location.origin}/dashboard/view/${dashboard.uniqueUrl}`;
+    window.open(url, '_blank');
   };
 
   const formatDate = (date: Date) => {
@@ -52,27 +65,58 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
       {/* Recent Dashboards */}
       <div className="space-y-1">
         <h4 className="text-white/80 text-sm font-medium mb-2">Recent Dashboards</h4>
-        <div className="flex flex-col gap-1">
-          {dashboards.map((dashboard) => (
-            <button
-              key={dashboard.id}
-              onClick={() => handleDashboardClick(dashboard.id)}
-              className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all duration-200 text-left w-full group ${
-                dashboard.isActive
-                  ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                  : "hover:bg-white/10 text-white/80 hover:text-white border border-transparent hover:border-white/20"
-              }`}
-            >
-              <DocumentIcon className="w-4 h-4 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="truncate font-medium">{dashboard.name}</div>
-                <div className="text-xs text-white/50">
-                  {formatDate(dashboard.createdAt)}
-                </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-white/60 text-sm">Loading dashboards...</div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-red-400 text-sm text-center">
+              <div>Failed to load dashboards</div>
+              <div className="text-xs text-red-300 mt-1">{error}</div>
+            </div>
+          </div>
+        ) : dashboards.length === 0 ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-white/60 text-sm text-center">
+              <div>No dashboards yet</div>
+              <div className="text-xs text-white/40 mt-1">Create your first dashboard above</div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {dashboards.map((dashboard) => (
+              <div
+                key={dashboard.id}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all duration-200 w-full group ${
+                  dashboard.isActive
+                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                    : "hover:bg-white/10 text-white/80 hover:text-white border border-transparent hover:border-white/20"
+                }`}
+              >
+                <button
+                  onClick={() => handleDashboardClick(dashboard.id)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <DocumentIcon className="w-4 h-4 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate font-medium">{dashboard.name}</div>
+                    <div className="text-xs text-white/50">
+                      {formatDate(dashboard.createdAt)}
+                    </div>
+                  </div>
+                </button>
+                <button
+                  onClick={(e) => handleViewLink(dashboard, e)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-white/10 rounded-md"
+                  title="View Dashboard"
+                >
+                  <ExternalLinkIcon />
+                </button>
               </div>
-            </button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Archive Section */}
@@ -96,19 +140,30 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
         {isArchiveExpanded && (
           <div className="ml-6 mt-2 flex flex-col gap-1">
             {archivedDashboards.map((dashboard) => (
-              <button
+              <div
                 key={dashboard.id}
-                onClick={() => handleDashboardClick(dashboard.id)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 text-left w-full hover:bg-white/5 text-white/60 hover:text-white/80"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 w-full hover:bg-white/5 text-white/60 hover:text-white/80 group"
               >
-                <DocumentIcon className="w-4 h-4 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="truncate">{dashboard.name}</div>
-                  <div className="text-xs text-white/40">
-                    {formatDate(dashboard.createdAt)}
+                <button
+                  onClick={() => handleDashboardClick(dashboard.id)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <DocumentIcon className="w-4 h-4 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate">{dashboard.name}</div>
+                    <div className="text-xs text-white/40">
+                      {formatDate(dashboard.createdAt)}
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                <button
+                  onClick={(e) => handleViewLink(dashboard, e)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-white/10 rounded-md"
+                  title="View Dashboard"
+                >
+                  <ExternalLinkIcon />
+                </button>
+              </div>
             ))}
           </div>
         )}

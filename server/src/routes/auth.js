@@ -38,7 +38,7 @@ const registerValidation = [
     .withMessage('Valid organization ID is required'),
   body('role')
     .optional()
-    .isIn(['managing-partner', 'tax-manager', 'staff-accountant', 'system-admin'])
+    .isIn(['managing-partner', 'tax-manager', 'system-admin'])
     .withMessage('Invalid role'),
 ];
 

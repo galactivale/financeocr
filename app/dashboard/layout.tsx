@@ -25,7 +25,6 @@ export default function DashboardLayout({ children }: Props) {
   const getUserRole = (): string => {
     if (pathname.includes('/managing-partner')) return 'managing-partner';
     if (pathname.includes('/tax-manager')) return 'tax-manager';
-    if (pathname.includes('/staff-accountant')) return 'staff-accountant';
     if (pathname.includes('/system-admin')) return 'system-admin';
     if (pathname.includes('/client-portal')) return 'client-portal';
     return 'default';

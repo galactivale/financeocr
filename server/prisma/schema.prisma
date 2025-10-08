@@ -814,6 +814,20 @@ model GeneratedDashboard {
   clientInfo        Json         @map("client_info")
   keyMetrics        Json         @map("key_metrics")
   statesMonitored   String[]     @map("states_monitored")
+  personalizedData  Json         @default("{}") @map("personalized_data")
+  
+  // Comprehensive generated data
+  generatedClients      Json?     @map("generated_clients")
+  generatedAlerts       Json?     @map("generated_alerts")
+  generatedTasks        Json?     @map("generated_tasks")
+  generatedAnalytics    Json?     @map("generated_analytics")
+  generatedClientStates Json?     @map("generated_client_states")
+  generatedNexusAlerts  Json?     @map("generated_nexus_alerts")
+  generatedNexusActivities Json?  @map("generated_nexus_activities")
+  generatedSystemHealth Json?     @map("generated_system_health")
+  generatedReports      Json?     @map("generated_reports")
+  generatedCommunications Json?   @map("generated_communications")
+  
   lastUpdated       DateTime     @map("last_updated")
   isActive          Boolean      @default(true) @map("is_active")
   createdAt         DateTime     @default(now()) @map("created_at")

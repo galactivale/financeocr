@@ -137,7 +137,6 @@ export default function CommunicationsPage() {
   };
 
   const handleSendCommunication = () => {
-    console.log('Sending communication:', newCommunication);
     setShowSendForm(false);
     setNewCommunication({ type: "email", client: "", subject: "", content: "" });
   };

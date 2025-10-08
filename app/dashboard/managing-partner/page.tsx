@@ -1,11 +1,13 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import { TableWrapper } from "@/components/table/table";
-import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Button } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useClientStates } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
 // Enhanced US Map Component for Managing Partner
 const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients: any[] }) => {
@@ -362,8 +364,8 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-                  </div>
-                  </div>
+        </div>
+      </div>
 
       <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
         <div className="overflow-x-auto">
@@ -460,13 +462,21 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
               )}
             </tbody>
           </table>
-                    </div>
-                  </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default function ManagingPartnerDashboard() {
+  // Get personalized dashboard context
+  const { dashboardUrl, isPersonalizedMode, clientName, clearDashboardSession } = usePersonalizedDashboard();
+  
+  // Personalized data hooks
+  const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
+  const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
+  
+  // Regular data hooks (used when not in personalized mode)
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 20 });
   const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20 });
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();
@@ -474,19 +484,27 @@ export default function ManagingPartnerDashboard() {
   const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 20 });
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 50 });
 
-  const clients = clientsData?.clients || [];
-  const alerts = alertsData?.alerts || [];
+  // Use personalized data if available, otherwise use regular data
+  const clients = isPersonalizedMode ? (personalizedClientStates || []) : (clientsData?.clients || []);
+  const alerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (alertsData?.alerts || []);
   const analytics = analyticsData || {};
   const tasks = tasksData?.tasks || [];
-  const nexusAlerts = nexusAlertsData?.alerts || [];
-  const clientStates = clientStatesData?.clientStates || [];
+  const nexusAlerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (nexusAlertsData?.alerts || []);
+  const clientStates = isPersonalizedMode ? (personalizedClientStates || []) : (clientStatesData?.clientStates || []);
+  
+  // Loading states
+  const isLoading = isPersonalizedMode 
+    ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading)
+    : (clientsLoading || alertsLoading || analyticsLoading || tasksLoading || nexusAlertsLoading || clientStatesLoading);
 
-  if (clientsLoading || alertsLoading || analyticsLoading || tasksLoading || nexusAlertsLoading || clientStatesLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" color="primary" />
-          <p className="text-white mt-4">Loading managing partner dashboard...</p>
+          <p className="text-white mt-4">
+            {isPersonalizedMode ? `Loading ${clientName || 'personalized'} dashboard...` : 'Loading managing partner dashboard...'}
+          </p>
         </div>
       </div>
     );
@@ -500,7 +518,28 @@ export default function ManagingPartnerDashboard() {
             {/* Header */}
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Firm Performance Overview</h2>
+              <h2 className="text-2xl font-semibold text-white tracking-tight">
+                {isPersonalizedMode && clientName ? `${clientName} - Firm Performance Overview` : 'Firm Performance Overview'}
+              </h2>
+              {isPersonalizedMode && (
+                <div className="ml-4 flex items-center space-x-2">
+                  <div className="px-3 py-1 bg-blue-500/20 rounded-full border border-blue-500/30">
+                    <span className="text-blue-400 text-sm font-medium">Personalized View</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    color="danger"
+                    onClick={() => {
+                      clearDashboardSession();
+                      window.location.reload();
+                    }}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    Exit
+                  </Button>
+                </div>
+              )}
             </div>
 
           {/* Card Section Top */}
@@ -512,12 +551,14 @@ export default function ManagingPartnerDashboard() {
               </div>
           </div>
 
-          {/* U.S. States Map */}
+          {/* Firm Performance Map and Client Performance Table - Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+            {/* U.S. States Map - Left Column */}
             <div className="h-full flex flex-col gap-4">
               <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Firm Performance Map</h2>
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-8 bg-green-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Firm Performance Map</h2>
                 </div>
                 <Link
                   href="/dashboard/managing-partner/monitoring"
@@ -535,16 +576,17 @@ export default function ManagingPartnerDashboard() {
                 <EnhancedUSMap clientStates={clientStates} clients={clients} />
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Client Performance Table */}
-        <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-            <ClientPerformanceTable clients={clients} alerts={alerts} />
+            {/* Client Performance Table - Right Column */}
+            <div className="h-full flex flex-col gap-4">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+                <ClientPerformanceTable clients={clients} alerts={alerts} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
