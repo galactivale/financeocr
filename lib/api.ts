@@ -746,6 +746,189 @@ class ApiClient {
   async getPersonalizedClientStates(url: string): Promise<ApiResponse<any[]>> {
     return this.request(`/api/personalized-dashboard/${url}/client-states`);
   }
+
+  // Enhanced API methods for comprehensive data
+  async getEnhancedClients(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    riskLevel?: string;
+    industry?: string;
+    stateCode?: string;
+    organizationId?: string;
+  }): Promise<ApiResponse<{
+    clients: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+    summary: {
+      totalClients: number;
+      activeClients: number;
+      highRiskClients: number;
+      averageQualityScore: number;
+      totalRevenue: number;
+    };
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.riskLevel) queryParams.append('riskLevel', params.riskLevel);
+    if (params?.industry) queryParams.append('industry', params.industry);
+    if (params?.stateCode) queryParams.append('stateCode', params.stateCode);
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-clients${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedClient(id: string, organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-clients/${id}${query ? `?${query}` : ''}`);
+  }
+
+  async getClientNexusStatus(clientId: string, organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-clients/${clientId}/nexus-status${query ? `?${query}` : ''}`);
+  }
+
+  async getClientAlerts(clientId: string, organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-clients/${clientId}/alerts${query ? `?${query}` : ''}`);
+  }
+
+  async getClientCommunications(clientId: string, organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-clients/${clientId}/communications${query ? `?${query}` : ''}`);
+  }
+
+  async getClientDocuments(clientId: string, organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-clients/${clientId}/documents${query ? `?${query}` : ''}`);
+  }
+
+  async getClientStateCompliance(clientId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/enhanced-clients/${clientId}/state-compliance`);
+  }
+
+  async getEnhancedSystemOverview(organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-system/overview${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedUsers(organizationId?: string): Promise<ApiResponse<any[]>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-system/users${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedIntegrations(organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-system/integrations${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedAuditLogs(params?: {
+    organizationId?: string;
+    page?: number;
+    limit?: number;
+    action?: string;
+    resourceType?: string;
+    userId?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<ApiResponse<{
+    auditLogs: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.action) queryParams.append('action', params.action);
+    if (params?.resourceType) queryParams.append('resourceType', params.resourceType);
+    if (params?.userId) queryParams.append('userId', params.userId);
+    if (params?.startDate) queryParams.append('startDate', params.startDate);
+    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-system/audit-logs${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedNexusDashboardSummary(params?: {
+    organizationId?: string;
+    clientId?: string;
+  }): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+    if (params?.clientId) queryParams.append('clientId', params.clientId);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-nexus/dashboard-summary${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedClientStates(params?: {
+    organizationId?: string;
+    clientId?: string;
+    stateCode?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{
+    clientStates: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+    if (params?.clientId) queryParams.append('clientId', params.clientId);
+    if (params?.stateCode) queryParams.append('stateCode', params.stateCode);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-nexus/client-states${query ? `?${query}` : ''}`);
+  }
+
+  async getEnhancedStateCompliance(clientId: string, organizationId?: string): Promise<ApiResponse<any>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/enhanced-nexus/state-compliance/${clientId}${query ? `?${query}` : ''}`);
+  }
 }
 
 // Create singleton instance

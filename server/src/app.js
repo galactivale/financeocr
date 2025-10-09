@@ -22,6 +22,9 @@ const consultationRoutes = require('./routes/consultations');
 const communicationRoutes = require('./routes/communications');
 const dashboardRoutes = require('./routes/dashboards');
 const personalizedDashboardRoutes = require('./routes/personalized-dashboard');
+const enhancedClientRoutes = require('./routes/enhanced-clients');
+const enhancedSystemRoutes = require('./routes/enhanced-system');
+const enhancedNexusRoutes = require('./routes/enhanced-nexus');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -99,6 +102,9 @@ app.use('/api/consultations', consultationRoutes);
 app.use('/api/communications', communicationRoutes);
 app.use('/api/dashboards', dashboardRoutes);
 app.use('/api/personalized-dashboard', personalizedDashboardRoutes);
+app.use('/api/enhanced-clients', enhancedClientRoutes);
+app.use('/api/enhanced-system', enhancedSystemRoutes);
+app.use('/api/enhanced-nexus', enhancedNexusRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -120,6 +126,9 @@ app.get('/api', (req, res) => {
       nexus: '/api/nexus',
       dashboards: '/api/dashboards',
       personalizedDashboard: '/api/personalized-dashboard',
+      enhancedClients: '/api/enhanced-clients',
+      enhancedSystem: '/api/enhanced-system',
+      enhancedNexus: '/api/enhanced-nexus',
     },
     documentation: '/api/docs',
   });

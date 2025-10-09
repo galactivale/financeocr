@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
 import { Chip } from "@nextui-org/chip";
 import { Tabs, Tab } from "@nextui-org/tabs";
 import { Badge } from "@nextui-org/badge";
 import { Progress } from "@nextui-org/progress";
+import { Spinner } from "@nextui-org/spinner";
 import { 
   ArrowLeft,
   Calendar,
@@ -41,172 +42,26 @@ import {
   Search
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useClientDetail, useClientNexusStatus, useClientAlerts, useClientCommunications, useClientDocuments } from "@/hooks/useClientDetail";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
-// Mock data for client details
-const clientData = {
-  id: "techcorp-saas",
-  name: "TechCorp SaaS",
-  avatar: "T",
-  industry: "Technology SaaS",
-  revenue: 2100000,
-  founded: 2019,
-  employees: 24,
-  riskLevel: "critical",
-  penaltyExposure: 85000,
-  activeAlerts: 3,
-  nextReview: "2024-12-03",
-  states: [
-    {
-      code: "CA",
-      name: "California",
-      revenue: 525000,
-      threshold: 500000,
-      percentage: 105,
-      status: "critical",
-      daysSinceThreshold: 15,
-      penaltyRange: { min: 25000, max: 45000 },
-      transactions: null,
-      transactionThreshold: null,
-      projectedCrossover: null
-    },
-    {
-      code: "NY",
-      name: "New York",
-      revenue: 89500,
-      threshold: 500000,
-      percentage: 18,
-      status: "warning",
-      daysSinceThreshold: null,
-      penaltyRange: null,
-      transactions: 95,
-      transactionThreshold: 100,
-      projectedCrossover: "Q1 2025"
-    },
-    {
-      code: "TX",
-      name: "Texas",
-      revenue: 67200,
-      threshold: 500000,
-      percentage: 13,
-      status: "monitoring",
-      daysSinceThreshold: null,
-      penaltyRange: null,
-      transactions: null,
-      transactionThreshold: null,
-      projectedCrossover: null
-    }
-  ],
-  alerts: [
-    {
-      id: 1,
-      type: "critical",
-      title: "California Registration Required",
-      description: "Revenue threshold exceeded by $25,000",
-      financialImpact: "$25,000 - $45,000",
-      statute: "Cal. Rev. & Tax Code § 23101",
-      deadline: "2024-12-15",
-      assignedTo: "Jane Doe",
-      status: "In Review",
-      createdAt: "2024-11-13"
-    },
-    {
-      id: 2,
-      type: "warning",
-      title: "New York Transaction Threshold",
-      description: "Approaching 100 transaction threshold",
-      financialImpact: "Potential registration requirement",
-      statute: "N.Y. Tax Law § 1101(b)(8)",
-      deadline: null,
-      assignedTo: "Jane Doe",
-      status: "Monitoring",
-      createdAt: "2024-11-20"
-    },
-    {
-      id: 3,
-      type: "info",
-      title: "Texas Monitoring Update",
-      description: "Routine quarterly review scheduled",
-      financialImpact: "No immediate impact",
-      statute: "Tex. Tax Code Ann. § 151.107",
-      deadline: "2024-12-31",
-      assignedTo: "Jane Doe",
-      status: "Scheduled",
-      createdAt: "2024-11-25"
-    }
-  ],
-  decisions: [
-    {
-      id: 1,
-      date: "2024-11-13",
-      type: "Threshold Analysis",
-      outcome: "Registration Required",
-      manager: "Jane Doe, CPA",
-      rationale: "California economic nexus threshold exceeded by $25,000 in Q4 2024",
-      documentation: "Complete",
-      clientCommunication: "Pending",
-      followUp: "Schedule client consultation"
-    },
-    {
-      id: 2,
-      date: "2024-10-15",
-      type: "Monitoring Review",
-      outcome: "Continue Monitoring",
-      manager: "Jane Doe, CPA",
-      rationale: "All jurisdictions within acceptable parameters",
-      documentation: "Complete",
-      clientCommunication: "Complete",
-      followUp: "Next review scheduled"
-    }
-  ],
-  communications: [
-    {
-      id: 1,
-      type: "email",
-      subject: "California Nexus Update",
-      participants: ["Jane Doe", "TechCorp CFO"],
-      date: "2024-11-28",
-      duration: null,
-      status: "Sent",
-      followUp: "Awaiting response"
-    },
-    {
-      id: 2,
-      type: "call",
-      subject: "Q4 Review Discussion",
-      participants: ["Jane Doe", "TechCorp CEO"],
-      date: "2024-11-25",
-      duration: "45 minutes",
-      status: "Completed",
-      followUp: "Action items documented"
-    }
-  ],
-  dataProcessing: {
-    currentQueue: [
-      { file: "Q4_Sales_Data.xlsx", status: "Processing", quality: 95 },
-      { file: "Customer_List.csv", status: "Validated", quality: 98 },
-      { file: "Transaction_Log.json", status: "Pending", quality: null }
-    ],
-    qualityTrend: [
-      { month: "Aug", score: 92 },
-      { month: "Sep", score: 94 },
-      { month: "Oct", score: 96 },
-      { month: "Nov", score: 95 }
-    ]
-  },
-  performance: {
-    responseTime: "2.3 hours",
-    satisfaction: 4.8,
-    complianceRate: 96,
-    penaltyPrevention: 125000,
-    timeSpent: "18.5 hours"
-  }
+// Helper functions for data formatting
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 };
 
-export default function ClientDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState("nexus");
-  const [expandedState, setExpandedState] = useState<string | null>(null);
-  const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
@@ -226,22 +81,124 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState("nexus");
+  const [expandedState, setExpandedState] = useState<string | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
+  const clientId = resolvedParams.id;
+
+  // Get personalized dashboard context
+  const { isPersonalizedMode, clientName } = usePersonalizedDashboard();
+
+  // Fetch comprehensive client data
+  const { 
+    data: clientDetailData, 
+    loading: clientDetailLoading, 
+    error: clientDetailError 
+  } = useClientDetail({ 
+    clientId: clientId, 
+    organizationId: 'demo-org-id',
+    enabled: true 
+  });
+
+  // Fetch additional data for different tabs
+  const { 
+    data: nexusStatusData, 
+    loading: nexusStatusLoading, 
+    error: nexusStatusError 
+  } = useClientNexusStatus({ 
+    clientId: clientId, 
+    organizationId: 'demo-org-id',
+    enabled: selectedTab === "nexus" 
+  });
+
+  const { 
+    data: alertsData, 
+    loading: alertsLoading, 
+    error: alertsError 
+  } = useClientAlerts({ 
+    clientId: clientId, 
+    organizationId: 'demo-org-id',
+    enabled: selectedTab === "alerts" 
+  });
+
+  const { 
+    data: communicationsData, 
+    loading: communicationsLoading, 
+    error: communicationsError 
+  } = useClientCommunications({ 
+    clientId: clientId, 
+    organizationId: 'demo-org-id',
+    enabled: selectedTab === "communications" 
+  });
+
+  const { 
+    data: documentsData, 
+    loading: documentsLoading, 
+    error: documentsError 
+  } = useClientDocuments({ 
+    clientId: clientId, 
+    organizationId: 'demo-org-id',
+    enabled: selectedTab === "documents" 
+  });
+
+  // Show loading state
+  if (clientDetailLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" color="primary" />
+          <p className="text-white mt-4">
+            {isPersonalizedMode ? `Loading ${clientName} client details...` : 'Loading client details...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (clientDetailError) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 text-xl mb-4">Error Loading Client</div>
+          <p className="text-gray-400 mb-4">{clientDetailError}</p>
+          <Button 
+            onClick={() => router.back()}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Get client data
+  const client = clientDetailData?.client;
+  const metrics = clientDetailData?.metrics;
+  const stateMetrics = clientDetailData?.stateMetrics || [];
+  const summary = clientDetailData?.summary;
+
+  if (!client) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white text-xl mb-4">Client Not Found</div>
+          <Button 
+            onClick={() => router.back()}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
     return (
     <div className="min-h-screen bg-black">
@@ -265,9 +222,14 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           </div>
             <div>
                   <h1 className="text-2xl font-semibold text-white tracking-tight">
-                    {clientData.name}
+                    {client.name}
+                    {isPersonalizedMode && (
+                      <span className="ml-3 text-sm text-blue-400">({clientName})</span>
+                    )}
                   </h1>
-                  <p className="text-gray-400 text-sm">Professional nexus compliance oversight</p>
+                  <p className="text-gray-400 text-sm">
+                    {isPersonalizedMode ? 'Personalized client view' : 'Professional nexus compliance oversight'}
+                  </p>
               </div>
             </div>
             </div>
@@ -293,13 +255,20 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
 
       <div className="max-w-7xl mx-auto px-6 py-8">
 
-        {/* Minimal Nexus Alert */}
+        {/* Dynamic Nexus Alert */}
+        {metrics?.openNexusAlerts > 0 && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="w-4 h-4 text-red-400" />
-            <span className="text-red-300 text-sm font-medium">Nexus Alert: Registration Required</span>
+              <span className="text-red-300 text-sm font-medium">
+                {metrics.openNexusAlerts} Active Nexus Alert{metrics.openNexusAlerts > 1 ? 's' : ''}
+                {metrics.penaltyExposure > 0 && (
+                  <span className="ml-2">• Potential Exposure: {formatCurrency(metrics.penaltyExposure)}</span>
+                )}
+              </span>
         </div>
       </div>
+        )}
 
       {/* Main Content with Tabs */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
@@ -388,6 +357,23 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                   <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                   <h2 className="text-2xl font-semibold text-white tracking-tight">Multi-State Nexus Dashboard</h2>
                 </div>
+                <div className="flex items-center space-x-3">
+                  {summary && (
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-red-400">{summary.criticalStates}</div>
+                        <div className="text-gray-400 text-xs">Critical</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-yellow-400">{summary.warningStates}</div>
+                        <div className="text-gray-400 text-xs">Warning</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-blue-400">{summary.monitoringStates}</div>
+                        <div className="text-gray-400 text-xs">Monitoring</div>
+                      </div>
+                    </div>
+                  )}
                 <Button
                   size="sm"
                       className="bg-white/5 text-gray-300 hover:bg-white/10 rounded-xl"
@@ -396,12 +382,13 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                   Filter States
                 </Button>
               </div>
+              </div>
 
                   {/* Apple-style Interactive State Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {clientData.states.map((state) => (
+                    {stateMetrics.map((state, index) => (
                   <div
-                    key={state.code}
+                    key={`${state.stateCode}-${index}`}
                         className={`group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer ${
                       expandedState === state.code ? 'ring-2 ring-blue-500/50' : ''
                     }`}
@@ -413,8 +400,8 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                                 <Flag className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-white font-semibold text-sm tracking-tight">{state.name}</h3>
-                          <p className="text-gray-400 text-xs">{state.code}</p>
+                          <h3 className="text-white font-semibold text-sm tracking-tight">{state.stateName}</h3>
+                          <p className="text-gray-400 text-xs">{state.stateCode}</p>
                         </div>
                       </div>
                       <Chip
@@ -432,7 +419,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                       <div>
                               <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-400">Revenue</span>
-                          <span className="text-white">{formatCurrency(state.revenue)} of {formatCurrency(state.threshold)}</span>
+                          <span className="text-white">{formatCurrency(state.currentAmount)} of {formatCurrency(state.thresholdAmount)}</span>
                         </div>
                         <Progress
                           value={state.percentage}
@@ -442,35 +429,23 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                         <p className="text-xs text-gray-400">{state.percentage}% of threshold</p>
                       </div>
 
-                      {state.transactions && (
-                        <div>
-                                <div className="flex justify-between text-sm mb-2">
-                            <span className="text-gray-400">Transactions</span>
-                            <span className="text-white">{state.transactions} of {state.transactionThreshold}</span>
-                          </div>
-                          <Progress
-                            value={(state.transactions / state.transactionThreshold) * 100}
-                            className="mb-2"
-                            color="warning"
-                          />
-                        </div>
-                      )}
-
                       {state.daysSinceThreshold && (
                               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
                           <p className="text-red-300 text-xs">
                             Days since threshold crossed: {state.daysSinceThreshold} days
                           </p>
+                          {state.penaltyRisk > 0 && (
                           <p className="text-red-200 text-xs">
-                            Estimated penalty: {formatCurrency(state.penaltyRange.min)} - {formatCurrency(state.penaltyRange.max)}
+                              Estimated penalty: {formatCurrency(state.penaltyRisk)}
                           </p>
+                          )}
                         </div>
                       )}
 
-                      {state.projectedCrossover && (
-                              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
-                          <p className="text-yellow-300 text-xs">
-                            Projected crossover: {state.projectedCrossover}
+                      {state.lastUpdated && (
+                              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+                          <p className="text-blue-300 text-xs">
+                            Last updated: {formatDate(state.lastUpdated)}
                           </p>
                         </div>
                       )}
@@ -504,12 +479,12 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center border border-cyan-500/30">
-                      <span className="text-2xl font-semibold text-cyan-400">{clientData.avatar}</span>
+                      <span className="text-2xl font-semibold text-cyan-400">{client.name?.charAt(0) || 'C'}</span>
                     </div>
                     <div>
-                      <h2 className="text-2xl font-semibold text-white tracking-tight">{clientData.name}, LLC</h2>
-                      <p className="text-gray-400 text-sm">Delaware LLC (EIN: 12-3456789)</p>
-                      <p className="text-gray-400 text-sm">Founded: March 2019</p>
+                      <h2 className="text-2xl font-semibold text-white tracking-tight">{client.name}</h2>
+                      <p className="text-gray-400 text-sm">{client.legalName || client.name}</p>
+                      <p className="text-gray-400 text-sm">Founded: {client.foundedYear ? client.foundedYear : 'Not specified'}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -582,15 +557,15 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                   <h4 className="text-white font-semibold text-sm mb-3">Financial Profile</h4>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="text-center">
-                      <div className="text-lg font-bold text-white">{formatCurrency(clientData.revenue)}</div>
-                      <div className="text-gray-400 text-xs">Annual Revenue (2024)</div>
+                      <div className="text-lg font-bold text-white">{formatCurrency(client.annualRevenue || 0)}</div>
+                      <div className="text-gray-400 text-xs">Annual Revenue</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-green-400">47%</div>
-                      <div className="text-gray-400 text-xs">Revenue Growth YoY</div>
+                      <div className="text-lg font-bold text-green-400">{client.qualityScore || 0}%</div>
+                      <div className="text-gray-400 text-xs">Quality Score</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-white">{clientData.employees}</div>
+                      <div className="text-lg font-bold text-white">{client.employeeCount || 'N/A'}</div>
                       <div className="text-gray-400 text-xs">Employee Count</div>
                     </div>
                     <div className="text-center">
@@ -736,7 +711,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Total Annual Revenue:</span>
-                        <span className="text-white font-semibold">{formatCurrency(clientData.revenue)}</span>
+                        <span className="text-white font-semibold">{formatCurrency(client.annualRevenue || 0)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Subscription Revenue:</span>
@@ -814,14 +789,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                   <h3 className="text-xl font-semibold text-white tracking-tight">Comprehensive Risk Assessment</h3>
                 </div>
                 
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
+                <div className={`${client.riskLevel === 'high' ? 'bg-red-500/10 border-red-500/20' : client.riskLevel === 'medium' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-green-500/10 border-green-500/20'} border rounded-lg p-4 mb-4`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-lg font-bold text-red-400">CRITICAL</div>
+                      <div className={`text-lg font-bold ${client.riskLevel === 'high' ? 'text-red-400' : client.riskLevel === 'medium' ? 'text-yellow-400' : 'text-green-400'}`}>
+                        {client.riskLevel?.toUpperCase() || 'UNKNOWN'}
+                      </div>
                       <div className="text-gray-400 text-sm">Overall Risk Level</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-bold text-white">87/100</div>
+                      <div className="text-lg font-bold text-white">{metrics?.riskScore || 0}/100</div>
                       <div className="text-gray-400 text-sm">Risk Score</div>
                     </div>
                   </div>
@@ -855,7 +832,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Current Penalty Exposure:</span>
-                        <span className="text-red-400 font-semibold">{formatCurrency(clientData.penaltyExposure)}</span>
+                        <span className="text-red-400 font-semibold">{formatCurrency(metrics?.penaltyExposure || 0)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Potential Compliance Costs:</span>
@@ -937,29 +914,35 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                   <div className="w-1 h-6 bg-red-500 rounded-full"></div>
                   <h2 className="text-2xl font-semibold text-white tracking-tight">Active Alerts</h2>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-red-400">5</div>
-                    <div className="text-gray-400 text-xs">High Priority</div>
+                {alertsLoading ? (
+                  <Spinner size="sm" color="primary" />
+                ) : (
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-red-400">{alertsData?.filter(a => a.severity === 'high').length || 0}</div>
+                      <div className="text-gray-400 text-xs">High Priority</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-yellow-400">{alertsData?.filter(a => a.severity === 'medium').length || 0}</div>
+                      <div className="text-gray-400 text-xs">Medium Priority</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-white">{alertsData?.length || 0}</div>
+                      <div className="text-gray-400 text-xs">Total Alerts</div>
+                    </div>
+                    {(alertsData?.length || 0) > 0 && (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                        <div className="text-red-400 text-sm font-semibold">{alertsData?.length || 0} alerts need attention</div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-yellow-400">5</div>
-                    <div className="text-gray-400 text-xs">Medium Priority</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-white">12</div>
-                    <div className="text-gray-400 text-xs">Total Alerts</div>
-                  </div>
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                    <div className="text-red-400 text-sm font-semibold">12 alerts need attention</div>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="space-y-4">
-                {clientData.alerts.map((alert) => (
+                {alertsData?.map((alert, index) => (
                   <div
-                    key={alert.id}
+                    key={alert.id || `alert-${index}`}
                     className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -978,30 +961,30 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                         </div>
                       </div>
                       <Chip
-                        color={getStatusColor(alert.status)}
+                        color={getStatusColor(alert.severity)}
                         size="sm"
                         className="text-xs"
                       >
-                        {alert.status}
+                        {alert.severity}
                       </Chip>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div>
                         <p className="text-gray-400 text-xs">Financial Impact</p>
-                        <p className="text-white text-sm font-medium">{alert.financialImpact}</p>
+                        <p className="text-white text-sm font-medium">{alert.financialImpact || 'Not specified'}</p>
                       </div>
                       <div>
                         <p className="text-gray-400 text-xs">Statute</p>
-                        <p className="text-blue-300 text-sm font-mono">{alert.statute}</p>
+                        <p className="text-blue-300 text-sm font-mono">{alert.statute || 'Not specified'}</p>
                       </div>
                       <div>
                         <p className="text-gray-400 text-xs">Assigned To</p>
-                        <p className="text-white text-sm">{alert.assignedTo}</p>
+                        <p className="text-white text-sm">{alert.assignedTo || 'Unassigned'}</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-xs">Created</p>
-                        <p className="text-white text-sm">{formatDate(alert.createdAt)}</p>
+                        <p className="text-gray-400 text-xs">Detected</p>
+                        <p className="text-white text-sm">{formatDate(alert.detectedAt)}</p>
                       </div>
                     </div>
 
@@ -1087,9 +1070,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               {/* Recent Decisions */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white tracking-tight">Recent Professional Decisions</h3>
-                {clientData.decisions.map((decision) => (
+                {client.professionalDecisions?.map((decision, index) => (
                   <div
-                    key={decision.id}
+                    key={decision.id || `decision-${index}`}
                     className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -1158,9 +1141,14 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               </div>
 
               <div className="space-y-4">
-                {clientData.communications.map((comm) => (
+                {communicationsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Spinner size="lg" color="primary" />
+                  </div>
+                ) : communicationsData?.length > 0 ? (
+                  communicationsData.map((comm, index) => (
                   <div
-                    key={comm.id}
+                    key={comm.id || `comm-${index}`}
                     className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -1196,7 +1184,12 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                       </p>
                     </div>
                   </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">No communications found</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1218,6 +1211,12 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               </div>
 
               <div className="space-y-4">
+                {documentsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Spinner size="lg" color="primary" />
+                  </div>
+                ) : (
+                  <>
                 {/* Document Categories */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                   <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
@@ -1458,6 +1457,8 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     </div>
                   </div>
                 </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -1473,19 +1474,19 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Response Time</span>
-                      <span className="text-white text-sm font-semibold">{clientData.performance.responseTime}</span>
+                      <span className="text-gray-400 text-sm">Risk Score</span>
+                      <span className="text-white text-sm font-semibold">{metrics?.riskScore || 0}/100</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Client Satisfaction</span>
+                      <span className="text-gray-400 text-sm">Quality Score</span>
                       <div className="flex items-center space-x-2">
-                        <span className="text-white text-sm font-semibold">{clientData.performance.satisfaction}/5</span>
+                        <span className="text-white text-sm font-semibold">{client.qualityScore || 0}%</span>
                         <div className="flex space-x-1">
                           {[...Array(5)].map((_, i) => (
                             <div
-                              key={i}
+                              key={`star-${i}`}
                               className={`w-2 h-2 rounded-full ${
-                                i < Math.floor(clientData.performance.satisfaction) ? 'bg-yellow-400' : 'bg-gray-600'
+                                i < Math.floor((client.qualityScore || 0) / 20) ? 'bg-yellow-400' : 'bg-gray-600'
                               }`}
                             />
                           ))}
@@ -1494,15 +1495,15 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400 text-sm">Compliance Rate</span>
-                      <span className="text-white text-sm font-semibold">{clientData.performance.complianceRate}%</span>
+                      <span className="text-white text-sm font-semibold">{metrics?.complianceScore || 0}%</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400 text-sm">Penalty Prevention</span>
-                      <span className="text-green-400 text-sm font-semibold">{formatCurrency(clientData.performance.penaltyPrevention)}</span>
+                      <span className="text-green-400 text-sm font-semibold">{formatCurrency(metrics?.penaltyExposure || 0)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Time Spent</span>
-                      <span className="text-white text-sm font-semibold">{clientData.performance.timeSpent}</span>
+                      <span className="text-gray-400 text-sm">Active Alerts</span>
+                      <span className="text-white text-sm font-semibold">{metrics?.activeAlerts || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -1516,23 +1517,29 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 </div>
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
                   <div className="space-y-3">
-                    {clientData.dataProcessing.currentQueue.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
-                        <div>
-                          <p className="text-white text-sm font-semibold">{item.file}</p>
-                          <p className="text-gray-400 text-xs">{item.status}</p>
+                    {client.dataProcessing?.length > 0 ? (
+                      client.dataProcessing.map((item, index) => (
+                        <div key={item.id || `processing-${index}`} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                          <div>
+                            <p className="text-white text-sm font-semibold">{item.fileName || `Processing Item ${index + 1}`}</p>
+                            <p className="text-gray-400 text-xs">{item.status || 'Processing'}</p>
+                          </div>
+                          {item.qualityScore && (
+                            <Chip
+                              color={item.qualityScore >= 95 ? "success" : item.qualityScore >= 90 ? "warning" : "danger"}
+                              size="sm"
+                              className="text-xs"
+                            >
+                              {item.qualityScore}%
+                            </Chip>
+                          )}
                         </div>
-                        {item.quality && (
-                          <Chip
-                            color={item.quality >= 95 ? "success" : item.quality >= 90 ? "warning" : "danger"}
-                            size="sm"
-                            className="text-xs"
-                          >
-                            {item.quality}%
-                          </Chip>
-                        )}
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-400">No data processing items found</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
