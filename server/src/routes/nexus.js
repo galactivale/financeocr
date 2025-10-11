@@ -647,6 +647,245 @@ router.delete('/alerts/:id', async (req, res) => {
   }
 });
 
+// Decision Table endpoints
+// Get all decision tables for a client
+router.get('/decision-tables', async (req, res) => {
+  try {
+    const { limit = 10, offset = 0, clientId, decisionType, status, riskLevel } = req.query;
+    
+    const where = {};
+    if (clientId) where.clientId = clientId;
+    if (decisionType) where.decisionType = decisionType;
+    if (status) where.status = status;
+    if (riskLevel) where.riskLevel = riskLevel;
+
+    const decisionTables = await prisma.decisionTable.findMany({
+      where,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      },
+      orderBy: { decisionDate: 'desc' },
+      take: parseInt(limit),
+      skip: parseInt(offset)
+    });
+
+    const total = await prisma.decisionTable.count({ where });
+
+    res.json({
+      success: true,
+      data: {
+        decisionTables,
+        total,
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching decision tables:', error);
+    res.status(500).json({ error: 'Failed to fetch decision tables' });
+  }
+});
+
+// Get decision table by ID
+router.get('/decision-tables/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const decisionTable = await prisma.decisionTable.findUnique({
+      where: { id },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    if (!decisionTable) {
+      return res.status(404).json({ error: 'Decision table not found' });
+    }
+
+    res.json({
+      success: true,
+      data: decisionTable
+    });
+  } catch (error) {
+    console.error('Error fetching decision table:', error);
+    res.status(500).json({ error: 'Failed to fetch decision table' });
+  }
+});
+
+// Create new decision table entry
+router.post('/decision-tables', async (req, res) => {
+  try {
+    const {
+      clientId,
+      organizationId,
+      decisionType,
+      decisionTitle,
+      decisionDescription,
+      decisionDate,
+      decisionMaker,
+      decisionMakerRole,
+      riskLevel,
+      financialExposure,
+      decisionRationale,
+      supportingEvidence,
+      alternativesConsidered,
+      peerReviewer,
+      status = 'draft',
+      implementationDate,
+      followUpRequired = false,
+      followUpDate,
+      followUpNotes,
+      relatedAlerts,
+      relatedTasks,
+      relatedDocuments,
+      tags,
+      metadata
+    } = req.body;
+
+    // Validate required fields
+    if (!clientId || !organizationId || !decisionType || !decisionTitle || !decisionDescription) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: clientId, organizationId, decisionType, decisionTitle, decisionDescription are required' 
+      });
+    }
+
+    // Check if client exists
+    const client = await prisma.client.findUnique({
+      where: { id: clientId }
+    });
+
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    // Generate unique decision ID
+    const decisionId = `DEC-${clientId.slice(0, 8)}-${Date.now()}`;
+
+    const decisionTable = await prisma.decisionTable.create({
+      data: {
+        organizationId,
+        clientId,
+        decisionId,
+        decisionType,
+        decisionTitle,
+        decisionDescription,
+        decisionDate: decisionDate ? new Date(decisionDate) : new Date(),
+        decisionMaker,
+        decisionMakerRole,
+        riskLevel,
+        financialExposure,
+        decisionRationale,
+        supportingEvidence: supportingEvidence || [],
+        alternativesConsidered: alternativesConsidered || [],
+        peerReviewer,
+        status,
+        implementationDate: implementationDate ? new Date(implementationDate) : null,
+        followUpRequired,
+        followUpDate: followUpDate ? new Date(followUpDate) : null,
+        followUpNotes,
+        relatedAlerts: relatedAlerts || [],
+        relatedTasks: relatedTasks || [],
+        relatedDocuments: relatedDocuments || [],
+        tags: tags || [],
+        metadata: metadata || {}
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      data: decisionTable
+    });
+  } catch (error) {
+    console.error('Error creating decision table:', error);
+    res.status(500).json({ error: 'Failed to create decision table' });
+  }
+});
+
+// Update decision table
+router.patch('/decision-tables/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove fields that shouldn't be updated directly
+    delete updateData.id;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
+    // Convert date strings to Date objects
+    if (updateData.decisionDate) updateData.decisionDate = new Date(updateData.decisionDate);
+    if (updateData.implementationDate) updateData.implementationDate = new Date(updateData.implementationDate);
+    if (updateData.followUpDate) updateData.followUpDate = new Date(updateData.followUpDate);
+    if (updateData.peerReviewDate) updateData.peerReviewDate = new Date(updateData.peerReviewDate);
+
+    const decisionTable = await prisma.decisionTable.update({
+      where: { id },
+      data: updateData,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: decisionTable
+    });
+  } catch (error) {
+    console.error('Error updating decision table:', error);
+    res.status(500).json({ error: 'Failed to update decision table' });
+  }
+});
+
+// Delete decision table
+router.delete('/decision-tables/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.decisionTable.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Decision table deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting decision table:', error);
+    res.status(500).json({ error: 'Failed to delete decision table' });
+  }
+});
+
 module.exports = router;
 
 

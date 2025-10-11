@@ -192,6 +192,28 @@ export function useClientDetail(clientId: string) {
   );
 }
 
+// Decision Table hooks
+export function useDecisionTables(params?: {
+  limit?: number;
+  offset?: number;
+  clientId?: string;
+  decisionType?: string;
+  status?: string;
+  riskLevel?: string;
+}) {
+  return useApi(
+    () => apiClient.getDecisionTables(params),
+    [params?.limit, params?.offset, params?.clientId, params?.decisionType, params?.status, params?.riskLevel]
+  );
+}
+
+export function useDecisionTable(id: string) {
+  return useApi(
+    () => apiClient.getDecisionTable(id),
+    [id]
+  );
+}
+
 // Consultation hooks
 export function useConsultations(params?: {
   organizationId?: string;

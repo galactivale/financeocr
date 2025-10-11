@@ -256,7 +256,7 @@ const CardActiveAlerts = ({ alerts }: { alerts: any[] }) => {
 
 const CardThresholdMonitoring = ({ alerts }: { alerts: any[] }) => {
   const thresholdAlerts = alerts.filter(alert => 
-    alert.type === 'threshold' || alert.category === 'threshold'
+    alert.alertType === 'threshold_breach' || alert.type === 'threshold' || alert.category === 'threshold'
   ).length;
   const approachingThreshold = alerts.filter(alert => 
     alert.currentAmount && alert.thresholdAmount && 
@@ -273,7 +273,7 @@ const CardThresholdMonitoring = ({ alerts }: { alerts: any[] }) => {
       
       {/* Main Value with Chart */}
       <div className="flex items-end justify-between">
-        <div className="text-2xl font-bold text-white leading-none">11</div>
+        <div className="text-2xl font-bold text-white leading-none">{thresholdAlerts}</div>
         <div className="flex items-end space-x-1 h-10">
           {[4, 6, 3, 8, 5, 7, 4].map((height, i) => (
             <div key={i} className={`bg-gradient-to-t from-orange-500 to-orange-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
@@ -286,7 +286,7 @@ const CardThresholdMonitoring = ({ alerts }: { alerts: any[] }) => {
         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
         </svg>
-        <span>Warning trend</span>
+        <span>{approachingThreshold} approaching threshold</span>
       </div>
     </div>
   </div>
@@ -324,7 +324,7 @@ const CardResolvedToday = ({ activities }: { activities: any[] }) => {
       
       {/* Main Value with Chart */}
       <div className="flex items-end justify-between">
-        <div className="text-2xl font-bold text-white leading-none">23</div>
+        <div className="text-2xl font-bold text-white leading-none">{resolvedToday}</div>
         <div className="flex items-end space-x-1 h-10">
           {[5, 7, 4, 9, 6, 8, 7].map((height, i) => (
             <div key={i} className={`bg-gradient-to-t from-green-500 to-green-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
@@ -333,11 +333,11 @@ const CardResolvedToday = ({ activities }: { activities: any[] }) => {
       </div>
       
       {/* Trend */}
-      <div className="flex items-center text-green-400 text-xs">
+      <div className={`flex items-center text-xs ${variance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
         </svg>
-        <span>Positive trend</span>
+        <span>{variance >= 0 ? `+${variance} from yesterday` : `${variance} from yesterday`}</span>
       </div>
     </div>
   </div>
@@ -789,43 +789,20 @@ export default function TaxManagerDashboard() {
   const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
-  // Regular data hooks (used when not in personalized mode)
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
-  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 10 });
-  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 10 });
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 10 });
-  const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary();
+  // Regular data hooks (used when not in personalized mode) - fetch more data for comprehensive view
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50 });
+  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50 });
+  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50 });
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100 });
+  const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary('demo-org-id');
 
   // Use personalized data if available, otherwise use regular data
   const clients = isPersonalizedMode ? (personalizedClientStates || []) : (clientsData?.clients || []);
   const nexusAlerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (nexusAlertsData?.alerts || []);
   const nexusActivities = nexusActivitiesData?.activities || [];
   
-  // Focused mock data - 10 key states for clean representation
-  const mockClientStates = [
-    // Critical states
-    { stateCode: 'CA', status: 'critical', currentAmount: 750000, thresholdAmount: 500000, clientId: 'client-1' },
-    { stateCode: 'TX', status: 'critical', currentAmount: 650000, thresholdAmount: 500000, clientId: 'client-2' },
-    
-    // Warning states
-    { stateCode: 'NY', status: 'warning', currentAmount: 480000, thresholdAmount: 500000, clientId: 'client-3' },
-    { stateCode: 'FL', status: 'warning', currentAmount: 420000, thresholdAmount: 100000, clientId: 'client-4' },
-    
-    // Pending states
-    { stateCode: 'IL', status: 'pending', currentAmount: 180000, thresholdAmount: 500000, clientId: 'client-5' },
-    
-    // Compliant states (green) - randomly distributed
-    { stateCode: 'WA', status: 'compliant', currentAmount: 40000, thresholdAmount: 100000, clientId: 'client-6' },
-    { stateCode: 'GA', status: 'compliant', currentAmount: 35000, thresholdAmount: 100000, clientId: 'client-7' },
-    { stateCode: 'MI', status: 'compliant', currentAmount: 25000, thresholdAmount: 100000, clientId: 'client-8' },
-    { stateCode: 'AZ', status: 'compliant', currentAmount: 20000, thresholdAmount: 100000, clientId: 'client-9' },
-    { stateCode: 'NC', status: 'compliant', currentAmount: 15000, thresholdAmount: 100000, clientId: 'client-10' }
-  ];
-  
-  // Use mock data if API data is insufficient, otherwise merge them
-  const clientStates = (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0) 
-    ? [...clientStatesData.clientStates, ...mockClientStates]
-    : mockClientStates;
+  // Use ONLY real backend data - no mock data
+  const clientStates = clientStatesData?.clientStates || [];
   
   const dashboardSummary = dashboardSummaryData || {};
 
@@ -870,6 +847,33 @@ export default function TaxManagerDashboard() {
               <CardThresholdMonitoring alerts={nexusAlerts} />
               <CardResolvedToday activities={nexusActivities} />
             </div>
+            
+            {/* Show message when no data is available */}
+            {nexusAlerts.length === 0 && nexusActivities.length === 0 && clientStates.length === 0 && !isLoading && (
+              <div className="mt-6 p-6 bg-gray-800/50 rounded-xl border border-gray-700">
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-gray-700 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-white mb-2">No Data Available</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Generate a dashboard to populate this page with real nexus monitoring data
+                  </p>
+                  <Link
+                    href="/generate"
+                    as={NextLink}
+                    className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Generate Dashboard
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* U.S. States Map */}
@@ -892,7 +896,33 @@ export default function TaxManagerDashboard() {
               </div>
               
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <EnhancedUSMap clientStates={clientStates} />
+                {clientStates.length > 0 ? (
+                  <EnhancedUSMap clientStates={clientStates} />
+                ) : (
+                  <div className="flex items-center justify-center h-96">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-white mb-2">No Nexus Data Available</h3>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Generate a dashboard to see nexus monitoring data on the map
+                      </p>
+                      <Link
+                        href="/generate"
+                        as={NextLink}
+                        className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Generate Dashboard
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
           </div>
         </div>

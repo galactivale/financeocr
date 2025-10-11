@@ -517,6 +517,56 @@ class ApiClient {
     return this.request(`/api/nexus/dashboard-summary${queryString ? `?${queryString}` : ''}`);
   }
 
+  // Decision Table API methods
+  async getDecisionTables(params?: {
+    limit?: number;
+    offset?: number;
+    clientId?: string;
+    decisionType?: string;
+    status?: string;
+    riskLevel?: string;
+  }): Promise<ApiResponse<{
+    decisionTables: any[];
+    total: number;
+    limit: number;
+    offset: number;
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    if (params?.clientId) queryParams.append('clientId', params.clientId);
+    if (params?.decisionType) queryParams.append('decisionType', params.decisionType);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.riskLevel) queryParams.append('riskLevel', params.riskLevel);
+    
+    const queryString = queryParams.toString();
+    return this.request(`/api/nexus/decision-tables${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getDecisionTable(id: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/nexus/decision-tables/${id}`);
+  }
+
+  async createDecisionTable(data: any): Promise<ApiResponse<any>> {
+    return this.request('/api/nexus/decision-tables', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async updateDecisionTable(id: string, data: any): Promise<ApiResponse<any>> {
+    return this.request(`/api/nexus/decision-tables/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async deleteDecisionTable(id: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/nexus/decision-tables/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
   // Consultation methods
   async getConsultations(params?: {
     organizationId?: string;

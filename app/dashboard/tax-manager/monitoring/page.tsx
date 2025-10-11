@@ -64,7 +64,7 @@ const TaxManagerMonitoring = () => {
   const [forceRefresh, setForceRefresh] = useState(0);
 
   // API hooks for data fetching with refresh capability - fetch more data
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary();
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary('demo-org-id');
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100 });
   const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100 });
 
@@ -229,10 +229,10 @@ const TaxManagerMonitoring = () => {
       return {};
     }
     
-    // Use fallback data if no API data available
+    // Use real API data, fallback to static data only if API fails
     const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
       ? clientStatesData.clientStates 
-      : fallbackClientStates;
+      : (clientStatesError ? fallbackClientStates : []);
     
     if (!dataToUse || dataToUse.length === 0) {
       return {};
@@ -245,24 +245,28 @@ const TaxManagerMonitoring = () => {
       const stateCode = clientState.stateCode?.toUpperCase();
       if (!stateCode) return;
       
+      // Use currentAmount from backend data, fallback to revenue for static data
+      const revenue = clientState.currentAmount || clientState.revenue || 0;
+      const threshold = clientState.thresholdAmount || 500000;
+      
       if (!stateData[stateCode]) {
         stateData[stateCode] = {
           status: clientState.status || 'compliant',
-          revenue: clientState.revenue || 0,
+          revenue: revenue,
           clients: 1,
           alerts: 0,
           companies: [clientState.client?.name || 'Unknown Client'],
-          thresholdProgress: Math.min(100, Math.round((clientState.revenue || 0) / 500000 * 100)),
-          riskScore: Math.round((clientState.revenue || 0) / 500000 * 100),
+          thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
+          riskScore: Math.round(revenue / threshold * 100),
           lastUpdated: clientState.lastUpdated || new Date().toISOString(),
           hasData: true
         };
       } else {
         stateData[stateCode].clients += 1;
-        stateData[stateCode].revenue += clientState.revenue || 0;
+        stateData[stateCode].revenue += revenue;
         stateData[stateCode].companies.push(clientState.client?.name || 'Unknown Client');
-        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / 500000 * 100));
-        stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / 500000 * 100);
+        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / threshold * 100));
+        stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / threshold * 100);
         stateData[stateCode].hasData = true;
       }
     });
@@ -270,7 +274,7 @@ const TaxManagerMonitoring = () => {
     // Process alerts data with enhanced status mapping
     const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
       ? nexusAlertsData.alerts 
-      : fallbackAlerts;
+      : (alertsError ? fallbackAlerts : []);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -412,10 +416,10 @@ const TaxManagerMonitoring = () => {
       return [];
     }
     
-    // If no client states data, use fallback data for testing
+    // Use real API data, fallback to static data only if API fails
     const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
       ? clientStatesData.clientStates 
-      : fallbackClientStates;
+      : (clientStatesError ? fallbackClientStates : []);
     
     if (!dataToUse || dataToUse.length === 0) {
       return [];
@@ -428,18 +432,22 @@ const TaxManagerMonitoring = () => {
       const clientId = clientState.clientId;
       if (!clientId) return; // Skip if no client ID
       
+      // Use currentAmount from backend data, fallback to revenue for static data
+      const revenue = clientState.currentAmount || clientState.revenue || 0;
+      const threshold = clientState.thresholdAmount || 500000;
+      
       if (!clientMap.has(clientId)) {
         clientMap.set(clientId, {
           id: clientId,
           name: clientState.client?.name || clientState.client?.legalName || 'Unknown Client',
           state: clientState.stateCode || 'Unknown',
           industry: clientState.client?.industry || 'Unknown',
-          revenue: `$${(clientState.revenue || 0).toLocaleString()}`,
+          revenue: `$${revenue.toLocaleString()}`,
           nexusStatus: clientState.status || 'compliant',
-          thresholdProgress: Math.min(100, Math.round((clientState.revenue || 0) / 500000 * 100)),
+          thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
           lastUpdate: new Date(clientState.lastUpdated || Date.now()).toLocaleString(),
-      alerts: 0,
-          riskScore: Math.round((clientState.revenue || 0) / 500000 * 100),
+          alerts: 0,
+          riskScore: Math.round(revenue / threshold * 100),
           states: [clientState.stateCode].filter(Boolean)
         });
       } else {
@@ -450,10 +458,10 @@ const TaxManagerMonitoring = () => {
         
         // Update revenue calculation
         const currentRevenue = parseInt(client.revenue.replace(/[$,]/g, '')) || 0;
-        const newRevenue = currentRevenue + (clientState.revenue || 0);
+        const newRevenue = currentRevenue + revenue;
         client.revenue = `$${newRevenue.toLocaleString()}`;
-        client.thresholdProgress = Math.min(100, Math.round(newRevenue / 500000 * 100));
-        client.riskScore = Math.round(newRevenue / 500000 * 100);
+        client.thresholdProgress = Math.min(100, Math.round(newRevenue / threshold * 100));
+        client.riskScore = Math.round(newRevenue / threshold * 100);
         
         // Update status based on highest risk state
         if (clientState.status === 'critical' || client.nexusStatus === 'critical') {
@@ -471,7 +479,7 @@ const TaxManagerMonitoring = () => {
     // Add alert counts
     const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
       ? nexusAlertsData.alerts 
-      : fallbackAlerts;
+      : (alertsError ? fallbackAlerts : []);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {

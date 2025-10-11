@@ -58,6 +58,7 @@ model Organization {
   tasks                   Task[]
   users                   User[]
   generatedDashboards     GeneratedDashboard[]
+  decisionTables          DecisionTable[]
 
   @@map("organizations")
 }
@@ -160,6 +161,7 @@ model Client {
   professionalDecisions   ProfessionalDecision[]
   revenueBreakdowns       RevenueBreakdown[]
   tasks                   Task[]
+  decisionTables          DecisionTable[]
 
   @@index([slug])
   @@map("clients")
@@ -806,6 +808,49 @@ model Communication {
   @@map("communications")
 }
 
+model DecisionTable {
+  id                    String       @id @default(uuid())
+  organizationId        String       @map("organization_id")
+  clientId              String       @map("client_id")
+  decisionId            String       @unique @map("decision_id")
+  decisionType          String       @map("decision_type")
+  decisionTitle         String       @map("decision_title")
+  decisionDescription   String       @map("decision_description")
+  decisionDate          DateTime     @map("decision_date")
+  decisionMaker         String       @map("decision_maker")
+  decisionMakerRole     String       @map("decision_maker_role")
+  riskLevel             String       @map("risk_level")
+  financialExposure     Decimal?     @map("financial_exposure")
+  exposureCurrency      String       @default("USD") @map("exposure_currency")
+  decisionRationale     String       @map("decision_rationale")
+  supportingEvidence    String[]     @map("supporting_evidence")
+  alternativesConsidered String[]    @map("alternatives_considered")
+  peerReviewer          String?      @map("peer_reviewer")
+  peerReviewDate        DateTime?    @map("peer_review_date")
+  peerReviewNotes       String?      @map("peer_review_notes")
+  status                String       @default("draft")
+  implementationDate    DateTime?    @map("implementation_date")
+  followUpRequired      Boolean      @default(false) @map("follow_up_required")
+  followUpDate          DateTime?    @map("follow_up_date")
+  followUpNotes         String?      @map("follow_up_notes")
+  relatedAlerts         String[]     @map("related_alerts")
+  relatedTasks          String[]     @map("related_tasks")
+  relatedDocuments      String[]     @map("related_documents")
+  tags                  String[]
+  metadata              Json         @default("{}")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+  client                Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([decisionType])
+  @@index([decisionDate])
+  @@index([status])
+  @@index([riskLevel])
+  @@map("decision_tables")
+}
+
 model GeneratedDashboard {
   id                String       @id @default(uuid())
   organizationId    String       @map("organization_id")
@@ -827,6 +872,7 @@ model GeneratedDashboard {
   generatedSystemHealth Json?     @map("generated_system_health")
   generatedReports      Json?     @map("generated_reports")
   generatedCommunications Json?   @map("generated_communications")
+  generatedDecisions    Json?     @map("generated_decisions")
   
   lastUpdated       DateTime     @map("last_updated")
   isActive          Boolean      @default(true) @map("is_active")

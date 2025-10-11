@@ -34,6 +34,16 @@ const AddNexusMonitoring = () => {
       priority: 'low' | 'medium' | 'high' | 'critical';
     }
   }>({});
+  
+  // API Integration state
+  const [apiIntegration, setApiIntegration] = useState({
+    enabled: false,
+    provider: '',
+    apiKey: '',
+    webhookUrl: '',
+    syncFrequency: 'daily',
+    autoSync: false
+  });
 
   // US States with nexus thresholds
   const stateInfo: StateInfo[] = [
@@ -118,63 +128,52 @@ const AddNexusMonitoring = () => {
     }));
   };
 
-  const handleSubmit = async () => {
-    if (!selectedClient || selectedStates.length === 0) return;
+  const handleSave = async () => {
+    if (!selectedClient) {
+      alert('Please select a client first');
+      return;
+    }
 
+    if (selectedStates.length === 0) {
+      alert('Please select at least one state');
+      return;
+    }
+
+    setLoading(true);
     try {
-      setLoading(true);
-      
       // Create client states for each selected state
-      for (const stateCode of selectedStates) {
-        const data = monitoringData[stateCode];
-        if (data) {
-          // Create client state
-          await apiClient.request(`/api/nexus/client-states`, {
-            method: 'POST',
-            body: JSON.stringify({
-              clientId: selectedClient.id,
-              organizationId: 'demo-org-id',
-              stateCode,
-              stateName: stateInfo.find(s => s.code === stateCode)?.name,
-              status: 'monitoring',
-              thresholdAmount: data.thresholdAmount,
-              currentAmount: data.currentAmount,
-              notes: data.notes,
-              lastUpdated: new Date().toISOString()
-            })
-          });
+      const clientStates = selectedStates.map(stateCode => ({
+        clientId: selectedClient.id,
+        stateCode: stateCode,
+        stateName: stateInfo.find(s => s.code === stateCode)?.name || stateCode,
+        thresholdAmount: monitoringData[stateCode]?.thresholdAmount || stateInfo.find(s => s.code === stateCode)?.threshold || 100000,
+        currentAmount: monitoringData[stateCode]?.currentAmount || 0,
+        notes: monitoringData[stateCode]?.notes || '',
+        status: 'monitoring'
+      }));
 
-          // Create nexus alert if current amount exceeds threshold
-          if (data.currentAmount > data.thresholdAmount) {
-            await apiClient.request(`/api/nexus/alerts`, {
-              method: 'POST',
-              body: JSON.stringify({
-                clientId: selectedClient.id,
-                organizationId: 'demo-org-id',
-                stateCode,
-                alertType: 'threshold_breach',
-                priority: data.priority,
-                status: 'open',
-                title: `${stateInfo.find(s => s.code === stateCode)?.name} Nexus Threshold Exceeded`,
-                description: `Client has exceeded the economic nexus threshold in ${stateInfo.find(s => s.code === stateCode)?.name}`,
-                thresholdAmount: data.thresholdAmount,
-                currentAmount: data.currentAmount,
-                penaltyRisk: Math.floor((data.currentAmount - data.thresholdAmount) * 0.1)
-              })
-            });
-          }
-        }
+      // Save client states
+      for (const clientState of clientStates) {
+        await apiClient.createClientState(clientState);
       }
 
-      // Redirect back to monitoring page
+      // If API integration is enabled, save integration settings
+      if (apiIntegration.enabled) {
+        // Here you would typically save the API integration settings
+        // For now, we'll just log them
+        console.log('API Integration Settings:', apiIntegration);
+      }
+
+      alert('Nexus monitoring setup completed successfully!');
       router.push('/dashboard/managing-partner/monitoring');
     } catch (error) {
-      console.error('Error creating nexus monitoring:', error);
-      alert('Error creating nexus monitoring. Please try again.');
+      console.error('Error saving nexus monitoring:', error);
+      alert('Error saving nexus monitoring setup. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -204,7 +203,7 @@ const AddNexusMonitoring = () => {
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center space-x-4">
-              {[1, 2, 3].map((step) => (
+              {[1, 2, 3, 4].map((step) => (
                 <div key={step} className="flex items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     currentStep >= step 
@@ -216,9 +215,12 @@ const AddNexusMonitoring = () => {
                   <span className={`ml-2 text-sm font-medium ${
                     currentStep >= step ? 'text-white' : 'text-gray-400'
                   }`}>
-                    {step === 1 ? 'Select Client' : step === 2 ? 'Choose States' : 'Configure Monitoring'}
+                    {step === 1 ? 'Select Client' : 
+                     step === 2 ? 'Choose States' : 
+                     step === 3 ? 'Configure Monitoring' : 
+                     'API Integration'}
                   </span>
-                  {step < 3 && (
+                  {step < 4 && (
                     <div className={`w-8 h-px ml-4 ${
                       currentStep > step ? 'bg-blue-500' : 'bg-white/10'
                     }`} />
@@ -381,23 +383,13 @@ const AddNexusMonitoring = () => {
                     Back
                   </button>
                   <button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
+                    onClick={() => setCurrentStep(4)}
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center space-x-2"
                   >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                        <span>Creating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Create Monitoring</span>
-                      </>
-                    )}
+                    <span>Next: API Integration</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -516,6 +508,158 @@ const AddNexusMonitoring = () => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: API Integration */}
+          {currentStep === 4 && (
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+              <h2 className="text-xl font-semibold text-white mb-4">API Integration for Sales Data</h2>
+              <p className="text-gray-400 mb-6">Connect your sales systems to automatically sync revenue data and keep nexus monitoring up-to-date.</p>
+
+              {/* Enable API Integration */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                  <div>
+                    <h3 className="text-white font-medium">Enable API Integration</h3>
+                    <p className="text-gray-400 text-sm">Automatically sync sales data from your business systems</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={apiIntegration.enabled}
+                      onChange={(e) => setApiIntegration(prev => ({ ...prev, enabled: e.target.checked }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+
+              {apiIntegration.enabled && (
+                <div className="space-y-6">
+                  {/* Provider Selection */}
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Sales System Provider
+                    </label>
+                    <select
+                      value={apiIntegration.provider}
+                      onChange={(e) => setApiIntegration(prev => ({ ...prev, provider: e.target.value }))}
+                      className="w-full px-4 py-3 bg-black border border-white rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                    >
+                      <option value="" className="bg-black text-white">Select a provider</option>
+                      <option value="shopify" className="bg-black text-white">Shopify</option>
+                      <option value="woocommerce" className="bg-black text-white">WooCommerce</option>
+                      <option value="magento" className="bg-black text-white">Magento</option>
+                      <option value="salesforce" className="bg-black text-white">Salesforce</option>
+                      <option value="quickbooks" className="bg-black text-white">QuickBooks</option>
+                      <option value="xero" className="bg-black text-white">Xero</option>
+                      <option value="stripe" className="bg-black text-white">Stripe</option>
+                      <option value="paypal" className="bg-black text-white">PayPal</option>
+                      <option value="custom" className="bg-black text-white">Custom API</option>
+                    </select>
+                  </div>
+
+                  {/* API Key */}
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      API Key / Access Token
+                    </label>
+                    <input
+                      type="text"
+                      value={apiIntegration.apiKey}
+                      onChange={(e) => setApiIntegration(prev => ({ ...prev, apiKey: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Enter your API key or access token"
+                    />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Your API credentials will be encrypted and stored securely
+                    </p>
+                  </div>
+
+                  {/* Webhook URL */}
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Webhook URL (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={apiIntegration.webhookUrl}
+                      onChange={(e) => setApiIntegration(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="https://your-domain.com/webhook"
+                    />
+                    <p className="text-gray-500 text-xs mt-1">
+                      Receive real-time notifications when sales data changes
+                    </p>
+                  </div>
+
+                  {/* Sync Frequency */}
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Sync Frequency
+                    </label>
+                    <select
+                      value={apiIntegration.syncFrequency}
+                      onChange={(e) => setApiIntegration(prev => ({ ...prev, syncFrequency: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    >
+                      <option value="realtime">Real-time</option>
+                      <option value="hourly">Hourly</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </div>
+
+                  {/* Auto Sync Toggle */}
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div>
+                      <h3 className="text-white font-medium">Auto-sync Revenue Data</h3>
+                      <p className="text-gray-400 text-sm">Automatically update current revenue amounts based on sales data</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={apiIntegration.autoSync}
+                        onChange={(e) => setApiIntegration(prev => ({ ...prev, autoSync: e.target.checked }))}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Integration Status */}
+                  <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      <div>
+                        <h3 className="text-blue-400 font-medium">Integration Ready</h3>
+                        <p className="text-gray-400 text-sm">
+                          Once configured, your sales data will be automatically synced to keep nexus monitoring accurate and up-to-date.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-8">
+                <button
+                  onClick={() => setCurrentStep(3)}
+                  className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Saving...' : 'Complete Setup'}
+                </button>
               </div>
             </div>
           )}

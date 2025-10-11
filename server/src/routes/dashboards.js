@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const RiskBasedDataGenerator = require('../services/riskBasedDataGenerator');
+const EnhancedDataGenerator = require('../services/enhancedDataGenerator');
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -41,7 +42,22 @@ function generateDashboardUrls(clientName, uniqueUrl) {
   };
 }
 
-// Generate comprehensive dashboard data using risk-based approach
+// Helper functions for portfolio metrics
+function calculateRiskDistribution(clients) {
+  const distribution = { low: 0, medium: 0, high: 0, critical: 0 };
+  clients.forEach(client => {
+    if (distribution.hasOwnProperty(client.riskLevel)) {
+      distribution[client.riskLevel]++;
+    }
+  });
+  return distribution;
+}
+
+function calculateTotalPenaltyExposure(clients) {
+  return clients.reduce((sum, client) => sum + (client.penaltyExposure || 0), 0);
+}
+
+// Generate comprehensive dashboard data using enhanced approach
 async function generateDashboardData(formData, organizationId) {
   console.log('🤖 Starting risk-based dashboard data generation...');
   console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
@@ -53,13 +69,21 @@ async function generateDashboardData(formData, organizationId) {
     }
     console.log('✅ Gemini API key found');
     
-    console.log('🚀 Initializing risk-based data generator...');
-    const dataGenerator = new RiskBasedDataGenerator();
+    console.log('🚀 Initializing enhanced data generator...');
+    const enhancedGenerator = new EnhancedDataGenerator();
     
-    console.log('📊 Generating risk-based client portfolio...');
-    const generatedData = await dataGenerator.generateRiskBasedClientData(formData, organizationId);
+    console.log('📊 Generating complete client portfolio with relationships...');
+    const generatedData = await enhancedGenerator.generateCompleteDashboardData(formData, organizationId);
     
-    console.log('✅ Risk-based data generation completed');
+    console.log('✅ Enhanced data generation completed');
+    console.log('📊 Generated data summary:', {
+      totalClients: generatedData?.summary?.totalClients || 0,
+      totalRecords: generatedData?.summary?.totalRecords || 0,
+      hasClientStates: generatedData?.data?.clientStates?.length > 0,
+      hasNexusAlerts: generatedData?.data?.nexusAlerts?.length > 0,
+      hasDecisionTables: generatedData?.data?.decisionTables?.length > 0
+    });
+    
     return generatedData;
     
   } catch (error) {
@@ -254,13 +278,16 @@ router.post('/generate', async (req, res) => {
     const generatedData = await generateDashboardData(formData, organizationId);
     
     console.log('📊 Generated data structure:', {
-      hasClients: !!generatedData.clients,
-      clientCount: generatedData.clients?.length || 0,
-      hasRiskDistribution: !!generatedData.riskDistribution,
-      hasTotalPenaltyExposure: generatedData.totalPenaltyExposure !== undefined
+      hasClients: !!generatedData.data?.clients || !!generatedData.clients,
+      clientCount: generatedData.data?.clients?.length || generatedData.clients?.length || 0,
+      hasClientStates: !!generatedData.data?.clientStates,
+      hasNexusAlerts: !!generatedData.data?.nexusAlerts,
+      hasDecisionTables: !!generatedData.data?.decisionTables,
+      totalRecords: generatedData.summary?.totalRecords || 0
     });
     
-    if (!generatedData || !generatedData.clients || generatedData.clients.length === 0) {
+    const clients = generatedData.data?.clients || generatedData.clients;
+    if (!generatedData || !clients || clients.length === 0) {
       console.error('❌ No clients generated or invalid data structure');
       return res.status(500).json({ 
         error: 'Failed to generate client data',
@@ -271,11 +298,11 @@ router.post('/generate', async (req, res) => {
     console.log('💾 Creating dashboard reference...');
     
     // Calculate portfolio metrics
-    const totalClients = generatedData.clients.length;
-        const riskDistribution = generatedData.riskDistribution;
-        const totalPenaltyExposure = generatedData.totalPenaltyExposure;
-        const totalRevenue = generatedData.clients.reduce((sum, c) => sum + (c.client.annualRevenue || 0), 0);
-        const averageQualityScore = totalClients > 0 ? Math.round(generatedData.clients.reduce((sum, c) => sum + (c.client.qualityScore || 0), 0) / totalClients) : 0;
+    const totalClients = clients.length;
+    const riskDistribution = generatedData.riskDistribution || calculateRiskDistribution(clients);
+    const totalPenaltyExposure = generatedData.totalPenaltyExposure || calculateTotalPenaltyExposure(clients);
+    const totalRevenue = clients.reduce((sum, c) => sum + (c.annualRevenue || 0), 0);
+    const averageQualityScore = totalClients > 0 ? Math.round(clients.reduce((sum, c) => sum + (c.qualityScore || 0), 0) / totalClients) : 0;
         
         console.log('💾 Creating dashboard with data:', {
           organizationId,
@@ -285,10 +312,10 @@ router.post('/generate', async (req, res) => {
           averageQualityScore
         });
 
-        const generatedDashboard = await prisma.generatedDashboard.create({
-          data: {
+    const generatedDashboard = await prisma.generatedDashboard.create({
+      data: {
             organizationId,
-            clientName: formData.clientName,
+        clientName: formData.clientName,
             uniqueUrl: generateUniqueUrl(formData.clientName),
             clientInfo: {
               name: formData.clientName,
@@ -302,17 +329,38 @@ router.post('/generate', async (req, res) => {
               complianceScore: averageQualityScore,
               riskScore: (riskDistribution.critical || 0) * 25 + (riskDistribution.high || 0) * 15 + (riskDistribution.medium || 0) * 5,
               statesMonitored: formData.priorityStates.length,
-              alertsActive: generatedData.clients.reduce((sum, c) => sum + (c.nexusData?.nexusAlerts?.length || 0), 0),
-              tasksCompleted: generatedData.clients.reduce((sum, c) => sum + (c.nexusData?.tasks?.filter(t => t.status === 'completed').length || 0), 0)
+              alertsActive: (generatedData.data?.nexusAlerts?.length || 0) + (generatedData.data?.alerts?.length || 0),
+              tasksCompleted: generatedData.data?.tasks?.filter(t => t.status === 'completed').length || 0
             },
             statesMonitored: formData.priorityStates,
             personalizedData: {
               clientCount: totalClients,
               riskDistribution: riskDistribution,
               totalPenaltyExposure: totalPenaltyExposure,
-              clientIds: generatedData.clients.map(c => c.client.id),
+              clientIds: clients.map(c => c.id),
               generatedAt: new Date().toISOString()
             },
+            // Store comprehensive generated data
+            generatedClients: generatedData.data?.clients || clients,
+            generatedAlerts: generatedData.data?.alerts || [],
+            generatedTasks: generatedData.data?.tasks || [],
+            generatedAnalytics: {
+              riskDistribution,
+              totalPenaltyExposure,
+              totalRevenue,
+              averageQualityScore
+            },
+            generatedClientStates: generatedData.data?.clientStates || [],
+            generatedNexusAlerts: generatedData.data?.nexusAlerts || [],
+            generatedNexusActivities: generatedData.data?.nexusActivities || [],
+            generatedSystemHealth: {
+              totalRecords: generatedData.summary?.totalRecords || 0,
+              dataCompleteness: '100%',
+              lastGenerated: new Date().toISOString()
+            },
+            generatedReports: [],
+            generatedCommunications: generatedData.data?.communications || [],
+            generatedDecisions: generatedData.data?.decisionTables || [],
             lastUpdated: new Date()
           }
         });
@@ -322,30 +370,30 @@ router.post('/generate', async (req, res) => {
     // Generate all dashboard URLs for different roles
     const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
     
-        const response = {
-          success: true,
+    const response = {
+      success: true,
           data: {
-            id: generatedDashboard.id,
-            clientName: generatedDashboard.clientName,
-            uniqueUrl: generatedDashboard.uniqueUrl,
-            dashboardUrl: dashboardUrls.main,
-            dashboardUrls: dashboardUrls, // Include all role-specific URLs
-            clientInfo: generatedDashboard.clientInfo,
-            keyMetrics: generatedDashboard.keyMetrics,
-            statesMonitored: generatedDashboard.statesMonitored,
-            personalizedData: generatedDashboard.personalizedData,
-            lastUpdated: generatedDashboard.lastUpdated
-          }
-        };
+        id: generatedDashboard.id,
+        clientName: generatedDashboard.clientName,
+        uniqueUrl: generatedDashboard.uniqueUrl,
+        dashboardUrl: dashboardUrls.main,
+        dashboardUrls: dashboardUrls, // Include all role-specific URLs
+        clientInfo: generatedDashboard.clientInfo,
+        keyMetrics: generatedDashboard.keyMetrics,
+        statesMonitored: generatedDashboard.statesMonitored,
+        personalizedData: generatedDashboard.personalizedData,
+        lastUpdated: generatedDashboard.lastUpdated
+      }
+    };
 
-        console.log('🎉 Dashboard generation completed successfully');
+    console.log('🎉 Dashboard generation completed successfully');
         console.log('📤 Response data:', {
           id: response.data.id,
           clientName: response.data.clientName,
           uniqueUrl: response.data.uniqueUrl,
           dashboardUrl: response.data.dashboardUrl
         });
-        res.json(response);
+    res.json(response);
 
   } catch (error) {
     console.error('❌ Error generating dashboard:', error);
