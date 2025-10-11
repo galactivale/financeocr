@@ -108,21 +108,39 @@ class EnhancedDataGenerator {
     const companyName = await this.generateUniqueCompanyName(index);
     const industry = this.getRandomIndustry();
     
+    // Generate unique business characteristics for diversity
+    const businessTypes = ['B2B', 'B2C', 'B2B2C', 'Marketplace', 'Subscription', 'E-commerce', 'SaaS', 'Manufacturing', 'Distribution', 'Services'];
+    const businessType = businessTypes[Math.floor(Math.random() * businessTypes.length)];
+    
+    const fundingStages = ['Bootstrapped', 'Seed', 'Series A', 'Series B', 'Series C', 'Private Equity', 'Public', 'Family Owned'];
+    const fundingStage = fundingStages[Math.floor(Math.random() * fundingStages.length)];
+    
     const prompt = `
-Generate a COMPLETELY UNIQUE and realistic business client for a CPA firm's nexus monitoring system. This must be a DIFFERENT company from any previous clients.
+Generate a COMPLETELY UNIQUE and realistic business client for a CPA firm's nexus monitoring system. This is client #${index + 1} in a portfolio of diverse businesses that the CPA firm monitors for nexus compliance.
+
+CONTEXT: You are creating a diverse portfolio of clients for a CPA firm. Each client must be completely different from the others to provide variety in monitoring scenarios.
 
 COMPANY REQUIREMENTS:
 - Company Name: ${companyName} (must be unique and realistic)
 - Industry: ${industry} (must be specific to this company type)
+- Business Type: ${businessType}
+- Funding Stage: ${fundingStage}
 - Risk Level: ${riskLevel}
 - Must be a multi-state business with nexus exposure
-- Must have realistic financial data for this industry
+- Must have realistic financial data for this industry and business type
 - Must have complete business profile data
 
 RISK CHARACTERISTICS:
 - Risk Level: ${riskLevel}
 - Penalty Exposure: ${riskLevel === 'critical' ? '$50,000-$200,000' : riskLevel === 'high' ? '$25,000-$100,000' : riskLevel === 'medium' ? '$5,000-$25,000' : '$0-$5,000'}
 - Quality Score: ${riskLevel === 'critical' ? '60-75' : riskLevel === 'high' ? '75-85' : riskLevel === 'medium' ? '85-95' : '95-100'}
+
+DIVERSITY REQUIREMENTS:
+- Create a unique business story and background
+- Use different geographic locations and markets
+- Vary the business model and revenue streams
+- Include unique challenges and opportunities
+- Make each client feel like a real, distinct business
 
 COMPLETE DATA REQUIREMENTS:
 Return JSON with ALL required fields for a complete client profile:
@@ -148,9 +166,14 @@ Return JSON with ALL required fields for a complete client profile:
   "state": "US State",
   "postalCode": "XXXXX",
   "country": "US",
-  "notes": "Risk-specific notes",
-  "tags": ["multi-state", "nexus-risk", "${riskLevel}-risk"],
-  "customFields": {},
+  "notes": "Unique business story and nexus monitoring requirements for ${industry} company",
+  "tags": ["multi-state", "nexus-risk", "${riskLevel}-risk", "${businessType.toLowerCase()}", "${fundingStage.toLowerCase().replace(' ', '-')}"],
+  "customFields": {
+    "businessType": "${businessType}",
+    "fundingStage": "${fundingStage}",
+    "clientPortfolio": "CPA Firm Portfolio",
+    "monitoringPriority": "${riskLevel === 'critical' ? 'High' : riskLevel === 'high' ? 'Medium' : 'Standard'}"
+  },
   "businessProfile": {
     "legalName": "Legal Name LLC",
     "dbaName": "DBA Name",
@@ -159,59 +182,120 @@ Return JSON with ALL required fields for a complete client profile:
     "federalEin": "XX-XXXXXXX",
     "primaryIndustry": "${industry}",
     "naicsCode": "XXXXXX",
-    "businessModel": "B2B/B2C/Mixed",
-    "marketFocus": "Target Market",
+    "businessModel": "${businessType}",
+    "marketFocus": "Unique target market for ${industry}",
     "revenueGrowthYoy": 5.0-25.0,
-    "fundingStage": "Bootstrapped/Series A/Series B"
+    "fundingStage": "${fundingStage}"
   },
   "contacts": [
     {
-      "name": "Contact Name",
-      "title": "CEO/CFO/CTO",
+      "name": "Unique Contact Name",
+      "title": "CEO/CFO/CTO/COO/VP",
       "email": "contact@company.com",
       "phone": "+1-XXX-XXX-XXXX",
       "mobile": "+1-XXX-XXX-XXXX",
-      "role": "Primary Contact/Secondary",
-      "specialization": "Finance/Operations/Technology",
-      "notes": "Contact notes"
+      "role": "Primary Contact",
+      "specialization": "Finance/Operations/Technology/Sales",
+      "notes": "Primary contact for ${industry} ${businessType} business"
+    },
+    {
+      "name": "Secondary Contact Name",
+      "title": "Controller/Manager/Director",
+      "email": "secondary@company.com",
+      "phone": "+1-XXX-XXX-XXXX",
+      "mobile": "+1-XXX-XXX-XXXX",
+      "role": "Secondary Contact",
+      "specialization": "Accounting/Compliance/Operations",
+      "notes": "Secondary contact for nexus monitoring"
     }
   ],
   "businessLocations": [
     {
-      "type": "Headquarters/Branch/Warehouse",
-      "address": "Full Address",
-      "city": "City",
-      "state": "State",
+      "type": "Headquarters",
+      "address": "Primary Business Address",
+      "city": "Primary City",
+      "state": "Primary State",
       "postalCode": "XXXXX",
       "country": "US",
       "propertyType": "Owned/Leased",
-      "employeeCount": 5-50,
-      "nexusRelevant": true/false
+      "employeeCount": 10-50,
+      "nexusRelevant": true
+    },
+    {
+      "type": "Branch/Warehouse/Office",
+      "address": "Secondary Business Address",
+      "city": "Secondary City",
+      "state": "Secondary State",
+      "postalCode": "XXXXX",
+      "country": "US",
+      "propertyType": "Leased",
+      "employeeCount": 5-25,
+      "nexusRelevant": true
     }
   ],
   "revenueBreakdowns": [
     {
-      "category": "Product Sales/Service Revenue/Licensing",
-      "amount": 10000-1000000,
-      "percentage": 10.0-80.0
+      "category": "${businessType === 'SaaS' ? 'Subscription Revenue' : businessType === 'E-commerce' ? 'Product Sales' : businessType === 'Services' ? 'Service Revenue' : 'Primary Revenue'}",
+      "amount": 100000-2000000,
+      "percentage": 60.0-80.0
+    },
+    {
+      "category": "${businessType === 'SaaS' ? 'Professional Services' : businessType === 'E-commerce' ? 'Shipping & Handling' : businessType === 'Services' ? 'Consulting' : 'Secondary Revenue'}",
+      "amount": 20000-500000,
+      "percentage": 15.0-30.0
+    },
+    {
+      "category": "${businessType === 'SaaS' ? 'Training & Support' : businessType === 'E-commerce' ? 'Marketplace Fees' : businessType === 'Services' ? 'Licensing' : 'Other Revenue'}",
+      "amount": 10000-200000,
+      "percentage": 5.0-15.0
     }
   ],
   "customerDemographics": {
-    "totalActiveCustomers": 100-10000,
-    "averageContractValue": 1000-50000,
-    "customerRetentionRate": 70.0-95.0,
-    "monthlyRecurringRevenue": 10000-500000
+    "totalActiveCustomers": "${businessType === 'B2B' ? '50-500' : businessType === 'B2C' ? '1000-10000' : businessType === 'SaaS' ? '100-2000' : '100-5000'}",
+    "averageContractValue": "${businessType === 'B2B' ? '10000-100000' : businessType === 'B2C' ? '100-1000' : businessType === 'SaaS' ? '500-5000' : '1000-25000'}",
+    "customerRetentionRate": "${businessType === 'SaaS' ? '85.0-95.0' : businessType === 'B2B' ? '80.0-90.0' : '70.0-85.0'}",
+    "monthlyRecurringRevenue": "${businessType === 'SaaS' ? '50000-500000' : businessType === 'Subscription' ? '25000-300000' : '10000-200000'}"
   },
   "geographicDistributions": [
     {
-      "stateCode": "CA/TX/NY/FL",
-      "customerCount": 10-1000,
-      "percentage": 5.0-40.0
+      "stateCode": "CA",
+      "customerCount": 50-500,
+      "percentage": 15.0-25.0
+    },
+    {
+      "stateCode": "TX",
+      "customerCount": 40-400,
+      "percentage": 12.0-20.0
+    },
+    {
+      "stateCode": "NY",
+      "customerCount": 30-300,
+      "percentage": 10.0-18.0
+    },
+    {
+      "stateCode": "FL",
+      "customerCount": 25-250,
+      "percentage": 8.0-15.0
+    },
+    {
+      "stateCode": "IL",
+      "customerCount": 20-200,
+      "percentage": 6.0-12.0
+    },
+    {
+      "stateCode": "WA",
+      "customerCount": 15-150,
+      "percentage": 5.0-10.0
     }
   ]
 }
 
-IMPORTANT: Make this company completely unique with realistic data that matches the industry and risk level. Do not reuse any company names, tax IDs, or email addresses from previous generations.
+IMPORTANT: 
+- This is for a CPA firm's client portfolio - create a realistic business that would need nexus monitoring
+- Make this company completely unique with realistic data that matches the industry, business type, and risk level
+- Do not reuse any company names, tax IDs, or email addresses from previous generations
+- Each client should feel like a distinct business with unique challenges and opportunities
+- Focus on creating diverse scenarios for the CPA firm to monitor across different industries and business models
 `;
 
     try {
@@ -254,10 +338,13 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
       'IotaTech', 'KappaSystems', 'LambdaSoft', 'MuCorp', 'NuSolutions', 'XiTech', 'OmicronData', 'PiInnovations',
       'RhoSystems', 'SigmaWorks', 'TauTech', 'UpsilonCorp', 'PhiSolutions', 'ChiInnovations', 'PsiLabs', 'OmegaTech',
       'QuantumCore', 'NexusTech', 'VertexSoft', 'ApexData', 'PrimeSystems', 'EliteWorks', 'ProTech', 'MegaCorp',
-      'UltraSoft', 'SuperData', 'HyperTech', 'MetaSystems', 'CyberWorks', 'NeoCorp', 'ProtoTech', 'GenesisSoft'
+      'UltraSoft', 'SuperData', 'HyperTech', 'MetaSystems', 'CyberWorks', 'NeoCorp', 'ProtoTech', 'GenesisSoft',
+      'BlueWave', 'GreenTech', 'RedStone', 'SilverLine', 'GoldGate', 'PlatinumCore', 'DiamondEdge', 'CrystalSoft',
+      'Sunrise', 'Sunset', 'Moonlight', 'Starlight', 'Thunder', 'Lightning', 'Storm', 'Rainbow', 'Aurora', 'Nebula'
     ];
     
     const suffixes = ['Inc', 'LLC', 'Corp', 'Ltd', 'Group', 'Partners', 'Associates', 'Enterprises', 'Solutions', 'Technologies'];
+    const adjectives = ['Advanced', 'Premier', 'Elite', 'Professional', 'Strategic', 'Dynamic', 'Innovative', 'Creative', 'Modern', 'Global'];
     
     let attempts = 0;
     let companyName;
@@ -265,13 +352,22 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
     do {
       const baseName = baseNames[index % baseNames.length];
       const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-      const variation = Math.floor(Math.random() * 1000);
+      const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
       
-      companyName = `${baseName}${variation} ${suffix}`;
+      // Create variations without numbers
+      const variations = [
+        `${baseName} ${suffix}`,
+        `${adjective} ${baseName} ${suffix}`,
+        `${baseName} ${adjective} ${suffix}`,
+        `${baseName} & ${suffix}`,
+        `${baseName} ${suffix} Group`
+      ];
+      
+      companyName = variations[Math.floor(Math.random() * variations.length)];
       attempts++;
       
       if (attempts > 100) {
-        companyName = `${baseName}${Date.now()} ${suffix}`;
+        companyName = `${baseName} ${suffix} ${Date.now().toString().slice(-4)}`;
         break;
       }
     } while (this.usedCompanyNames.has(companyName));
@@ -482,13 +578,41 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
   }
 
   async generateNexusMonitoringData(client, organizationId, generatedData) {
+    // Create diverse nexus scenarios based on client characteristics
     const states = ['CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI', 'NJ', 'VA', 'WA', 'AZ', 'MA', 'TN', 'IN', 'MO', 'MD', 'WI'];
-    const numStates = Math.floor(Math.random() * 5) + 2; // 2-6 states
+    
+    // Vary the number of states based on client risk level and business type
+    let numStates;
+    if (client.riskLevel === 'critical') {
+      numStates = Math.floor(Math.random() * 3) + 4; // 4-6 states for high-risk clients
+    } else if (client.riskLevel === 'high') {
+      numStates = Math.floor(Math.random() * 3) + 3; // 3-5 states
+    } else {
+      numStates = Math.floor(Math.random() * 3) + 2; // 2-4 states
+    }
+    
     const selectedStates = states.sort(() => 0.5 - Math.random()).slice(0, numStates);
 
     for (const stateCode of selectedStates) {
-      const thresholdAmount = 100000 + Math.floor(Math.random() * 400000); // $100K-$500K
-      const currentAmount = Math.floor(Math.random() * thresholdAmount * 1.2); // 0-120% of threshold
+      // Vary thresholds based on state and client characteristics
+      let thresholdAmount;
+      if (['CA', 'NY', 'TX'].includes(stateCode)) {
+        thresholdAmount = 500000 + Math.floor(Math.random() * 500000); // $500K-$1M for major states
+      } else if (['FL', 'IL', 'PA', 'OH'].includes(stateCode)) {
+        thresholdAmount = 200000 + Math.floor(Math.random() * 300000); // $200K-$500K for medium states
+      } else {
+        thresholdAmount = 100000 + Math.floor(Math.random() * 200000); // $100K-$300K for other states
+      }
+      
+      // Vary current amounts based on client risk level
+      let currentAmount;
+      if (client.riskLevel === 'critical') {
+        currentAmount = Math.floor(Math.random() * thresholdAmount * 1.5); // 0-150% for critical clients
+      } else if (client.riskLevel === 'high') {
+        currentAmount = Math.floor(Math.random() * thresholdAmount * 1.2); // 0-120% for high-risk clients
+      } else {
+        currentAmount = Math.floor(Math.random() * thresholdAmount * 0.9); // 0-90% for lower-risk clients
+      }
       
       // Create client state
       const clientState = await this.prisma.clientState.create({
@@ -502,7 +626,7 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
           thresholdAmount,
           currentAmount,
           lastUpdated: new Date(),
-          notes: `Monitoring ${stateCode} nexus status`,
+          notes: `${client.industry} company monitoring ${stateCode} nexus status - ${client.riskLevel} risk client with ${client.customFields?.businessType || 'B2B'} model`,
         },
       });
       generatedData.clientStates.push(clientState);
@@ -517,8 +641,8 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
             alertType: 'threshold_breach',
             priority: 'high',
             status: 'open',
-            title: `${stateCode} Nexus Threshold Exceeded`,
-            description: `Client has exceeded the economic nexus threshold in ${stateCode}`,
+            title: `${client.name} - ${stateCode} Nexus Threshold Exceeded`,
+            description: `${client.industry} company (${client.customFields?.businessType || 'B2B'}) has exceeded the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()}`,
             thresholdAmount,
             currentAmount,
             penaltyRisk: Math.floor((currentAmount - thresholdAmount) * 0.1),
@@ -529,20 +653,26 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
       }
 
       // Create nexus activity
+      const activityTypes = ['revenue_update', 'threshold_monitoring', 'compliance_check', 'registration_review', 'penalty_assessment'];
+      const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+      
       const nexusActivity = await this.prisma.nexusActivity.create({
         data: {
           organizationId,
           clientId: client.id,
           stateCode,
-          activityType: 'revenue_update',
-          title: `Revenue Update for ${stateCode}`,
-          description: `Updated revenue tracking for ${stateCode} nexus monitoring`,
+          activityType,
+          title: `${client.name} - ${activityType.replace('_', ' ').toUpperCase()} for ${stateCode}`,
+          description: `${activityType.replace('_', ' ')} activity for ${client.industry} company in ${stateCode}. ${client.customFields?.businessType || 'B2B'} model with ${client.riskLevel} risk profile`,
           amount: currentAmount,
           thresholdAmount,
           status: 'completed',
           metadata: {
             source: 'automated_tracking',
-            updateType: 'monthly_review'
+            updateType: 'monthly_review',
+            clientIndustry: client.industry,
+            businessType: client.customFields?.businessType || 'B2B',
+            riskLevel: client.riskLevel
           },
         },
       });
@@ -557,20 +687,21 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
 
     for (let i = 0; i < numAlerts; i++) {
       const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+      const stateCode = ['CA', 'TX', 'NY', 'FL', 'IL'][Math.floor(Math.random() * 5)];
       const alert = await this.prisma.alert.create({
         data: {
           organizationId,
           clientId: client.id,
-          title: `${alertType.charAt(0).toUpperCase() + alertType.slice(1)} Alert for ${client.name}`,
-          description: `Important ${alertType} alert requiring attention`,
-          issue: `${alertType} issue detected`,
-          stateCode: ['CA', 'TX', 'NY'][Math.floor(Math.random() * 3)],
-          stateName: this.getStateName(['CA', 'TX', 'NY'][Math.floor(Math.random() * 3)]),
+          title: `${client.name} - ${alertType.charAt(0).toUpperCase() + alertType.slice(1)} Alert`,
+          description: `${alertType} alert for ${client.industry} company (${client.customFields?.businessType || 'B2B'}) requiring CPA firm attention`,
+          issue: `${alertType} issue detected for ${client.riskLevel} risk client in ${stateCode}`,
+          stateCode,
+          stateName: this.getStateName(stateCode),
           currentAmount: Math.floor(Math.random() * 100000),
           thresholdAmount: 100000,
           penaltyRisk: Math.floor(Math.random() * 50000),
-          priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
-          severity: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
+          priority: client.riskLevel === 'critical' ? 'high' : client.riskLevel === 'high' ? 'medium' : 'low',
+          severity: client.riskLevel === 'critical' ? 'high' : client.riskLevel === 'high' ? 'medium' : 'low',
           status: 'new',
           type: alertType,
           category: 'compliance',
@@ -591,11 +722,11 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
         data: {
           organizationId,
           clientId: client.id,
-          title: `${taskType.charAt(0).toUpperCase() + taskType.slice(1)} Task for ${client.name}`,
-          description: `Complete ${taskType} task for client`,
+          title: `${client.name} - ${taskType.charAt(0).toUpperCase() + taskType.slice(1)} Task`,
+          description: `Complete ${taskType} task for ${client.industry} company (${client.customFields?.businessType || 'B2B'}) - ${client.riskLevel} risk client`,
           category: taskType,
           type: 'client_work',
-          priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
+          priority: client.riskLevel === 'critical' ? 'high' : client.riskLevel === 'high' ? 'medium' : 'low',
           status: 'pending',
           dueDate: new Date(Date.now() + (Math.floor(Math.random() * 14) + 1) * 24 * 60 * 60 * 1000),
           estimatedHours: Math.floor(Math.random() * 8) + 1,
