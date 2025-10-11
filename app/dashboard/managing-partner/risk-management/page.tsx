@@ -29,11 +29,11 @@ const riskData = {
       { state: 'Illinois', exposure: 220000, clients: 2, trend: 'stable', riskLevel: 'low' }
     ],
     clientExposure: [
-      { client: 'TechCorp SaaS', exposure: 450000, riskLevel: 'critical', status: 'monitoring' },
+      { client: 'TechCorp SaaS', exposure: 450000, riskLevel: 'critical', status: 'critical' },
       { client: 'RetailChain LLC', exposure: 380000, riskLevel: 'high', status: 'action_required' },
       { client: 'GlobalServices Inc', exposure: 320000, riskLevel: 'high', status: 'legal_review' },
       { client: 'Manufacturing Co', exposure: 280000, riskLevel: 'medium', status: 'compliant' },
-      { client: 'E-commerce Platform', exposure: 250000, riskLevel: 'medium', status: 'monitoring' }
+      { client: 'E-commerce Platform', exposure: 250000, riskLevel: 'medium', status: 'pending' }
     ]
   },
   liabilityMetrics: {

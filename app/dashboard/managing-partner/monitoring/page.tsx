@@ -73,7 +73,7 @@ const ManagingPartnerMonitoring = () => {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
 
   // API hooks for data fetching with refresh capability - fetch more data (fallback when not in personalized mode)
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary();
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary('demo-org-id');
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100 });
   const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100 });
 
@@ -251,36 +251,66 @@ const ManagingPartnerMonitoring = () => {
         ? clientStatesData.clientStates 
         : fallbackClientStates);
     
+    const stateData: any = {};
+    
+    // If no data, return empty object (states will show as grey - no activity)
     if (!dataToUse || dataToUse.length === 0) {
       return {};
     }
-
-    const stateData: any = {};
     
     // Process client states data with better state mapping
     dataToUse.forEach((clientState: any) => {
       const stateCode = clientState.stateCode?.toUpperCase();
       if (!stateCode) return;
       
+      // Use currentAmount from backend data, fallback to revenue for static data
+      const revenue = clientState.currentAmount || clientState.revenue || 0;
+      const threshold = clientState.thresholdAmount || 500000;
+      
+      // Determine status based on revenue-to-threshold ratio
+      const ratio = revenue / threshold;
+      let status = 'compliant';
+      if (ratio >= 1.0) {
+        status = 'critical';
+      } else if (ratio >= 0.8) {
+        status = 'warning';
+      } else if (ratio >= 0.5) {
+        status = 'pending';
+      } else if (ratio >= 0.2) {
+        status = 'transit';
+      }
+      
       if (!stateData[stateCode]) {
         stateData[stateCode] = {
-          status: clientState.status || 'compliant',
-          revenue: clientState.revenue || 0,
+          status: status,
+          revenue: revenue,
           clients: 1,
           alerts: 0,
           companies: [clientState.client?.name || 'Unknown Client'],
-          thresholdProgress: Math.min(100, Math.round((clientState.revenue || 0) / 500000 * 100)),
-          riskScore: Math.round((clientState.revenue || 0) / 500000 * 100),
+          thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
+          riskScore: Math.round(revenue / threshold * 100),
           lastUpdated: clientState.lastUpdated || new Date().toISOString(),
           hasData: true
         };
       } else {
         stateData[stateCode].clients += 1;
-        stateData[stateCode].revenue += clientState.revenue || 0;
+        stateData[stateCode].revenue += revenue;
         stateData[stateCode].companies.push(clientState.client?.name || 'Unknown Client');
-        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / 500000 * 100));
-        stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / 500000 * 100);
+        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / threshold * 100));
+        stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / threshold * 100);
         stateData[stateCode].hasData = true;
+        
+        // Update status to most critical if needed
+        const newRatio = stateData[stateCode].revenue / threshold;
+        if (newRatio >= 1.0) {
+          stateData[stateCode].status = 'critical';
+        } else if (newRatio >= 0.8 && stateData[stateCode].status !== 'critical') {
+          stateData[stateCode].status = 'warning';
+        } else if (newRatio >= 0.5 && stateData[stateCode].status === 'compliant') {
+          stateData[stateCode].status = 'pending';
+        } else if (newRatio >= 0.2 && stateData[stateCode].status === 'compliant') {
+          stateData[stateCode].status = 'transit';
+        }
       }
     });
 
@@ -315,6 +345,26 @@ const ManagingPartnerMonitoring = () => {
         }
       });
     }
+
+    // Don't add states without client data - they will show as grey (no activity)
+
+    // Debug logging
+    console.log('🗺️ Managing Partner Monitoring - Processed state data:', {
+      totalStatesWithClients: Object.keys(stateData).length,
+      statesWithData: Object.values(stateData).filter((s: any) => s.hasData).length,
+      statesCompliant: Object.values(stateData).filter((s: any) => s.status === 'compliant').length,
+      statesCritical: Object.values(stateData).filter((s: any) => s.status === 'critical').length,
+      statesWarning: Object.values(stateData).filter((s: any) => s.status === 'warning').length,
+      statesPending: Object.values(stateData).filter((s: any) => s.status === 'pending').length,
+      statesTransit: Object.values(stateData).filter((s: any) => s.status === 'transit').length,
+      sampleStates: Object.entries(stateData).slice(0, 5).map(([code, data]: [string, any]) => ({
+        state: code,
+        status: data.status,
+        hasData: data.hasData,
+        revenue: data.revenue,
+        clients: data.clients
+      }))
+    });
 
     return stateData;
   }, [
@@ -416,13 +466,10 @@ const ManagingPartnerMonitoring = () => {
           'data-risk-score': data.riskScore,
         };
       } else {
-        // Default styling for states without nexus data - neutral gray
-        const defaultFillColor = '#1f2937'; // Darker gray for no data
-        const defaultStrokeColor = '#374151';
-        
+        // Default styling for states without client data - grey (no activity)
         settings[state] = {
-          fill: defaultFillColor,
-          stroke: mapFocusState === state ? '#60a5fa' : defaultStrokeColor,
+          fill: '#374151', // Grey for no activity
+          stroke: mapFocusState === state ? '#60a5fa' : '#9ca3af',
           strokeWidth: mapFocusState === state ? 4 : 1,
           onClick: () => handleMapStateClick(state),
           onHover: (event: any) => handleMapStateHover(state, event),
@@ -431,6 +478,15 @@ const ManagingPartnerMonitoring = () => {
         };
       }
     });
+
+    // Debug logging for map colors
+    const colorStats = Object.entries(settings).reduce((acc, [state, config]: [string, any]) => {
+      const color = config.fill;
+      acc[color] = (acc[color] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    console.log('🗺️ Managing Partner Monitoring - Map color distribution:', colorStats);
 
     return settings;
   }, [selectedState, mapFocusState, nexusData]);
@@ -467,17 +523,34 @@ const ManagingPartnerMonitoring = () => {
       if (!clientId) return; // Skip if no client ID
       
       if (!clientMap.has(clientId)) {
+        // Use currentAmount from backend data, fallback to revenue for static data
+        const revenue = clientState.currentAmount || clientState.revenue || 0;
+        const threshold = clientState.thresholdAmount || 500000;
+        
+        // Determine status based on revenue-to-threshold ratio (same logic as nexusData)
+        const ratio = revenue / threshold;
+        let status = 'compliant';
+        if (ratio >= 1.0) {
+          status = 'critical';
+        } else if (ratio >= 0.8) {
+          status = 'warning';
+        } else if (ratio >= 0.5) {
+          status = 'pending';
+        } else if (ratio >= 0.2) {
+          status = 'transit';
+        }
+
         clientMap.set(clientId, {
           id: clientId,
           name: clientState.client?.name || clientState.client?.legalName || 'Unknown Client',
           state: clientState.stateCode || 'Unknown',
           industry: clientState.client?.industry || 'Unknown',
-          revenue: `$${(clientState.revenue || 0).toLocaleString()}`,
-          nexusStatus: clientState.status || 'compliant',
-          thresholdProgress: Math.min(100, Math.round((clientState.revenue || 0) / 500000 * 100)),
+          revenue: `$${revenue.toLocaleString()}`,
+          nexusStatus: status,
+          thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
           lastUpdate: new Date(clientState.lastUpdated || Date.now()).toLocaleString(),
-      alerts: 0,
-          riskScore: Math.round((clientState.revenue || 0) / 500000 * 100),
+          alerts: 0,
+          riskScore: Math.round(revenue / threshold * 100),
           states: [clientState.stateCode].filter(Boolean)
         });
       } else {
@@ -488,20 +561,26 @@ const ManagingPartnerMonitoring = () => {
         
         // Update revenue calculation
         const currentRevenue = parseInt(client.revenue.replace(/[$,]/g, '')) || 0;
-        const newRevenue = currentRevenue + (clientState.revenue || 0);
-        client.revenue = `$${newRevenue.toLocaleString()}`;
-        client.thresholdProgress = Math.min(100, Math.round(newRevenue / 500000 * 100));
-        client.riskScore = Math.round(newRevenue / 500000 * 100);
+        const additionalRevenue = clientState.currentAmount || clientState.revenue || 0;
+        const newRevenue = currentRevenue + additionalRevenue;
+        const threshold = clientState.thresholdAmount || 500000;
         
-        // Update status based on highest risk state
-        if (clientState.status === 'critical' || client.nexusStatus === 'critical') {
+        client.revenue = `$${newRevenue.toLocaleString()}`;
+        client.thresholdProgress = Math.min(100, Math.round(newRevenue / threshold * 100));
+        client.riskScore = Math.round(newRevenue / threshold * 100);
+        
+        // Update status based on new revenue-to-threshold ratio
+        const newRatio = newRevenue / threshold;
+        if (newRatio >= 1.0) {
           client.nexusStatus = 'critical';
-        } else if (clientState.status === 'warning' && client.nexusStatus === 'compliant') {
+        } else if (newRatio >= 0.8) {
           client.nexusStatus = 'warning';
-        } else if (clientState.status === 'pending' && client.nexusStatus === 'compliant') {
+        } else if (newRatio >= 0.5) {
           client.nexusStatus = 'pending';
-        } else if (clientState.status === 'transit' && client.nexusStatus === 'compliant') {
+        } else if (newRatio >= 0.2) {
           client.nexusStatus = 'transit';
+        } else {
+          client.nexusStatus = 'compliant';
         }
       }
     });
@@ -523,6 +602,22 @@ const ManagingPartnerMonitoring = () => {
     }
 
     const result = Array.from(clientMap.values());
+    
+    // Debug logging for client status values
+    console.log('🔍 Managing Partner Monitoring - Client status values:', {
+      totalClients: result.length,
+      statusBreakdown: result.reduce((acc, client) => {
+        acc[client.nexusStatus] = (acc[client.nexusStatus] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+      sampleClients: result.slice(0, 3).map(client => ({
+        name: client.name,
+        status: client.nexusStatus,
+        revenue: client.revenue,
+        thresholdProgress: client.thresholdProgress
+      }))
+    });
+
     return result;
   }, [
     isPersonalizedMode,
@@ -781,7 +876,9 @@ const ManagingPartnerMonitoring = () => {
               ) : filteredClients.length > 0 ? (
                 filteredClients.map((client) => {
                   const getStatusColor = (status: string) => {
-                    switch (status) {
+                    const normalizedStatus = (status || '').toLowerCase().trim();
+                    
+                    switch (normalizedStatus) {
                       case 'critical': return 'bg-red-500';
                       case 'warning': return 'bg-orange-500';
                       case 'pending': return 'bg-blue-500';
@@ -792,18 +889,25 @@ const ManagingPartnerMonitoring = () => {
                   };
 
                   const getStatusText = (status: string) => {
-                    switch (status) {
+                    // Ensure status is a valid string and normalize it
+                    const normalizedStatus = (status || '').toLowerCase().trim();
+                    
+                    switch (normalizedStatus) {
                       case 'critical': return 'Critical';
                       case 'warning': return 'Warning';
                       case 'pending': return 'Pending';
                       case 'transit': return 'In Transit';
                       case 'compliant': return 'Compliant';
-                      default: return 'Unknown';
+                      default: 
+                        console.warn('🔍 Unknown status value:', status, 'for client');
+                        return 'Compliant'; // Default to compliant instead of unknown
                     }
                   };
 
                   const getStatusTextColor = (status: string) => {
-                    switch (status) {
+                    const normalizedStatus = (status || '').toLowerCase().trim();
+                    
+                    switch (normalizedStatus) {
                       case 'critical': return 'text-red-500';
                       case 'warning': return 'text-orange-500';
                       case 'pending': return 'text-blue-500';
@@ -814,7 +918,9 @@ const ManagingPartnerMonitoring = () => {
                   };
 
                   const getIconColor = (status: string) => {
-                    switch (status) {
+                    const normalizedStatus = (status || '').toLowerCase().trim();
+                    
+                    switch (normalizedStatus) {
                       case 'critical': return 'text-red-500';
                       case 'warning': return 'text-orange-500';
                       case 'pending': return 'text-blue-500';
@@ -825,7 +931,9 @@ const ManagingPartnerMonitoring = () => {
                   };
 
                   const getIconBgColor = (status: string) => {
-                    switch (status) {
+                    const normalizedStatus = (status || '').toLowerCase().trim();
+                    
+                    switch (normalizedStatus) {
                       case 'critical': return 'bg-red-500/10';
                       case 'warning': return 'bg-orange-500/10';
                       case 'pending': return 'bg-blue-500/10';

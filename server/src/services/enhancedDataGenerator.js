@@ -14,6 +14,7 @@ class EnhancedDataGenerator {
   async generateCompleteDashboardData(formData, organizationId) {
     console.log('🚀 Starting complete dashboard data generation...');
     console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
+    console.log('📊 Client count from form:', formData.multiStateClientCount);
 
     try {
       if (!process.env.GEMINI_API_KEY) {
@@ -23,8 +24,8 @@ class EnhancedDataGenerator {
 
       console.log('✅ Gemini API key found, generating complete dashboard data...');
 
-      // Generate multiple clients (max 20) with different risk levels
-      const clientCount = Math.min(parseInt(formData.multiStateClientCount) || 5, 20);
+      // Always generate exactly 10 clients for demo
+      const clientCount = 10;
       console.log(`📊 Generating ${clientCount} clients with complete data relationships...`);
 
       const generatedData = {
@@ -53,13 +54,32 @@ class EnhancedDataGenerator {
       for (let i = 0; i < clientCount; i++) {
         console.log(`📊 Generating client ${i + 1}/${clientCount} with complete data...`);
         
-        const clientData = await this.generateUniqueClient(formData, i);
-        const client = await this.createClientWithRelationships(clientData, organizationId);
-        
-        generatedData.clients.push(client);
-        
-        // Generate related data for this client
-        await this.generateClientRelatedData(client, organizationId, generatedData);
+        try {
+          const clientData = await this.generateUniqueClient(formData, i);
+          
+          // Ensure revenue is within limits and properly formatted as number
+          let revenue = parseFloat(clientData.annualRevenue);
+          if (isNaN(revenue) || revenue > 600000) {
+            console.log(`⚠️ Client ${i + 1} revenue ${clientData.annualRevenue} exceeds limit or is invalid, capping at $600K`);
+            revenue = 600000;
+          }
+          clientData.annualRevenue = Math.round(revenue); // Ensure it's a clean integer
+          
+          console.log(`✅ Client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
+          
+          const client = await this.createClientWithRelationships(clientData, organizationId);
+          
+          generatedData.clients.push(client);
+          
+          // Generate related data for this client
+          await this.generateClientRelatedData(client, organizationId, generatedData);
+          
+          console.log(`✅ Client ${i + 1} and related data created successfully`);
+        } catch (error) {
+          console.error(`❌ Error generating client ${i + 1}:`, error);
+          // Continue with next client instead of failing completely
+          continue;
+        }
       }
 
       console.log('🎉 Complete dashboard data generation successful!');
@@ -84,6 +104,13 @@ class EnhancedDataGenerator {
         dataProcessing: generatedData.dataProcessing.length,
         decisionTables: generatedData.decisionTables.length
       });
+      
+      // Validate client count
+      if (generatedData.clients.length < clientCount) {
+        console.warn(`⚠️ Expected ${clientCount} clients but only generated ${generatedData.clients.length}`);
+      } else {
+        console.log(`✅ Successfully generated ${generatedData.clients.length} clients as expected`);
+      }
 
       return {
         success: true,
@@ -152,7 +179,7 @@ Return JSON with ALL required fields for a complete client profile:
   "industry": "${industry}",
   "foundedYear": 2015-2023,
   "employeeCount": 10-100,
-  "annualRevenue": 100000-5000000,
+    "annualRevenue": 50000-600000 (must be a clean integer, no decimals),
   "fiscalYearEnd": "2024-12-31",
   "riskLevel": "${riskLevel}",
   "penaltyExposure": 0-200000,
@@ -236,55 +263,55 @@ Return JSON with ALL required fields for a complete client profile:
   "revenueBreakdowns": [
     {
       "category": "${businessType === 'SaaS' ? 'Subscription Revenue' : businessType === 'E-commerce' ? 'Product Sales' : businessType === 'Services' ? 'Service Revenue' : 'Primary Revenue'}",
-      "amount": 100000-2000000,
+      "amount": 30000-400000 (must be clean integer),
       "percentage": 60.0-80.0
     },
     {
       "category": "${businessType === 'SaaS' ? 'Professional Services' : businessType === 'E-commerce' ? 'Shipping & Handling' : businessType === 'Services' ? 'Consulting' : 'Secondary Revenue'}",
-      "amount": 20000-500000,
+      "amount": 10000-150000 (must be clean integer),
       "percentage": 15.0-30.0
     },
     {
       "category": "${businessType === 'SaaS' ? 'Training & Support' : businessType === 'E-commerce' ? 'Marketplace Fees' : businessType === 'Services' ? 'Licensing' : 'Other Revenue'}",
-      "amount": 10000-200000,
+      "amount": 5000-50000 (must be clean integer),
       "percentage": 5.0-15.0
     }
   ],
   "customerDemographics": {
-    "totalActiveCustomers": "${businessType === 'B2B' ? '50-500' : businessType === 'B2C' ? '1000-10000' : businessType === 'SaaS' ? '100-2000' : '100-5000'}",
-    "averageContractValue": "${businessType === 'B2B' ? '10000-100000' : businessType === 'B2C' ? '100-1000' : businessType === 'SaaS' ? '500-5000' : '1000-25000'}",
+    "totalActiveCustomers": "${businessType === 'B2B' ? '20-200' : businessType === 'B2C' ? '500-5000' : businessType === 'SaaS' ? '50-1000' : '50-2000'}",
+    "averageContractValue": "${businessType === 'B2B' ? '5000-50000' : businessType === 'B2C' ? '50-500' : businessType === 'SaaS' ? '200-2500' : '500-15000'}",
     "customerRetentionRate": "${businessType === 'SaaS' ? '85.0-95.0' : businessType === 'B2B' ? '80.0-90.0' : '70.0-85.0'}",
-    "monthlyRecurringRevenue": "${businessType === 'SaaS' ? '50000-500000' : businessType === 'Subscription' ? '25000-300000' : '10000-200000'}"
+    "monthlyRecurringRevenue": "${businessType === 'SaaS' ? '5000-50000' : businessType === 'Subscription' ? '3000-30000' : '1000-20000'}"
   },
   "geographicDistributions": [
     {
       "stateCode": "CA",
-      "customerCount": 50-500,
+      "customerCount": 10-100,
       "percentage": 15.0-25.0
     },
     {
       "stateCode": "TX",
-      "customerCount": 40-400,
+      "customerCount": 8-80,
       "percentage": 12.0-20.0
     },
     {
       "stateCode": "NY",
-      "customerCount": 30-300,
+      "customerCount": 6-60,
       "percentage": 10.0-18.0
     },
     {
       "stateCode": "FL",
-      "customerCount": 25-250,
+      "customerCount": 5-50,
       "percentage": 8.0-15.0
     },
     {
       "stateCode": "IL",
-      "customerCount": 20-200,
+      "customerCount": 4-40,
       "percentage": 6.0-12.0
     },
     {
       "stateCode": "WA",
-      "customerCount": 15-150,
+      "customerCount": 3-30,
       "percentage": 5.0-10.0
     }
   ]
@@ -296,6 +323,8 @@ IMPORTANT:
 - Do not reuse any company names, tax IDs, or email addresses from previous generations
 - Each client should feel like a distinct business with unique challenges and opportunities
 - Focus on creating diverse scenarios for the CPA firm to monitor across different industries and business models
+- CRITICAL: Annual revenue MUST be between $50,000 and $600,000 - do not exceed $600,000 under any circumstances
+- CRITICAL: All numeric values (annualRevenue, employeeCount, etc.) must be clean integers with no decimal places
 `;
 
     try {
@@ -409,36 +438,73 @@ IMPORTANT:
     return industries[Math.floor(Math.random() * industries.length)];
   }
 
+  generateClientStateStatus(currentAmount, thresholdAmount, riskLevel) {
+    const ratio = currentAmount / thresholdAmount;
+    
+    // Critical: Exceeded threshold
+    if (ratio >= 1.0) {
+      return 'critical';
+    }
+    
+    // Warning: Close to threshold (80-99%)
+    if (ratio >= 0.8) {
+      return 'warning';
+    }
+    
+    // Pending: Moderate activity (50-79%)
+    if (ratio >= 0.5) {
+      return 'pending';
+    }
+    
+    // Transit: Some activity but low (20-49%)
+    if (ratio >= 0.2) {
+      return 'transit';
+    }
+    
+    // Compliant: Very low activity (0-19%)
+    return 'compliant';
+  }
+
   async createClientWithRelationships(clientData, organizationId) {
+    // Ensure all numeric fields are clean integers
+    const cleanClientData = {
+      ...clientData,
+      foundedYear: parseInt(clientData.foundedYear),
+      employeeCount: parseInt(clientData.employeeCount),
+      annualRevenue: parseInt(clientData.annualRevenue),
+      penaltyExposure: parseFloat(clientData.penaltyExposure),
+      qualityScore: parseInt(clientData.qualityScore)
+    };
+    
     // Create client
     const client = await this.prisma.client.create({
       data: {
         organizationId,
-        name: clientData.name,
-        slug: this.generateSlug(clientData.name),
-        legalName: clientData.legalName,
-        taxId: clientData.taxId,
-        industry: clientData.industry,
-        foundedYear: clientData.foundedYear,
-        employeeCount: clientData.employeeCount,
-        annualRevenue: clientData.annualRevenue,
-        fiscalYearEnd: new Date(clientData.fiscalYearEnd),
-        riskLevel: clientData.riskLevel,
-        penaltyExposure: clientData.penaltyExposure,
-        qualityScore: clientData.qualityScore,
-        primaryContactName: clientData.primaryContactName,
-        primaryContactEmail: clientData.primaryContactEmail,
-        primaryContactPhone: clientData.primaryContactPhone,
-        addressLine1: clientData.addressLine1,
-        addressLine2: clientData.addressLine2,
-        city: clientData.city,
-        state: clientData.state,
-        postalCode: clientData.postalCode,
-        country: clientData.country || 'US',
+        name: cleanClientData.name,
+        slug: this.generateSlug(cleanClientData.name),
+        legalName: cleanClientData.legalName,
+        taxId: cleanClientData.taxId,
+        industry: cleanClientData.industry,
+        foundedYear: cleanClientData.foundedYear,
+        employeeCount: cleanClientData.employeeCount,
+        annualRevenue: cleanClientData.annualRevenue,
+        fiscalYearEnd: new Date(cleanClientData.fiscalYearEnd),
+        riskLevel: cleanClientData.riskLevel,
+        penaltyExposure: cleanClientData.penaltyExposure,
+        qualityScore: cleanClientData.qualityScore,
+        primaryContactName: cleanClientData.primaryContactName,
+        primaryContactEmail: cleanClientData.primaryContactEmail,
+        primaryContactPhone: cleanClientData.primaryContactPhone,
+        addressLine1: cleanClientData.addressLine1,
+        addressLine2: cleanClientData.addressLine2,
+        city: cleanClientData.city,
+        state: cleanClientData.state,
+        postalCode: cleanClientData.postalCode,
+        country: cleanClientData.country || 'US',
         status: 'active',
-        notes: clientData.notes,
-        tags: clientData.tags,
-        customFields: clientData.customFields,
+        notes: cleanClientData.notes,
+        tags: cleanClientData.tags,
+        customFields: cleanClientData.customFields,
         assignedSince: new Date(),
         lastReview: new Date(),
         nextReview: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
@@ -522,8 +588,8 @@ IMPORTANT:
             organizationId,
             clientId: client.id,
             category: breakdownData.category,
-            amount: breakdownData.amount,
-            percentage: breakdownData.percentage,
+            amount: parseInt(breakdownData.amount), // Ensure clean integer
+            percentage: parseFloat(breakdownData.percentage), // Keep as float for percentage
           },
         });
         generatedData.revenueBreakdowns.push(breakdown);
@@ -536,10 +602,10 @@ IMPORTANT:
         data: {
           organizationId,
           clientId: client.id,
-          totalActiveCustomers: client.customerDemographics.totalActiveCustomers,
-          averageContractValue: client.customerDemographics.averageContractValue,
-          customerRetentionRate: client.customerDemographics.customerRetentionRate,
-          monthlyRecurringRevenue: client.customerDemographics.monthlyRecurringRevenue,
+          totalActiveCustomers: parseInt(client.customerDemographics.totalActiveCustomers),
+          averageContractValue: parseFloat(client.customerDemographics.averageContractValue),
+          customerRetentionRate: parseFloat(client.customerDemographics.customerRetentionRate),
+          monthlyRecurringRevenue: parseFloat(client.customerDemographics.monthlyRecurringRevenue),
         },
       });
       generatedData.customerDemographics.push(demographics);
@@ -621,7 +687,7 @@ IMPORTANT:
           clientId: client.id,
           stateCode,
           stateName: this.getStateName(stateCode),
-          status: currentAmount > thresholdAmount ? 'critical' : currentAmount > thresholdAmount * 0.8 ? 'warning' : 'monitoring',
+          status: this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel),
           registrationRequired: currentAmount > thresholdAmount,
           thresholdAmount,
           currentAmount,
@@ -834,7 +900,10 @@ IMPORTANT:
   getFallbackClientData(index, riskLevel, companyName, industry) {
     const foundedYear = 2015 + Math.floor(Math.random() * 8);
     const employeeCount = Math.floor(Math.random() * 50) + 10;
-    const annualRevenue = Math.floor(Math.random() * 5000000) + 500000;
+    const annualRevenue = Math.floor(Math.random() * 550000) + 50000; // $50K-$600K
+    
+    // Ensure revenue is within limits and is a clean integer
+    const cappedRevenue = Math.min(annualRevenue, 600000);
     
     return {
       name: companyName,
@@ -843,7 +912,7 @@ IMPORTANT:
       industry: industry,
       foundedYear: foundedYear,
       employeeCount: employeeCount,
-      annualRevenue: annualRevenue,
+      annualRevenue: cappedRevenue,
       fiscalYearEnd: '2024-12-31',
       riskLevel,
       penaltyExposure: riskLevel === 'critical' ? 75000 : riskLevel === 'high' ? 25000 : riskLevel === 'medium' ? 5000 : 0,
@@ -866,7 +935,7 @@ IMPORTANT:
   async generateFallbackCompleteData(formData, organizationId) {
     console.log('🔄 Generating fallback complete data...');
     
-    const clientCount = Math.min(parseInt(formData.multiStateClientCount) || 5, 20);
+    const clientCount = 10;
     const generatedData = {
       clients: [],
       clientStates: [],
@@ -891,19 +960,48 @@ IMPORTANT:
 
     try {
       for (let i = 0; i < clientCount; i++) {
-        const riskLevels = ['low', 'medium', 'high', 'critical'];
-        const riskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)];
-        const companyName = await this.generateUniqueCompanyName(i);
-        const industry = this.getRandomIndustry();
+        console.log(`📊 Generating fallback client ${i + 1}/${clientCount}...`);
         
-        const clientData = this.getFallbackClientData(i, riskLevel, companyName, industry);
-        const client = await this.createClientWithRelationships(clientData, organizationId);
-        
-        generatedData.clients.push(client);
-        await this.generateClientRelatedData(client, organizationId, generatedData);
+        try {
+          const riskLevels = ['low', 'medium', 'high', 'critical'];
+          const riskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)];
+          const companyName = await this.generateUniqueCompanyName(i);
+          const industry = this.getRandomIndustry();
+          
+          const clientData = this.getFallbackClientData(i, riskLevel, companyName, industry);
+          
+          // Ensure revenue is within limits and properly formatted as number
+          let revenue = parseFloat(clientData.annualRevenue);
+          if (isNaN(revenue) || revenue > 600000) {
+            console.log(`⚠️ Fallback client ${i + 1} revenue ${clientData.annualRevenue} exceeds limit or is invalid, capping at $600K`);
+            revenue = 600000;
+          }
+          clientData.annualRevenue = Math.round(revenue); // Ensure it's a clean integer
+          
+          console.log(`✅ Fallback client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
+          
+          const client = await this.createClientWithRelationships(clientData, organizationId);
+          
+          generatedData.clients.push(client);
+          await this.generateClientRelatedData(client, organizationId, generatedData);
+          
+          console.log(`✅ Fallback client ${i + 1} and related data created successfully`);
+        } catch (error) {
+          console.error(`❌ Error generating fallback client ${i + 1}:`, error);
+          // Continue with next client instead of failing completely
+          continue;
+        }
       }
 
       console.log('✅ Fallback complete data generation successful');
+      
+      // Validate client count
+      if (generatedData.clients.length < clientCount) {
+        console.warn(`⚠️ Expected ${clientCount} fallback clients but only generated ${generatedData.clients.length}`);
+      } else {
+        console.log(`✅ Successfully generated ${generatedData.clients.length} fallback clients as expected`);
+      }
+      
       return {
         success: true,
         data: generatedData,

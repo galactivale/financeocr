@@ -441,11 +441,15 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
       const currentAmount = this.generateCurrentAmount(client.annualRevenue, client.riskLevel);
       const percentage = Math.round((currentAmount / thresholdAmount) * 100);
       
-      let status = 'monitoring';
+      let status = 'compliant';
       if (percentage >= 100) {
         status = 'critical';
       } else if (percentage >= 80) {
         status = 'warning';
+      } else if (percentage >= 50) {
+        status = 'pending';
+      } else if (percentage >= 20) {
+        status = 'transit';
       }
 
       const clientState = {
@@ -869,9 +873,11 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
         const currentAmount = this.generateCurrentAmount(client.annualRevenue, client.riskLevel);
         const percentage = Math.round((currentAmount / thresholdAmount) * 100);
         
-        let status = 'monitoring';
+        let status = 'compliant';
         if (percentage >= 100) status = 'critical';
         else if (percentage >= 80) status = 'warning';
+        else if (percentage >= 50) status = 'pending';
+        else if (percentage >= 20) status = 'transit';
 
         await this.prisma.clientState.create({
           data: {

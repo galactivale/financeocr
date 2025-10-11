@@ -40,8 +40,10 @@ const DetailedUSMap = ({
       clients: number; 
       revenue: number; 
       alerts: number; 
+      hasData: boolean;
     }> = {};
     
+    // Process client states data
     clientStates.forEach(clientState => {
       const stateCode = clientState.stateCode;
       if (!stateData[stateCode]) {
@@ -49,7 +51,8 @@ const DetailedUSMap = ({
           status: clientState.status,
           clients: 1,
           revenue: clientState.currentAmount || 0,
-          alerts: 0
+          alerts: 0,
+          hasData: true
         };
       } else {
         stateData[stateCode].clients += 1;
@@ -61,6 +64,8 @@ const DetailedUSMap = ({
         }
       }
     });
+
+    // Don't add states without client data - they will show as grey (no activity)
 
     return stateData;
   }, [clientStates]);
@@ -106,6 +111,10 @@ const DetailedUSMap = ({
             fillColor = '#3b82f6';
             strokeColor = '#2563eb';
             break;
+          case 'transit':
+            fillColor = '#06b6d4';
+            strokeColor = '#0891b2';
+            break;
           case 'compliant':
             fillColor = '#10b981';
             strokeColor = '#059669';
@@ -126,8 +135,9 @@ const DetailedUSMap = ({
           label: labelConfig,
         };
       } else {
+        // Default styling for states without client data - grey (no activity)
         settings[state] = {
-          fill: '#374151',
+          fill: '#374151', // Grey for no activity
           stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
           strokeWidth: selectedState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),

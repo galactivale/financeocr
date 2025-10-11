@@ -176,7 +176,7 @@ const CardActiveClients = ({ clients }: { clients: any[] }) => {
 
 const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientStates: any[] }) => {
   const totalStates = (clientStates || []).length;
-  const compliantStates = (clientStates || []).filter(state => state.status === 'monitoring' || state.status === 'compliant').length;
+  const compliantStates = (clientStates || []).filter(state => state.status === 'compliant' || state.status === 'transit').length;
   const complianceRate = totalStates > 0 ? Math.round((compliantStates / totalStates) * 100) : 100;
 
   return (

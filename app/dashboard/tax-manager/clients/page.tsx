@@ -72,7 +72,7 @@ interface Client {
     revenue: number;
     threshold: number;
     percentage: number;
-    status: 'critical' | 'warning' | 'monitoring' | 'compliant';
+    status: 'critical' | 'warning' | 'pending' | 'transit' | 'compliant';
     daysSinceThreshold?: number;
     penaltyRange?: { min: number; max: number };
     transactions?: number;
@@ -154,7 +154,7 @@ const fallbackClients: Client[] = [
         revenue: 67200, 
         threshold: 500000, 
         percentage: 13, 
-        status: "monitoring" 
+        status: "compliant" 
       }
     ],
     decisions: [
@@ -222,7 +222,7 @@ const fallbackClients: Client[] = [
         revenue: 220000, 
         threshold: 500000, 
         percentage: 44, 
-        status: "monitoring" 
+        status: "compliant" 
       },
       { 
         code: "CA", 
@@ -230,7 +230,7 @@ const fallbackClients: Client[] = [
         revenue: 180000, 
         threshold: 500000, 
         percentage: 36, 
-        status: "monitoring" 
+        status: "compliant" 
       }
     ],
     decisions: [
@@ -297,7 +297,7 @@ const fallbackClients: Client[] = [
         revenue: 320000, 
         threshold: 500000, 
         percentage: 64, 
-        status: "monitoring" 
+        status: "compliant" 
       },
       { 
         code: "IL", 
@@ -305,7 +305,7 @@ const fallbackClients: Client[] = [
         revenue: 280000, 
         threshold: 500000, 
         percentage: 56, 
-        status: "monitoring" 
+        status: "compliant" 
       }
     ],
     decisions: [
@@ -363,7 +363,7 @@ const fallbackClients: Client[] = [
         revenue: 320000, 
         threshold: 500000, 
         percentage: 64, 
-        status: "monitoring" 
+        status: "compliant" 
       },
       { 
         code: "OR", 
@@ -371,7 +371,7 @@ const fallbackClients: Client[] = [
         revenue: 180000, 
         threshold: 500000, 
         percentage: 36, 
-        status: "monitoring" 
+        status: "compliant" 
       }
     ],
     decisions: [
@@ -1078,7 +1078,8 @@ export default function TaxManagerClients() {
                               <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
                                 state.status === 'critical' ? 'bg-red-500/20 text-red-400' :
                                 state.status === 'warning' ? 'bg-orange-500/20 text-orange-400' :
-                                state.status === 'monitoring' ? 'bg-blue-500/20 text-blue-400' :
+                                state.status === 'pending' ? 'bg-blue-500/20 text-blue-400' :
+                                state.status === 'transit' ? 'bg-cyan-500/20 text-cyan-400' :
                                 'bg-green-500/20 text-green-400'
                               }`}>
                                 {state.status.toUpperCase()}

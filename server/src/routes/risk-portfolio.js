@@ -1,5 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { formatClient, formatClientState, formatArray } = require('../utils/numberFormatter');
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -81,10 +82,10 @@ router.get('/', async (req, res) => {
           name: client.name,
           slug: client.slug,
           industry: client.industry,
-          annualRevenue: client.annualRevenue,
+          annualRevenue: parseFloat(client.annualRevenue) || 0,
           riskLevel: client.riskLevel,
-          penaltyExposure: client.penaltyExposure,
-          qualityScore: client.qualityScore,
+          penaltyExposure: parseFloat(client.penaltyExposure) || 0,
+          qualityScore: parseInt(client.qualityScore) || 0,
           statesMonitored: client.clientStates.length,
           activeAlerts: client.alerts.length,
           nexusAlerts: client.nexusAlerts.length,
@@ -95,7 +96,7 @@ router.get('/', async (req, res) => {
           id: client.id,
           name: client.name,
           riskLevel: client.riskLevel,
-          penaltyExposure: client.penaltyExposure,
+          penaltyExposure: parseFloat(client.penaltyExposure) || 0,
           nexusAlerts: client.nexusAlerts.length,
           statesMonitored: client.clientStates.length
         })),
@@ -107,7 +108,7 @@ router.get('/', async (req, res) => {
             stateCode: alert.stateCode,
             title: alert.title,
             priority: alert.priority,
-            penaltyRisk: alert.penaltyRisk
+            penaltyRisk: parseFloat(alert.penaltyRisk) || 0
           }))
         }))
       }

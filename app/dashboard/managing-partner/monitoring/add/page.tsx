@@ -149,7 +149,7 @@ const AddNexusMonitoring = () => {
         thresholdAmount: monitoringData[stateCode]?.thresholdAmount || stateInfo.find(s => s.code === stateCode)?.threshold || 100000,
         currentAmount: monitoringData[stateCode]?.currentAmount || 0,
         notes: monitoringData[stateCode]?.notes || '',
-        status: 'monitoring'
+        status: 'compliant'
       }));
 
       // Save client states

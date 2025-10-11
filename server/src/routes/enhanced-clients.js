@@ -1,5 +1,13 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { 
+  formatClient, 
+  formatClientState, 
+  formatRevenueBreakdown, 
+  formatCustomerDemographics, 
+  formatGeographicDistribution,
+  formatArray 
+} = require('../utils/numberFormatter');
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -147,7 +155,13 @@ router.get('/:id', async (req, res) => {
     const response = {
       success: true,
       data: {
-        client,
+        client: {
+          ...formatClient(client),
+          clientStates: formatArray(client.clientStates || [], formatClientState),
+          revenueBreakdowns: formatArray(client.revenueBreakdowns || [], formatRevenueBreakdown),
+          customerDemographics: client.customerDemographics ? formatCustomerDemographics(client.customerDemographics) : null,
+          geographicDistributions: formatArray(client.geographicDistributions || [], formatGeographicDistribution)
+        },
         metrics,
         stateMetrics,
         recentActivities,

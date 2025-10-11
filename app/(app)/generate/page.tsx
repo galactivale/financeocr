@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Input, Select, SelectItem, Textarea } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem, Textarea, Progress, Card, CardBody } from "@nextui-org/react";
 import { CheckCircleIcon } from "@/components/icons/profile/check-circle-icon";
 import { UserIcon } from "@/components/icons/profile/user-icon";
 import { MapPinIcon } from "@/components/icons/profile/map-pin-icon";
@@ -70,6 +70,9 @@ export default function GeneratePage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [currentStepMessage, setCurrentStepMessage] = useState("");
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const steps = [
     { id: 1, title: "Client Information", description: "Basic client details", icon: UserIcon },
@@ -138,18 +141,50 @@ export default function GeneratePage() {
     }
   };
 
+  const simulateProgress = async () => {
+    const steps = [
+      { progress: 10, message: "Initializing dashboard generation..." },
+      { progress: 25, message: "Creating unique client profiles..." },
+      { progress: 40, message: "Generating nexus monitoring data..." },
+      { progress: 60, message: "Setting up client relationships..." },
+      { progress: 80, message: "Configuring alerts and tasks..." },
+      { progress: 95, message: "Finalizing dashboard setup..." },
+      { progress: 100, message: "Dashboard generated successfully!" }
+    ];
+
+    for (const step of steps) {
+      setGenerationProgress(step.progress);
+      setCurrentStepMessage(step.message);
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate processing time
+    }
+  };
+
+  const showSuccessMessage = () => {
+    setShowSuccessToast(true);
+    setTimeout(() => {
+      setShowSuccessToast(false);
+    }, 3000);
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setGenerationProgress(0);
+    setCurrentStepMessage("");
     
     // For demo purposes, use a default organization ID
     // In a real app, this would come from the authenticated user's context
     const organizationId = "demo-org-id";
     
     try {
+      // Start progress simulation
+      const progressPromise = simulateProgress();
       
       // Call the backend API to generate the dashboard
       console.log('🚀 Sending dashboard generation request:', { formData, organizationId });
       const response = await apiClient.generateDashboard(formData, organizationId);
+      
+      // Wait for progress to complete
+      await progressPromise;
       
       console.log('📥 Dashboard generation response:', response);
       
@@ -160,6 +195,9 @@ export default function GeneratePage() {
         if (!response.data.uniqueUrl || !response.data.dashboardUrl) {
           throw new Error('Invalid dashboard data received from server');
         }
+        
+        // Show success toast
+        showSuccessMessage();
         
         // Set dashboard session cookie
         setDashboardSession({
@@ -172,9 +210,12 @@ export default function GeneratePage() {
         // Refresh the dashboard list to include the new dashboard
         await refreshDashboards();
         
-        // Redirect to the main dashboard view
-        console.log('Redirecting to:', response.data.dashboardUrl);
-        window.location.href = response.data.dashboardUrl;
+        // Wait a moment to show success message, then redirect
+        setTimeout(() => {
+          console.log('Redirecting to:', response.data.dashboardUrl);
+          window.location.href = response.data.dashboardUrl;
+        }, 1500);
+        
       } else {
         console.error('❌ Dashboard generation failed:', response);
         throw new Error(response.error || 'Failed to generate dashboard');
@@ -190,6 +231,8 @@ export default function GeneratePage() {
       alert(`Error generating dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
+      setGenerationProgress(0);
+      setCurrentStepMessage("");
     }
   };
 
@@ -205,8 +248,55 @@ export default function GeneratePage() {
               <h2 className="text-3xl font-normal text-white tracking-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Dashboard Generator</h2>
             </div>
             
-            {/* Progress Steps - Only show when no dashboard is selected */}
-            {!selectedDashboardId && (
+            {/* Generation Progress - Show when generating */}
+            {isSubmitting && (
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                    Generating Dashboard
+                  </h3>
+                  <div className="text-sm text-white/70" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                    {generationProgress}%
+                  </div>
+                </div>
+                
+                <Progress 
+                  value={generationProgress} 
+                  className="mb-4"
+                  color="primary"
+                  size="md"
+                />
+                
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm text-white/80" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                    {currentStepMessage}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Success Toast */}
+            {showSuccessToast && (
+              <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
+                <Card className="bg-green-500/90 backdrop-blur-sm border border-green-400/50">
+                  <CardBody className="flex flex-row items-center space-x-3 p-4">
+                    <CheckCircleIcon className="w-6 h-6 text-white" />
+                    <div>
+                      <p className="text-white font-medium" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                        Dashboard Generated Successfully!
+                      </p>
+                      <p className="text-white/80 text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                        Redirecting to your new dashboard...
+                      </p>
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+            )}
+            
+            {/* Progress Steps - Only show when no dashboard is selected and not generating */}
+            {!selectedDashboardId && !isSubmitting && (
               <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div className="text-base text-white/70 font-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Step {currentStep} of {totalSteps}</div>
@@ -258,7 +348,7 @@ export default function GeneratePage() {
                 dashboardId={selectedDashboardId} 
                 onClose={() => setSelectedDashboardId(null)} 
               />
-            ) : (
+            ) : !isSubmitting ? (
               <div className="space-y-8">
                 {currentStep === 1 && (
                   <div className="space-y-6">
@@ -452,6 +542,20 @@ export default function GeneratePage() {
                       {currentStep === totalSteps ? (isSubmitting ? "Generating..." : "Generate Dashboard") : "Next"}
                     </span>
                   </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-500/20 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <h3 className="text-lg font-medium text-white mb-2" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                    Please wait while we generate your dashboard...
+                  </h3>
+                  <p className="text-white/60 text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                    This may take a few moments
+                  </p>
                 </div>
               </div>
             )}

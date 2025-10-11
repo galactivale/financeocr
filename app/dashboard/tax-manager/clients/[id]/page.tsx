@@ -1070,7 +1070,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
               {/* Recent Decisions */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white tracking-tight">Recent Professional Decisions</h3>
-                {client.professionalDecisions?.map((decision, index) => (
+                {client.professionalDecisions && client.professionalDecisions.length > 0 ? client.professionalDecisions.map((decision: any, index: number) => (
                   <div
                     key={decision.id || `decision-${index}`}
                     className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
@@ -1079,16 +1079,20 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       <div>
                         <div className="flex items-center space-x-3 mb-2">
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span className="text-blue-400 text-xs font-mono">NEX-2024-{decision.date.replace(/-/g, '').slice(4)}-001</span>
-                          <span className="text-gray-400 text-xs">{formatDate(decision.date)}</span>
+                          <span className="text-blue-400 text-xs font-mono">
+                            NEX-2024-{decision.date ? decision.date.replace(/-/g, '').slice(4) : '0000'}-001
+                          </span>
+                          <span className="text-gray-400 text-xs">
+                            {decision.date ? formatDate(decision.date) : 'No date'}
+                          </span>
                         </div>
-                        <h4 className="text-white font-semibold text-sm tracking-tight">{decision.type}</h4>
-                        <p className="text-gray-300 text-sm">{decision.outcome}</p>
+                        <h4 className="text-white font-semibold text-sm tracking-tight">{decision.type || 'Unknown Decision Type'}</h4>
+                        <p className="text-gray-300 text-sm">{decision.outcome || 'No outcome specified'}</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Chip color="success" size="sm" className="text-xs">{decision.documentation}</Chip>
+                        <Chip color="success" size="sm" className="text-xs">{decision.documentation || 'No documentation'}</Chip>
                         <Chip color={decision.clientCommunication === "Complete" ? "success" : "warning"} size="sm" className="text-xs">
-                          {decision.clientCommunication}
+                          {decision.clientCommunication || 'Unknown'}
                         </Chip>
                       </div>
                     </div>
@@ -1096,10 +1100,10 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                     <div className="bg-white/5 rounded-lg p-3 mb-3">
                       <p className="text-gray-300 text-sm mb-2">
                         <span className="text-gray-400 text-xs">Professional Reasoning:</span><br />
-                        {decision.rationale}
+                        {decision.rationale || 'No reasoning provided'}
                       </p>
                       <p className="text-gray-300 text-sm">
-                        <span className="text-gray-400 text-xs">Tax Manager:</span> {decision.manager}
+                        <span className="text-gray-400 text-xs">Tax Manager:</span> {decision.manager || 'Unknown Manager'}
                       </p>
                     </div>
 
@@ -1119,7 +1123,17 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       </Button>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-8 text-center">
+                    <div className="text-gray-400 mb-2">
+                      <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-white font-medium mb-2">No Professional Decisions</h4>
+                    <p className="text-gray-400 text-sm">No professional decisions have been recorded for this client yet.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
