@@ -7,7 +7,9 @@ import { ArchiveIcon } from "../icons/sidebar/archive-icon";
 import { ChevronDownIcon } from "../icons/sidebar/chevron-down-icon";
 import { ChevronRightIcon } from "../icons/sidebar/chevron-right-icon";
 import { DocumentIcon } from "../icons/sidebar/document-icon";
+import { TrashIcon } from "../icons/profile/trash-icon";
 import { useDashboard } from "../../contexts/DashboardContext";
+import { apiClient } from "../../lib/api";
 
 // External link icon component
 const ExternalLinkIcon = () => (
@@ -23,7 +25,8 @@ interface DashboardListProps {
 
 export const DashboardList = ({ className = "", onDashboardSelect }: DashboardListProps) => {
   const [isArchiveExpanded, setIsArchiveExpanded] = useState(false);
-  const { dashboards, archivedDashboards, loading, error, setActiveDashboard } = useDashboard();
+  const [deletingDashboardId, setDeletingDashboardId] = useState<string | null>(null);
+  const { dashboards, archivedDashboards, loading, error, setActiveDashboard, refreshDashboards } = useDashboard();
 
   const handleNewDashboard = () => {
     // Navigate to generate page
@@ -39,6 +42,33 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
     event.stopPropagation(); // Prevent dashboard selection when clicking the view link
     const url = dashboard.dashboardUrl || `${window.location.origin}/dashboard/view/${dashboard.uniqueUrl}`;
     window.open(url, '_blank');
+  };
+
+  const handleDeleteDashboard = async (dashboard: any, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent dashboard selection when clicking delete
+    
+    if (!confirm(`Are you sure you want to delete "${dashboard.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingDashboardId(dashboard.id);
+    
+    try {
+      const response = await apiClient.deleteDashboard(dashboard.id);
+      
+      if (response.success) {
+        console.log('Dashboard deleted successfully');
+        await refreshDashboards();
+        alert('Dashboard deleted successfully');
+      } else {
+        throw new Error(response.error || 'Failed to delete dashboard');
+      }
+    } catch (error) {
+      console.error('Error deleting dashboard:', error);
+      alert(`Error deleting dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setDeletingDashboardId(null);
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -113,6 +143,18 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
                 >
                   <ExternalLinkIcon />
                 </button>
+                <button
+                  onClick={(e) => handleDeleteDashboard(dashboard, e)}
+                  disabled={deletingDashboardId === dashboard.id}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-red-500/20 rounded-md disabled:opacity-50"
+                  title="Delete Dashboard"
+                >
+                  {deletingDashboardId === dashboard.id ? (
+                    <div className="w-3 h-3 border border-white/40 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <TrashIcon className="w-3 h-3 text-red-400" />
+                  )}
+                </button>
               </div>
             ))}
           </div>
@@ -162,6 +204,18 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
                   title="View Dashboard"
                 >
                   <ExternalLinkIcon />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteDashboard(dashboard, e)}
+                  disabled={deletingDashboardId === dashboard.id}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-red-500/20 rounded-md disabled:opacity-50"
+                  title="Delete Dashboard"
+                >
+                  {deletingDashboardId === dashboard.id ? (
+                    <div className="w-3 h-3 border border-white/40 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <TrashIcon className="w-3 h-3 text-red-400" />
+                  )}
                 </button>
               </div>
             ))}

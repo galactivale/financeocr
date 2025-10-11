@@ -25,6 +25,7 @@ const personalizedDashboardRoutes = require('./routes/personalized-dashboard');
 const enhancedClientRoutes = require('./routes/enhanced-clients');
 const enhancedSystemRoutes = require('./routes/enhanced-system');
 const enhancedNexusRoutes = require('./routes/enhanced-nexus');
+const riskPortfolioRoutes = require('./routes/risk-portfolio');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -105,6 +106,7 @@ app.use('/api/personalized-dashboard', personalizedDashboardRoutes);
 app.use('/api/enhanced-clients', enhancedClientRoutes);
 app.use('/api/enhanced-system', enhancedSystemRoutes);
 app.use('/api/enhanced-nexus', enhancedNexusRoutes);
+app.use('/api/risk-portfolio', riskPortfolioRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -129,6 +131,7 @@ app.get('/api', (req, res) => {
       enhancedClients: '/api/enhanced-clients',
       enhancedSystem: '/api/enhanced-system',
       enhancedNexus: '/api/enhanced-nexus',
+      riskPortfolio: '/api/risk-portfolio',
     },
     documentation: '/api/docs',
   });

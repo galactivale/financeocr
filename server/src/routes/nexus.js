@@ -351,6 +351,302 @@ router.post('/activities', async (req, res) => {
   }
 });
 
+// Create client state for nexus monitoring
+router.post('/client-states', async (req, res) => {
+  try {
+    const {
+      clientId,
+      organizationId,
+      stateCode,
+      stateName,
+      status = 'monitoring',
+      thresholdAmount,
+      currentAmount = 0,
+      notes,
+      lastUpdated
+    } = req.body;
+
+    if (!clientId || !organizationId || !stateCode || !stateName) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: clientId, organizationId, stateCode, stateName' 
+      });
+    }
+
+    // Check if client state already exists
+    const existingState = await prisma.clientState.findFirst({
+      where: {
+        clientId,
+        stateCode,
+        organizationId
+      }
+    });
+
+    if (existingState) {
+      return res.status(409).json({ 
+        error: 'Client state already exists for this state',
+        details: 'A nexus monitoring record already exists for this client in this state'
+      });
+    }
+
+    const clientState = await prisma.clientState.create({
+      data: {
+        clientId,
+        organizationId,
+        stateCode,
+        stateName,
+        status,
+        thresholdAmount: thresholdAmount ? parseFloat(thresholdAmount) : null,
+        currentAmount: parseFloat(currentAmount),
+        notes: notes || `Nexus monitoring setup for ${stateName}`,
+        lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date()
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    console.log(`✅ Created client state for ${clientState.client.name} in ${stateName}`);
+
+    res.status(201).json({
+      success: true,
+      data: clientState
+    });
+  } catch (error) {
+    console.error('Error creating client state:', error);
+    res.status(500).json({ 
+      error: 'Failed to create client state',
+      details: error.message 
+    });
+  }
+});
+
+// Update client state
+router.patch('/client-states/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      status,
+      thresholdAmount,
+      currentAmount,
+      notes,
+      lastUpdated
+    } = req.body;
+
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (thresholdAmount !== undefined) updateData.thresholdAmount = parseFloat(thresholdAmount);
+    if (currentAmount !== undefined) updateData.currentAmount = parseFloat(currentAmount);
+    if (notes) updateData.notes = notes;
+    if (lastUpdated) updateData.lastUpdated = new Date(lastUpdated);
+
+    const clientState = await prisma.clientState.update({
+      where: { id },
+      data: updateData,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: clientState
+    });
+  } catch (error) {
+    console.error('Error updating client state:', error);
+    res.status(500).json({ 
+      error: 'Failed to update client state',
+      details: error.message 
+    });
+  }
+});
+
+// Delete client state
+router.delete('/client-states/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.clientState.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Client state deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting client state:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete client state',
+      details: error.message 
+    });
+  }
+});
+
+// Create nexus alert
+router.post('/alerts', async (req, res) => {
+  try {
+    const {
+      clientId,
+      organizationId,
+      stateCode,
+      alertType = 'threshold_breach',
+      priority = 'medium',
+      status = 'open',
+      title,
+      description,
+      thresholdAmount,
+      currentAmount,
+      penaltyRisk,
+      dueDate,
+      assignedTo,
+      notes
+    } = req.body;
+
+    if (!clientId || !organizationId || !stateCode || !title) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: clientId, organizationId, stateCode, title' 
+      });
+    }
+
+    const nexusAlert = await prisma.nexusAlert.create({
+      data: {
+        clientId,
+        organizationId,
+        stateCode,
+        alertType,
+        priority,
+        status,
+        title,
+        description: description || `Nexus alert for ${stateCode}`,
+        thresholdAmount: thresholdAmount ? parseFloat(thresholdAmount) : null,
+        currentAmount: currentAmount ? parseFloat(currentAmount) : null,
+        penaltyRisk: penaltyRisk ? parseFloat(penaltyRisk) : null,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        assignedTo: assignedTo || null,
+        notes: notes || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    console.log(`✅ Created nexus alert for ${nexusAlert.client.name} in ${stateCode}: ${title}`);
+
+    res.status(201).json({
+      success: true,
+      data: nexusAlert
+    });
+  } catch (error) {
+    console.error('Error creating nexus alert:', error);
+    res.status(500).json({ 
+      error: 'Failed to create nexus alert',
+      details: error.message 
+    });
+  }
+});
+
+// Update nexus alert
+router.patch('/alerts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      status,
+      priority,
+      title,
+      description,
+      thresholdAmount,
+      currentAmount,
+      penaltyRisk,
+      dueDate,
+      assignedTo,
+      notes
+    } = req.body;
+
+    const updateData = { updatedAt: new Date() };
+    if (status) updateData.status = status;
+    if (priority) updateData.priority = priority;
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (thresholdAmount !== undefined) updateData.thresholdAmount = parseFloat(thresholdAmount);
+    if (currentAmount !== undefined) updateData.currentAmount = parseFloat(currentAmount);
+    if (penaltyRisk !== undefined) updateData.penaltyRisk = parseFloat(penaltyRisk);
+    if (dueDate) updateData.dueDate = new Date(dueDate);
+    if (assignedTo !== undefined) updateData.assignedTo = assignedTo;
+    if (notes !== undefined) updateData.notes = notes;
+
+    const nexusAlert = await prisma.nexusAlert.update({
+      where: { id },
+      data: updateData,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            legalName: true,
+            industry: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: nexusAlert
+    });
+  } catch (error) {
+    console.error('Error updating nexus alert:', error);
+    res.status(500).json({ 
+      error: 'Failed to update nexus alert',
+      details: error.message 
+    });
+  }
+});
+
+// Delete nexus alert
+router.delete('/alerts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.nexusAlert.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Nexus alert deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting nexus alert:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete nexus alert',
+      details: error.message 
+    });
+  }
+});
+
 module.exports = router;
 
 

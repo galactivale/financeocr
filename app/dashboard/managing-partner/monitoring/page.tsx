@@ -692,6 +692,19 @@ const ManagingPartnerMonitoring = () => {
               />
             </div>
 
+            {/* Add Nexus Monitoring Button */}
+            <div className="mb-4">
+              <button 
+                onClick={() => window.location.href = '/dashboard/managing-partner/monitoring/add'}
+                className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>Add Nexus Monitoring</span>
+              </button>
+            </div>
+
             {/* Modern Status Overview Dropdown */}
             <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 mb-4 overflow-hidden">
               <button 

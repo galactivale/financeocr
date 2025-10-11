@@ -1,13 +1,31 @@
 "use client";
+
 import React, { useState, useMemo } from "react";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner, Card, CardBody, CardHeader } from "@nextui-org/react";
+import { 
+  Table, 
+  TableHeader, 
+  TableColumn, 
+  TableBody, 
+  TableRow, 
+  TableCell, 
+  Spinner, 
+  Card, 
+  CardBody, 
+  CardHeader 
+} from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { useClients, useNexusAlerts, useNexusActivities, useClientStates, useStateTaxInfo } from "@/hooks/useApi";
 
 // Enhanced US Map Component for detailed monitoring
-const DetailedUSMap = ({ clientStates, onStateClick }: { clientStates: any[], onStateClick: (stateCode: string) => void }) => {
+const DetailedUSMap = ({ 
+  clientStates, 
+  onStateClick 
+}: { 
+  clientStates: any[]; 
+  onStateClick: (stateCode: string) => void; 
+}) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   const handleMapStateClick = (stateCode: string) => {
@@ -17,7 +35,12 @@ const DetailedUSMap = ({ clientStates, onStateClick }: { clientStates: any[], on
 
   // Generate nexus data from clientStates
   const nexusData = useMemo(() => {
-    const stateData: Record<string, { status: string; clients: number; revenue: number; alerts: number }> = {};
+    const stateData: Record<string, { 
+      status: string; 
+      clients: number; 
+      revenue: number; 
+      alerts: number; 
+    }> = {};
     
     clientStates.forEach(clientState => {
       const stateCode = clientState.stateCode;
@@ -183,7 +206,15 @@ const DetailedUSMap = ({ clientStates, onStateClick }: { clientStates: any[], on
 };
 
 // Client States Table Component
-const ClientStatesTable = ({ clientStates, clients, selectedState }: { clientStates: any[], clients: any[], selectedState: string | null }) => {
+const ClientStatesTable = ({ 
+  clientStates, 
+  clients, 
+  selectedState 
+}: { 
+  clientStates: any[]; 
+  clients: any[]; 
+  selectedState: string | null; 
+}) => {
   const filteredStates = selectedState 
     ? clientStates.filter(cs => cs.stateCode === selectedState)
     : clientStates;
@@ -283,6 +314,7 @@ const ClientStatesTable = ({ clientStates, clients, selectedState }: { clientSta
   );
 };
 
+// Main Component
 export default function NexusMonitoringPage() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   
@@ -308,88 +340,86 @@ export default function NexusMonitoringPage() {
   return (
     <div className="h-full lg:px-6">
       <div className="flex justify-center gap-4 xl:gap-6 pt-3 px-4 lg:px-0 flex-wrap xl:flex-nowrap sm:pt-10 max-w-[90rem] mx-auto w-full">
-          
-          {/* Left Section - Map and Summary */}
-          <div className="mt-6 gap-8 flex flex-col w-full">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Nexus Monitoring Dashboard</h3>
-              <Link
-                href="/dashboard/tax-manager"
-                as={NextLink}
-                color="primary"
-                className="cursor-pointer"
-              >
-                Back to Dashboard
-              </Link>
-            </div>
-
-            {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="bg-default-50 rounded-xl shadow-md px-3 w-full">
-                <CardBody className="py-5">
-                  <div className="text-2xl font-bold text-default-900">{clientStates.length}</div>
-                  <div className="text-sm text-default-600">Total Client States</div>
-                </CardBody>
-              </Card>
-              <Card className="bg-danger rounded-xl shadow-md px-3 w-full">
-                <CardBody className="py-5">
-                  <div className="text-2xl font-bold text-white">
-                    {clientStates.filter(cs => cs.status === 'critical').length}
-                  </div>
-                  <div className="text-sm text-white">Critical States</div>
-                </CardBody>
-              </Card>
-              <Card className="bg-warning rounded-xl shadow-md px-3 w-full">
-                <CardBody className="py-5">
-                  <div className="text-2xl font-bold text-white">
-                    {clientStates.filter(cs => cs.status === 'warning').length}
-                  </div>
-                  <div className="text-sm text-white">Warning States</div>
-                </CardBody>
-              </Card>
-              <Card className="bg-success rounded-xl shadow-md px-3 w-full">
-                <CardBody className="py-5">
-                  <div className="text-2xl font-bold text-white">
-                    ${(clientStates.reduce((sum, cs) => sum + (cs.currentAmount || 0), 0) / 1000).toFixed(0)}K
-                  </div>
-                  <div className="text-sm text-white">Total Revenue</div>
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Interactive Map */}
-            <div className="h-full flex flex-col gap-2">
-              <h3 className="text-xl font-semibold">Interactive State Map</h3>
-              {selectedState && (
-                <span className="text-sm text-default-600">Filtering by {selectedState}</span>
-              )}
-              <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
-                <DetailedUSMap clientStates={clientStates} onStateClick={setSelectedState} />
-              </div>
-            </div>
+        
+        {/* Left Section - Map and Summary */}
+        <div className="mt-6 gap-8 flex flex-col w-full">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold">Nexus Monitoring Dashboard</h3>
+            <Link
+              href="/dashboard/tax-manager"
+              as={NextLink}
+              color="primary"
+              className="cursor-pointer"
+            >
+              Back to Dashboard
+            </Link>
           </div>
 
-          {/* Right Section - Client States Table */}
-          <div className="mt-4 gap-2 flex flex-col xl:max-w-4xl w-full">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Client States</h3>
-              {selectedState && (
-                <button
-                  onClick={() => setSelectedState(null)}
-                  className="text-sm text-primary hover:text-primary-600 transition-colors"
-                >
-                  Clear Filter
-                </button>
-              )}
-            </div>
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="bg-default-50 rounded-xl shadow-md px-3 w-full">
+              <CardBody className="py-5">
+                <div className="text-2xl font-bold text-default-900">{clientStates.length}</div>
+                <div className="text-sm text-default-600">Total Client States</div>
+              </CardBody>
+            </Card>
+            <Card className="bg-danger rounded-xl shadow-md px-3 w-full">
+              <CardBody className="py-5">
+                <div className="text-2xl font-bold text-white">
+                  {clientStates.filter(cs => cs.status === 'critical').length}
+                </div>
+                <div className="text-sm text-white">Critical States</div>
+              </CardBody>
+            </Card>
+            <Card className="bg-warning rounded-xl shadow-md px-3 w-full">
+              <CardBody className="py-5">
+                <div className="text-2xl font-bold text-white">
+                  {clientStates.filter(cs => cs.status === 'warning').length}
+                </div>
+                <div className="text-sm text-white">Warning States</div>
+              </CardBody>
+            </Card>
+            <Card className="bg-success rounded-xl shadow-md px-3 w-full">
+              <CardBody className="py-5">
+                <div className="text-2xl font-bold text-white">
+                  ${(clientStates.reduce((sum, cs) => sum + (cs.currentAmount || 0), 0) / 1000).toFixed(0)}K
+                </div>
+                <div className="text-sm text-white">Total Revenue</div>
+              </CardBody>
+            </Card>
+          </div>
+
+          {/* Interactive Map */}
+          <div className="h-full flex flex-col gap-2">
+            <h3 className="text-xl font-semibold">Interactive State Map</h3>
+            {selectedState && (
+              <span className="text-sm text-default-600">Filtering by {selectedState}</span>
+            )}
             <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
-              <ClientStatesTable clientStates={clientStates} clients={clients} selectedState={selectedState} />
+              <DetailedUSMap clientStates={clientStates} onStateClick={setSelectedState} />
             </div>
+          </div>
+        </div>
+
+        {/* Right Section - Client States Table */}
+        <div className="mt-4 gap-2 flex flex-col xl:max-w-4xl w-full">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold">Client States</h3>
+            {selectedState && (
+              <button
+                onClick={() => setSelectedState(null)}
+                className="text-sm text-primary hover:text-primary-600 transition-colors"
+              >
+                Clear Filter
+              </button>
+            )}
+          </div>
+          <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6">
+            <ClientStatesTable clientStates={clientStates} clients={clients} selectedState={selectedState} />
           </div>
         </div>
       </div>
     </div>
   );
 }
-

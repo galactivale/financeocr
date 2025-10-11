@@ -1,7 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const SchemaBasedDataGenerator = require('../services/schemaBasedDataGenerator');
+const RiskBasedDataGenerator = require('../services/riskBasedDataGenerator');
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -41,9 +41,9 @@ function generateDashboardUrls(clientName, uniqueUrl) {
   };
 }
 
-// Generate comprehensive dashboard data using schema-based approach
+// Generate comprehensive dashboard data using risk-based approach
 async function generateDashboardData(formData, organizationId) {
-  console.log('🤖 Starting schema-based dashboard data generation...');
+  console.log('🤖 Starting risk-based dashboard data generation...');
   console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
   
   try {
@@ -53,13 +53,13 @@ async function generateDashboardData(formData, organizationId) {
     }
     console.log('✅ Gemini API key found');
     
-    console.log('🚀 Initializing schema-based data generator...');
-    const dataGenerator = new SchemaBasedDataGenerator();
+    console.log('🚀 Initializing risk-based data generator...');
+    const dataGenerator = new RiskBasedDataGenerator();
     
-    console.log('📊 Generating comprehensive database records...');
-    const generatedData = await dataGenerator.generateCompleteClientData(formData, organizationId);
+    console.log('📊 Generating risk-based client portfolio...');
+    const generatedData = await dataGenerator.generateRiskBasedClientData(formData, organizationId);
     
-    console.log('✅ Schema-based data generation completed');
+    console.log('✅ Risk-based data generation completed');
     return generatedData;
     
   } catch (error) {
@@ -250,73 +250,115 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    console.log('📊 Generating schema-based dashboard data...');
+    console.log('📊 Generating risk-based dashboard data...');
     const generatedData = await generateDashboardData(formData, organizationId);
     
-    console.log('💾 Creating dashboard reference...');
-    const generatedDashboard = await prisma.generatedDashboard.create({
-      data: {
-        organizationId,
-        clientName: formData.clientName,
-        uniqueUrl: generateUniqueUrl(formData.clientName),
-        clientInfo: {
-          name: generatedData.client.name,
-          industry: generatedData.client.industry,
-          annualRevenue: generatedData.client.annualRevenue,
-          riskLevel: generatedData.client.riskLevel,
-          qualityScore: generatedData.client.qualityScore
-        },
-        keyMetrics: {
-          totalRevenue: generatedData.client.annualRevenue,
-          complianceScore: generatedData.client.qualityScore,
-          riskScore: generatedData.client.riskLevel === 'high' ? 25 : generatedData.client.riskLevel === 'medium' ? 15 : 5,
-          statesMonitored: formData.priorityStates.length,
-          alertsActive: generatedData.nexusAlerts?.length || 0,
-          tasksCompleted: generatedData.tasks?.filter(t => t.status === 'completed').length || 0
-        },
-        statesMonitored: formData.priorityStates,
-        personalizedData: {
-          clientId: generatedData.client.id,
-          generatedAt: new Date().toISOString()
-        },
-        lastUpdated: new Date()
-      }
+    console.log('📊 Generated data structure:', {
+      hasClients: !!generatedData.clients,
+      clientCount: generatedData.clients?.length || 0,
+      hasRiskDistribution: !!generatedData.riskDistribution,
+      hasTotalPenaltyExposure: generatedData.totalPenaltyExposure !== undefined
     });
+    
+    if (!generatedData || !generatedData.clients || generatedData.clients.length === 0) {
+      console.error('❌ No clients generated or invalid data structure');
+      return res.status(500).json({ 
+        error: 'Failed to generate client data',
+        details: 'No clients were created during the generation process'
+      });
+    }
+    
+    console.log('💾 Creating dashboard reference...');
+    
+    // Calculate portfolio metrics
+    const totalClients = generatedData.clients.length;
+        const riskDistribution = generatedData.riskDistribution;
+        const totalPenaltyExposure = generatedData.totalPenaltyExposure;
+        const totalRevenue = generatedData.clients.reduce((sum, c) => sum + (c.client.annualRevenue || 0), 0);
+        const averageQualityScore = totalClients > 0 ? Math.round(generatedData.clients.reduce((sum, c) => sum + (c.client.qualityScore || 0), 0) / totalClients) : 0;
+        
+        console.log('💾 Creating dashboard with data:', {
+          organizationId,
+          clientName: formData.clientName,
+          totalClients,
+          totalRevenue,
+          averageQualityScore
+        });
+
+        const generatedDashboard = await prisma.generatedDashboard.create({
+          data: {
+            organizationId,
+            clientName: formData.clientName,
+            uniqueUrl: generateUniqueUrl(formData.clientName),
+            clientInfo: {
+              name: formData.clientName,
+              industry: formData.primaryIndustry || 'Technology',
+              totalClients: totalClients,
+              riskDistribution: riskDistribution,
+              totalPenaltyExposure: totalPenaltyExposure
+            },
+            keyMetrics: {
+              totalRevenue: totalRevenue,
+              complianceScore: averageQualityScore,
+              riskScore: (riskDistribution.critical || 0) * 25 + (riskDistribution.high || 0) * 15 + (riskDistribution.medium || 0) * 5,
+              statesMonitored: formData.priorityStates.length,
+              alertsActive: generatedData.clients.reduce((sum, c) => sum + (c.nexusData?.nexusAlerts?.length || 0), 0),
+              tasksCompleted: generatedData.clients.reduce((sum, c) => sum + (c.nexusData?.tasks?.filter(t => t.status === 'completed').length || 0), 0)
+            },
+            statesMonitored: formData.priorityStates,
+            personalizedData: {
+              clientCount: totalClients,
+              riskDistribution: riskDistribution,
+              totalPenaltyExposure: totalPenaltyExposure,
+              clientIds: generatedData.clients.map(c => c.client.id),
+              generatedAt: new Date().toISOString()
+            },
+            lastUpdated: new Date()
+          }
+        });
 
     console.log('✅ Dashboard stored in database with ID:', generatedDashboard.id);
 
     // Generate all dashboard URLs for different roles
     const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
     
-    const response = {
-      success: true,
-      data: {
-        id: generatedDashboard.id,
-        clientName: generatedDashboard.clientName,
-        uniqueUrl: generatedDashboard.uniqueUrl,
-        dashboardUrl: dashboardUrls.main,
-        dashboardUrls: dashboardUrls, // Include all role-specific URLs
-        clientInfo: generatedDashboard.clientInfo,
-        keyMetrics: generatedDashboard.keyMetrics,
-        statesMonitored: generatedDashboard.statesMonitored,
-        personalizedData: generatedDashboard.personalizedData,
-        lastUpdated: generatedDashboard.lastUpdated
-      }
-    };
+        const response = {
+          success: true,
+          data: {
+            id: generatedDashboard.id,
+            clientName: generatedDashboard.clientName,
+            uniqueUrl: generatedDashboard.uniqueUrl,
+            dashboardUrl: dashboardUrls.main,
+            dashboardUrls: dashboardUrls, // Include all role-specific URLs
+            clientInfo: generatedDashboard.clientInfo,
+            keyMetrics: generatedDashboard.keyMetrics,
+            statesMonitored: generatedDashboard.statesMonitored,
+            personalizedData: generatedDashboard.personalizedData,
+            lastUpdated: generatedDashboard.lastUpdated
+          }
+        };
 
-    console.log('🎉 Dashboard generation completed successfully');
-    console.log('📤 Response:', JSON.stringify(response, null, 2));
-    res.json(response);
+        console.log('🎉 Dashboard generation completed successfully');
+        console.log('📤 Response data:', {
+          id: response.data.id,
+          clientName: response.data.clientName,
+          uniqueUrl: response.data.uniqueUrl,
+          dashboardUrl: response.data.dashboardUrl
+        });
+        res.json(response);
 
   } catch (error) {
     console.error('❌ Error generating dashboard:', error);
     console.error('📋 Error details:', {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
+      formData: req.body.formData,
+      organizationId: req.body.organizationId
     });
     
     res.status(500).json({ 
+      success: false,
       error: 'Failed to generate dashboard',
       details: error.message 
     });
@@ -411,6 +453,486 @@ router.get('/', async (req, res) => {
     console.error('Error fetching dashboards:', error);
     res.status(500).json({ 
       error: 'Failed to fetch dashboards',
+      details: error.message 
+    });
+  }
+});
+
+// DELETE /api/dashboards/delete-all - Delete all client data and dashboards
+router.delete('/delete-all', async (req, res) => {
+  console.log('🗑️ Delete all client data request received');
+  
+  try {
+    const { organizationId } = req.query;
+
+    if (!organizationId) {
+      return res.status(400).json({ 
+        error: 'Organization ID is required' 
+      });
+    }
+
+    console.log('🗑️ Deleting all data for organization:', organizationId);
+
+    // Delete all related data in the correct order to respect foreign key constraints
+    const deleteResults = {
+      generatedDashboards: 0,
+      clients: 0,
+      clientStates: 0,
+      nexusAlerts: 0,
+      nexusActivities: 0,
+      alerts: 0,
+      tasks: 0,
+      businessProfiles: 0,
+      contacts: 0,
+      businessLocations: 0,
+      revenueBreakdowns: 0,
+      customerDemographics: 0,
+      geographicDistributions: 0,
+      professionalDecisions: 0,
+      consultations: 0,
+      communications: 0,
+      documents: 0,
+      auditTrails: 0,
+      dataProcessing: 0
+    };
+
+    // Delete generated dashboards first
+    const deletedDashboards = await prisma.generatedDashboard.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.generatedDashboards = deletedDashboards.count;
+    console.log('✅ Deleted generated dashboards:', deletedDashboards.count);
+
+    // Delete all client-related data
+    const deletedClients = await prisma.client.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.clients = deletedClients.count;
+    console.log('✅ Deleted clients:', deletedClients.count);
+
+    // Delete client states
+    const deletedClientStates = await prisma.clientState.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.clientStates = deletedClientStates.count;
+    console.log('✅ Deleted client states:', deletedClientStates.count);
+
+    // Delete nexus alerts
+    const deletedNexusAlerts = await prisma.nexusAlert.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.nexusAlerts = deletedNexusAlerts.count;
+    console.log('✅ Deleted nexus alerts:', deletedNexusAlerts.count);
+
+    // Delete nexus activities
+    const deletedNexusActivities = await prisma.nexusActivity.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.nexusActivities = deletedNexusActivities.count;
+    console.log('✅ Deleted nexus activities:', deletedNexusActivities.count);
+
+    // Delete alerts
+    const deletedAlerts = await prisma.alert.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.alerts = deletedAlerts.count;
+    console.log('✅ Deleted alerts:', deletedAlerts.count);
+
+    // Delete tasks
+    const deletedTasks = await prisma.task.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.tasks = deletedTasks.count;
+    console.log('✅ Deleted tasks:', deletedTasks.count);
+
+    // Delete business profiles
+    const deletedBusinessProfiles = await prisma.businessProfile.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.businessProfiles = deletedBusinessProfiles.count;
+    console.log('✅ Deleted business profiles:', deletedBusinessProfiles.count);
+
+    // Delete contacts
+    const deletedContacts = await prisma.contact.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.contacts = deletedContacts.count;
+    console.log('✅ Deleted contacts:', deletedContacts.count);
+
+    // Delete business locations
+    const deletedBusinessLocations = await prisma.businessLocation.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.businessLocations = deletedBusinessLocations.count;
+    console.log('✅ Deleted business locations:', deletedBusinessLocations.count);
+
+    // Delete revenue breakdowns
+    const deletedRevenueBreakdowns = await prisma.revenueBreakdown.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.revenueBreakdowns = deletedRevenueBreakdowns.count;
+    console.log('✅ Deleted revenue breakdowns:', deletedRevenueBreakdowns.count);
+
+    // Delete customer demographics
+    const deletedCustomerDemographics = await prisma.customerDemographics.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.customerDemographics = deletedCustomerDemographics.count;
+    console.log('✅ Deleted customer demographics:', deletedCustomerDemographics.count);
+
+    // Delete geographic distributions
+    const deletedGeographicDistributions = await prisma.geographicDistribution.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.geographicDistributions = deletedGeographicDistributions.count;
+    console.log('✅ Deleted geographic distributions:', deletedGeographicDistributions.count);
+
+    // Delete professional decisions
+    const deletedProfessionalDecisions = await prisma.professionalDecision.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.professionalDecisions = deletedProfessionalDecisions.count;
+    console.log('✅ Deleted professional decisions:', deletedProfessionalDecisions.count);
+
+    // Delete consultations
+    const deletedConsultations = await prisma.consultation.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.consultations = deletedConsultations.count;
+    console.log('✅ Deleted consultations:', deletedConsultations.count);
+
+    // Delete communications
+    const deletedCommunications = await prisma.communication.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.communications = deletedCommunications.count;
+    console.log('✅ Deleted communications:', deletedCommunications.count);
+
+    // Delete documents
+    const deletedDocuments = await prisma.document.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.documents = deletedDocuments.count;
+    console.log('✅ Deleted documents:', deletedDocuments.count);
+
+    // Delete audit trails
+    const deletedAuditTrails = await prisma.auditTrail.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.auditTrails = deletedAuditTrails.count;
+    console.log('✅ Deleted audit trails:', deletedAuditTrails.count);
+
+    // Delete data processing records
+    const deletedDataProcessing = await prisma.dataProcessing.deleteMany({
+      where: { organizationId }
+    });
+    deleteResults.dataProcessing = deletedDataProcessing.count;
+    console.log('✅ Deleted data processing records:', deletedDataProcessing.count);
+
+    const totalDeleted = Object.values(deleteResults).reduce((sum, count) => sum + count, 0);
+
+    console.log('🎉 All client data deleted successfully');
+    console.log('📊 Deletion summary:', deleteResults);
+    console.log('📊 Total records deleted:', totalDeleted);
+
+    res.json({
+      success: true,
+      data: {
+        deletedCount: totalDeleted,
+        details: deleteResults
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting all client data:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete client data',
+      details: error.message 
+    });
+  }
+});
+
+// DELETE /api/dashboards/:id - Delete a specific dashboard and its related data
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { organizationId: queryOrganizationId } = req.query;
+    
+    console.log('🗑️ Delete dashboard request received');
+    console.log('📋 Request details:', {
+      dashboardId: id,
+      organizationId: queryOrganizationId,
+      timestamp: new Date().toISOString(),
+      userAgent: req.get('User-Agent'),
+      ip: req.ip || req.connection.remoteAddress
+    });
+
+    // First, get the dashboard to find related data
+    const dashboard = await prisma.generatedDashboard.findUnique({
+      where: { id },
+      include: {
+        organization: {
+          select: { id: true }
+        }
+      }
+    });
+
+    if (!dashboard) {
+      console.log('❌ Dashboard not found:', id);
+      return res.status(404).json({ error: 'Dashboard not found' });
+    }
+
+    const organizationId = dashboard.organizationId;
+    console.log('🗑️ Deleting dashboard and related data');
+    console.log('📊 Dashboard details:', {
+      id: dashboard.id,
+      name: dashboard.clientName,
+      uniqueUrl: dashboard.uniqueUrl,
+      organizationId: organizationId,
+      createdAt: dashboard.createdAt,
+      lastUpdated: dashboard.lastUpdated
+    });
+
+    // Get the client IDs from personalized data
+    const clientIds = dashboard.personalizedData?.clientIds || [];
+    console.log('🔍 Client IDs from personalized data:', clientIds);
+    
+    const deleteResults = {
+      generatedDashboard: 0,
+      clients: 0,
+      clientStates: 0,
+      nexusAlerts: 0,
+      nexusActivities: 0,
+      alerts: 0,
+      tasks: 0,
+      businessProfiles: 0,
+      contacts: 0,
+      businessLocations: 0,
+      revenueBreakdowns: 0,
+      customerDemographics: 0,
+      geographicDistributions: 0,
+      professionalDecisions: 0,
+      consultations: 0,
+      communications: 0,
+      documents: 0,
+      auditTrails: 0,
+      dataProcessing: 0
+    };
+
+    // Delete related data if clientIds exist
+    if (clientIds && clientIds.length > 0) {
+      console.log('🗑️ Deleting related client data for clientIds:', clientIds);
+      
+      // Delete client states
+      console.log('🗑️ Deleting client states...');
+      const deletedClientStates = await prisma.clientState.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.clientStates = deletedClientStates.count;
+      console.log('✅ Deleted client states:', deletedClientStates.count);
+
+      // Delete nexus alerts
+      const deletedNexusAlerts = await prisma.nexusAlert.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.nexusAlerts = deletedNexusAlerts.count;
+
+      // Delete nexus activities
+      const deletedNexusActivities = await prisma.nexusActivity.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.nexusActivities = deletedNexusActivities.count;
+
+      // Delete alerts
+      const deletedAlerts = await prisma.alert.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.alerts = deletedAlerts.count;
+
+      // Delete tasks
+      const deletedTasks = await prisma.task.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.tasks = deletedTasks.count;
+
+      // Delete business profiles
+      const deletedBusinessProfiles = await prisma.businessProfile.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.businessProfiles = deletedBusinessProfiles.count;
+
+      // Delete contacts
+      const deletedContacts = await prisma.contact.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.contacts = deletedContacts.count;
+
+      // Delete business locations
+      const deletedBusinessLocations = await prisma.businessLocation.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.businessLocations = deletedBusinessLocations.count;
+
+      // Delete revenue breakdowns
+      const deletedRevenueBreakdowns = await prisma.revenueBreakdown.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.revenueBreakdowns = deletedRevenueBreakdowns.count;
+
+      // Delete customer demographics
+      const deletedCustomerDemographics = await prisma.customerDemographics.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.customerDemographics = deletedCustomerDemographics.count;
+
+      // Delete geographic distributions
+      const deletedGeographicDistributions = await prisma.geographicDistribution.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.geographicDistributions = deletedGeographicDistributions.count;
+
+      // Delete professional decisions
+      const deletedProfessionalDecisions = await prisma.professionalDecision.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.professionalDecisions = deletedProfessionalDecisions.count;
+
+      // Delete consultations
+      const deletedConsultations = await prisma.consultation.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.consultations = deletedConsultations.count;
+
+      // Delete communications
+      const deletedCommunications = await prisma.communication.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.communications = deletedCommunications.count;
+
+      // Delete documents
+      const deletedDocuments = await prisma.document.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.documents = deletedDocuments.count;
+
+      // Delete audit trails
+      const deletedAuditTrails = await prisma.auditTrail.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.auditTrails = deletedAuditTrails.count;
+
+      // Delete data processing records
+      const deletedDataProcessing = await prisma.dataProcessing.deleteMany({
+        where: { 
+          clientId: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.dataProcessing = deletedDataProcessing.count;
+
+      // Finally, delete the clients
+      const deletedClients = await prisma.client.deleteMany({
+        where: { 
+          id: { in: clientIds },
+          organizationId 
+        }
+      });
+      deleteResults.clients = deletedClients.count;
+      console.log('✅ Deleted clients:', deletedClients.count);
+    } else {
+      console.log('⚠️ No client IDs found in personalized data, skipping client data deletion');
+    }
+
+    // Delete the generated dashboard
+    console.log('🗑️ Deleting generated dashboard...');
+    const deletedDashboard = await prisma.generatedDashboard.delete({
+      where: { id }
+    });
+    deleteResults.generatedDashboard = 1;
+    console.log('✅ Deleted generated dashboard:', deletedDashboard.clientName);
+
+    const totalDeleted = Object.values(deleteResults).reduce((sum, count) => sum + count, 0);
+
+    console.log('🎉 Dashboard and related data deleted successfully');
+    console.log('📊 Deletion summary:', deleteResults);
+    console.log('📊 Total records deleted:', totalDeleted);
+    console.log('📋 Deleted dashboard details:', {
+      id: dashboard.id,
+      clientName: dashboard.clientName,
+      uniqueUrl: dashboard.uniqueUrl,
+      clientIds: clientIds,
+      organizationId: organizationId
+    });
+    console.log('⏱️ Deletion completed at:', new Date().toISOString());
+
+    res.json({
+      success: true,
+      data: {
+        deleted: true,
+        deletedCount: totalDeleted,
+        details: deleteResults
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting dashboard:', error);
+    console.error('📋 Error details:', {
+      dashboardId: req.params.id,
+      organizationId: req.query.organizationId,
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ 
+      error: 'Failed to delete dashboard',
       details: error.message 
     });
   }

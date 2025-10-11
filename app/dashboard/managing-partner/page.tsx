@@ -8,6 +8,8 @@ import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/us
 import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useClientStates } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
+import RiskMonitoringDashboard from "@/components/dashboard/risk-monitoring-dashboard";
+import { BarChart3, AlertTriangle, MapPin, User } from "lucide-react";
 
 // Enhanced US Map Component for Managing Partner
 const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients: any[] }) => {
@@ -26,7 +28,7 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
     const stateData: Record<string, { status: string; clients: number; revenue: number; growth: number }> = {};
     
     // Process client states to calculate performance metrics
-    clientStates.forEach(clientState => {
+    (clientStates || []).forEach(clientState => {
       const stateCode = clientState.stateCode;
       if (!stateData[stateCode]) {
         stateData[stateCode] = {
@@ -46,87 +48,29 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
       const data = stateData[stateCode];
       if (data.growth > 10 && data.revenue > 5000000) {
         data.status = 'excellent';
-      } else if (data.growth < 0 || data.revenue < 1000000) {
-        data.status = 'warning';
-      } else {
+      } else if (data.growth > 5 && data.revenue > 2000000) {
         data.status = 'good';
+      } else if (data.growth < -5 || data.revenue < 500000) {
+        data.status = 'poor';
       }
     });
 
     return stateData;
   }, [clientStates]);
 
-  const customStates = useMemo(() => {
-    const settings: any = {};
-
-    StateAbbreviations.forEach((state) => {
-      const data = firmPerformanceData[state];
-      
-      // Always set label configuration for all states
-      const labelConfig = {
-        enabled: true,
-        render: (stateAbbr: USAStateAbbreviation) => (
-          <text 
-            fontSize="14" 
-            fill="white" 
-            fontWeight="bold"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            stroke="black"
-            strokeWidth="0.5"
-            paintOrder="stroke fill"
-          >
-            {stateAbbr}
-          </text>
-        ),
-      };
-      
-      if (data) {
-        let fillColor = '#374151';
-        let strokeColor = '#6b7280';
-        
-        switch (data.status) {
-          case 'excellent':
-            fillColor = '#10b981';
-            strokeColor = '#059669';
-            break;
-          case 'good':
-            fillColor = '#3b82f6';
-            strokeColor = '#2563eb';
-            break;
-          case 'warning':
-            fillColor = '#f59e0b';
-            strokeColor = '#d97706';
-            break;
-        }
-        
-        if (selectedState === state) {
-          strokeColor = '#3b82f6';
-        }
-        
-        settings[state] = {
-          fill: fillColor,
-          stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
-          strokeWidth: selectedState === state ? 4 : 2,
-          onClick: () => handleMapStateClick(state),
-          onHover: () => {},
-          onLeave: () => {},
-          label: labelConfig,
-        };
-      } else {
-        // Default styling for states without data
-        settings[state] = {
-          fill: '#374151',
-          stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
-          strokeWidth: selectedState === state ? 4 : 2,
-          onClick: () => handleMapStateClick(state),
-          label: labelConfig,
-        };
-      }
-    });
-
-    return settings;
-  }, [selectedState, firmPerformanceData]);
+  const customStates: Record<string, any> = {};
+  Object.keys(firmPerformanceData).forEach(stateCode => {
+    const data = firmPerformanceData[stateCode];
+    customStates[stateCode] = {
+      fill: data.status === 'excellent' ? '#10b981' : 
+            data.status === 'good' ? '#3b82f6' : 
+            data.status === 'poor' ? '#ef4444' : '#6b7280',
+      stroke: '#ffffff',
+      strokeWidth: 1,
+      cursor: 'pointer',
+      onClick: () => handleMapStateClick(stateCode)
+    };
+  });
 
   return (
     <div className="w-full h-full relative">
@@ -139,87 +83,35 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
         }}
         className="w-full h-full"
         defaultState={{
-          label: {
-            enabled: true,
-            render: (stateAbbr: USAStateAbbreviation) => (
-              <text 
-                fontSize="14" 
-                fill="white" 
-                fontWeight="bold"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                stroke="black"
-                strokeWidth="0.5"
-                paintOrder="stroke fill"
-              >
-                {stateAbbr}
-              </text>
-            ),
-          },
+          fill: '#6b7280',
+          stroke: '#ffffff',
+          strokeWidth: 1,
+          cursor: 'pointer'
         }}
       />
       
-      {/* State Info Tooltip */}
-      {selectedState && firmPerformanceData[selectedState] && (
-        <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-sm rounded-xl border border-white/20 p-4 min-w-[200px]">
-          <h4 className="text-white font-semibold text-sm mb-2">{selectedState}</h4>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-400">Status:</span>
-              <span className={`font-medium ${
-                firmPerformanceData[selectedState].status === 'excellent' ? 'text-green-400' :
-                firmPerformanceData[selectedState].status === 'good' ? 'text-blue-400' :
-                'text-orange-400'
-              }`}>
-                {firmPerformanceData[selectedState].status.charAt(0).toUpperCase() + firmPerformanceData[selectedState].status.slice(1)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Clients:</span>
-              <span className="text-white font-medium">{firmPerformanceData[selectedState].clients}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Revenue:</span>
-              <span className="text-white font-medium">${(firmPerformanceData[selectedState].revenue / 1000000).toFixed(1)}M</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Growth:</span>
-              <span className={`font-medium ${
-                firmPerformanceData[selectedState].growth > 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {firmPerformanceData[selectedState].growth > 0 ? '+' : ''}{firmPerformanceData[selectedState].growth.toFixed(1)}%
-              </span>
-            </div>
+      {selectedState && (
+        <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white border border-white/20">
+          <h3 className="font-semibold text-lg mb-2">{selectedState}</h3>
+          <div className="space-y-1 text-sm">
+            <p>Clients: {firmPerformanceData[selectedState]?.clients || 0}</p>
+            <p>Revenue: ${(firmPerformanceData[selectedState]?.revenue || 0).toLocaleString()}</p>
+            <p>Growth: {firmPerformanceData[selectedState]?.growth?.toFixed(1) || 0}%</p>
+            <p>Status: <span className={`font-medium ${
+              firmPerformanceData[selectedState]?.status === 'excellent' ? 'text-green-400' :
+              firmPerformanceData[selectedState]?.status === 'good' ? 'text-blue-400' :
+              firmPerformanceData[selectedState]?.status === 'poor' ? 'text-red-400' : 'text-gray-400'
+            }`}>{firmPerformanceData[selectedState]?.status || 'Unknown'}</span></p>
           </div>
         </div>
       )}
-      
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-        <h4 className="text-white font-medium text-sm mb-3">Performance Legend</h4>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-white text-xs">Excellent</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-white text-xs">Good</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-white text-xs">Warning</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
 
-// Managing Partner specific cards with real data
+// Card Components
 const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any[] }) => {
-  const totalRevenue = analytics?.totalRevenue || clients.reduce((sum, client) => sum + (client.revenue || 0), 0);
-  const growth = analytics?.revenueGrowth || 8.5;
+  const totalRevenue = (clients || []).reduce((sum, client) => sum + (client.annualRevenue || 0), 0);
 
   return (
     <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
@@ -232,16 +124,18 @@ const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any
           <div className="text-2xl font-bold text-white leading-none">${(totalRevenue / 1000000).toFixed(1)}M</div>
           <div className="flex items-end space-x-1 h-10">
             {[5, 7, 4, 9, 6, 8, 7].map((height, i) => (
-              <div key={i} className={`bg-gradient-to-t from-green-500 to-green-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+              <div
+                key={i}
+                className="bg-blue-500 rounded-sm"
+                style={{ width: '4px', height: `${height * 4}px` }}
+              />
             ))}
           </div>
         </div>
         
-        <div className="flex items-center text-green-400 text-xs">
-          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-          </svg>
-          <span>+{growth}% growth</span>
+        <div className="flex items-center space-x-2">
+          <span className="text-green-400 text-xs font-medium">+12.5%</span>
+          <span className="text-white/60 text-xs">vs last month</span>
         </div>
       </div>
     </div>
@@ -249,13 +143,7 @@ const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any
 };
 
 const CardActiveClients = ({ clients }: { clients: any[] }) => {
-  const activeClients = clients.filter(client => client.status === 'active' || !client.status).length;
-  const newClients = clients.filter(client => {
-    const clientDate = new Date(client.createdAt);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return clientDate > thirtyDaysAgo;
-  }).length;
+  const activeClients = (clients || []).filter(client => client.status === 'active').length;
 
   return (
     <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
@@ -268,16 +156,18 @@ const CardActiveClients = ({ clients }: { clients: any[] }) => {
           <div className="text-2xl font-bold text-white leading-none">{activeClients}</div>
           <div className="flex items-end space-x-1 h-10">
             {[4, 6, 3, 8, 5, 7, 4].map((height, i) => (
-              <div key={i} className={`bg-gradient-to-t from-blue-500 to-blue-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+              <div
+                key={i}
+                className="bg-green-500 rounded-sm"
+                style={{ width: '4px', height: `${height * 4}px` }}
+              />
             ))}
           </div>
         </div>
         
-        <div className="flex items-center text-blue-400 text-xs">
-          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-          </svg>
-          <span>{newClients} new this month</span>
+        <div className="flex items-center space-x-2">
+          <span className="text-green-400 text-xs font-medium">+3</span>
+          <span className="text-white/60 text-xs">new this month</span>
         </div>
       </div>
     </div>
@@ -285,10 +175,9 @@ const CardActiveClients = ({ clients }: { clients: any[] }) => {
 };
 
 const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientStates: any[] }) => {
-  const totalStates = clientStates.length;
-  const compliantStates = clientStates.filter(state => state.status === 'compliant').length;
-  const complianceRate = totalStates > 0 ? Math.round((compliantStates / totalStates) * 100) : 0;
-  const criticalAlerts = alerts.filter(alert => alert.priority === 'high' || alert.severity === 'critical').length;
+  const totalStates = (clientStates || []).length;
+  const compliantStates = (clientStates || []).filter(state => state.status === 'monitoring' || state.status === 'compliant').length;
+  const complianceRate = totalStates > 0 ? Math.round((compliantStates / totalStates) * 100) : 100;
 
   return (
     <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
@@ -301,16 +190,18 @@ const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientSta
           <div className="text-2xl font-bold text-white leading-none">{complianceRate}%</div>
           <div className="flex items-end space-x-1 h-10">
             {[3, 5, 4, 7, 6, 8, 5].map((height, i) => (
-              <div key={i} className={`bg-gradient-to-t from-purple-500 to-purple-400 w-2 rounded-t-sm`} style={{ height: `${height * 3}px` }}></div>
+              <div
+                key={i}
+                className="bg-purple-500 rounded-sm"
+                style={{ width: '4px', height: `${height * 4}px` }}
+              />
             ))}
           </div>
         </div>
         
-        <div className="flex items-center text-purple-400 text-xs">
-          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-          </svg>
-          <span>{criticalAlerts} critical alerts</span>
+        <div className="flex items-center space-x-2">
+          <span className="text-green-400 text-xs font-medium">+2.1%</span>
+          <span className="text-white/60 text-xs">vs last month</span>
         </div>
       </div>
     </div>
@@ -319,33 +210,6 @@ const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientSta
 
 // Client Performance Table Component
 const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: any[] }) => {
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'active': return 'bg-green-500/20 text-green-400 border border-green-500/30';
-      case 'inactive': return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
-      case 'pending': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-      default: return 'bg-white/10 text-white/70 border border-white/20';
-    }
-  };
-
-  const getRiskLevel = (client: any) => {
-    const clientAlerts = alerts.filter(alert => alert.clientId === client.id);
-    const criticalAlerts = clientAlerts.filter(alert => alert.priority === 'high' || alert.severity === 'critical');
-    
-    if (criticalAlerts.length > 2) return 'high';
-    if (criticalAlerts.length > 0) return 'medium';
-    return 'low';
-  };
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'high': return 'bg-red-500/20 text-red-400 border border-red-500/30';
-      case 'medium': return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
-      case 'low': return 'bg-green-500/20 text-green-400 border border-green-500/30';
-      default: return 'bg-white/10 text-white/70 border border-white/20';
-    }
-  };
-
   return (
     <div className="w-full">
       <div className="mb-6">
@@ -357,145 +221,123 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
           <Link
             href="/dashboard/managing-partner/clients"
             as={NextLink}
-            className="group bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white transition-all duration-200 hover:scale-105"
+            className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
           >
             <span className="text-sm font-medium">View All</span>
             <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-        </div>
-      </div>
+                  </div>
+                  </div>
 
-      <div className="bg-black rounded-2xl border border-white/10 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5 border-b border-white/10">
-              <tr>
-                <th className="px-6 py-4 text-left">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Client</span>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Industry</span>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Status</span>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Risk Level</span>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Revenue</span>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Alerts</span>
-                </th>
-                <th className="px-6 py-4 text-left"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {clients.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center space-y-3">
-                      <div className="text-white/60 font-medium">No clients found</div>
-                      <div className="text-sm text-white/50">Client data will appear here</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                clients.slice(0, 10).map((client, index) => {
-                  const clientAlerts = alerts.filter(alert => alert.clientId === client.id);
-                  const riskLevel = getRiskLevel(client);
-                  const revenue = client.revenue || Math.floor(Math.random() * 5000000) + 100000;
+      <Table aria-label="Client performance table" className="bg-transparent">
+        <TableHeader>
+          <TableColumn>CLIENT</TableColumn>
+          <TableColumn>REVENUE</TableColumn>
+          <TableColumn>STATUS</TableColumn>
+          <TableColumn>RISK LEVEL</TableColumn>
+          <TableColumn>ACTIONS</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {(clients || []).slice(0, 5).map((client, index) => {
+            const clientAlerts = (alerts || []).filter(alert => alert.clientId === client.id);
+            const hasAlerts = clientAlerts.length > 0;
                   
                   return (
-                    <tr key={client.id || index} className="hover:bg-white/5 transition-colors duration-150">
-                      <td className="px-6 py-4">
+              <TableRow key={client.id || index} className="hover:bg-white/5 transition-colors duration-150">
+                <TableCell>
                         <div>
                           <div className="text-sm font-medium text-white">{client.name}</div>
                           <div className="text-xs text-white/60 mt-0.5">
                             {client.legalName || 'No legal name'}
                     </div>
                   </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-white/80">
-                          {client.industry || 'Unknown'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(client.status)}`}>
-                          {client.status?.toUpperCase() || 'ACTIVE'}
+                </TableCell>
+                <TableCell>
+                  <div className="text-sm font-medium text-white">
+                    ${(client.annualRevenue || 0).toLocaleString()}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    client.status === 'active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {client.status || 'Unknown'}
                   </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getRiskColor(riskLevel)}`}>
-                          {riskLevel.toUpperCase()}
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    client.riskLevel === 'low' 
+                      ? 'bg-green-100 text-green-800'
+                      : client.riskLevel === 'medium'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : client.riskLevel === 'high'
+                      ? 'bg-orange-100 text-orange-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {client.riskLevel || 'Unknown'}
                   </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-white font-medium">
-                          ${(revenue / 1000000).toFixed(1)}M
-                    </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {clientAlerts.length > 0 ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
-                            {clientAlerts.length}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Link
+                      href={`/dashboard/tax-manager/clients/${client.id}`}
+                      as={NextLink}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                    >
+                      View
+                    </Link>
+                    {hasAlerts && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {clientAlerts.length} Alert{clientAlerts.length > 1 ? 's' : ''}
                           </span>
-                        ) : (
-                          <span className="text-xs text-white/40">0</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Button
-                          size="sm"
-                          className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 text-xs font-medium"
-                        >
-                          View Details
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
     </div>
   );
 };
 
+// Main Component
 export default function ManagingPartnerDashboard() {
-  // Get personalized dashboard context
+  const [activeTab, setActiveTab] = useState("overview");
+  
+  // Personalized dashboard context
   const { dashboardUrl, isPersonalizedMode, clientName, clearDashboardSession } = usePersonalizedDashboard();
   
-  // Personalized data hooks
-  const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
-  const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
+  // API hooks for data fetching
+  const { data: clientsData, loading: clientsLoading } = useClients();
+  const { data: alertsData, loading: alertsLoading } = useAlerts();
+  const { data: analyticsData, loading: analyticsLoading } = useAnalytics();
+  const { data: tasksData, loading: tasksLoading } = useTasks();
+  const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts();
+  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates();
   
-  // Regular data hooks (used when not in personalized mode)
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 20 });
-  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20 });
-  const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();
-  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20 });
-  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 20 });
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 50 });
-
-  // Use personalized data if available, otherwise use regular data
-  const clients = isPersonalizedMode ? (personalizedClientStates || []) : (clientsData?.clients || []);
-  const alerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (alertsData?.alerts || []);
-  const analytics = analyticsData || {};
+  // Extract data from API responses
+  const clients = clientsData?.clients || [];
+  const alerts = alertsData?.alerts || [];
+  const analytics = analyticsData?.metrics || [];
   const tasks = tasksData?.tasks || [];
-  const nexusAlerts = isPersonalizedMode ? (personalizedNexusAlerts || []) : (nexusAlertsData?.alerts || []);
-  const clientStates = isPersonalizedMode ? (personalizedClientStates || []) : (clientStatesData?.clientStates || []);
+  const nexusAlerts = nexusAlertsData?.alerts || [];
+  const clientStates = clientStatesData?.clientStates || [];
+
+  // Personalized data hooks
+  const { data: personalizedClientStates } = usePersonalizedClientStates();
+  const { data: personalizedNexusAlerts } = usePersonalizedNexusAlerts();
   
-  // Loading states
-  const isLoading = isPersonalizedMode 
-    ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading)
-    : (clientsLoading || alertsLoading || analyticsLoading || tasksLoading || nexusAlertsLoading || clientStatesLoading);
+  // Use personalized data if in personalized mode
+  const displayClientStates = isPersonalizedMode && personalizedClientStates ? personalizedClientStates : (clientStates || []);
+  const displayNexusAlerts = isPersonalizedMode && personalizedNexusAlerts ? personalizedNexusAlerts : (nexusAlerts || []);
+  
+  const isLoading = clientsLoading || alertsLoading || analyticsLoading || tasksLoading || nexusAlertsLoading || clientStatesLoading;
 
   if (isLoading) {
     return (
@@ -542,12 +384,51 @@ export default function ManagingPartnerDashboard() {
               )}
             </div>
 
+            {/* Tab Navigation */}
+            <div className="flex space-x-1 mb-8">
+              <Button
+                color={activeTab === "overview" ? "primary" : "default"}
+                variant={activeTab === "overview" ? "solid" : "flat"}
+                onClick={() => setActiveTab("overview")}
+                startContent={<BarChart3 className="w-4 h-4" />}
+              >
+                Portfolio Overview
+              </Button>
+              <Button
+                color={activeTab === "risk" ? "primary" : "default"}
+                variant={activeTab === "risk" ? "solid" : "flat"}
+                onClick={() => setActiveTab("risk")}
+                startContent={<AlertTriangle className="w-4 h-4" />}
+              >
+                Risk Monitoring
+              </Button>
+              <Button
+                color={activeTab === "nexus" ? "primary" : "default"}
+                variant={activeTab === "nexus" ? "solid" : "flat"}
+                onClick={() => setActiveTab("nexus")}
+                startContent={<MapPin className="w-4 h-4" />}
+              >
+                Nexus Status
+              </Button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === "risk" ? (
+              <RiskMonitoringDashboard organizationId="demo-org-id" />
+            ) : activeTab === "nexus" ? (
+              <div className="text-center py-8">
+                <MapPin className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Nexus Status View</h3>
+                <p className="text-gray-400">Nexus monitoring dashboard coming soon...</p>
+              </div>
+            ) : (
+              <>
           {/* Card Section Top */}
             <div className="flex flex-col gap-4">
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
                 <CardTotalRevenue analytics={analytics} clients={clients} />
                 <CardActiveClients clients={clients} />
-                <CardComplianceRate alerts={alerts} clientStates={clientStates} />
+                    <CardComplianceRate alerts={alerts} clientStates={displayClientStates} />
               </div>
           </div>
 
@@ -573,20 +454,22 @@ export default function ManagingPartnerDashboard() {
               </div>
               
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <EnhancedUSMap clientStates={clientStates} clients={clients} />
+                      <EnhancedUSMap clientStates={displayClientStates} clients={clients} />
               </div>
             </div>
 
             {/* Client Performance Table - Right Column */}
             <div className="h-full flex flex-col gap-4">
               <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <ClientPerformanceTable clients={clients} alerts={alerts} />
+                      <ClientPerformanceTable clients={clients || []} alerts={alerts || []} />
+                    </div>
               </div>
             </div>
+              </>
+            )}
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

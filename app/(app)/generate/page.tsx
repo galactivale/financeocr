@@ -141,16 +141,20 @@ export default function GeneratePage() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
+    // For demo purposes, use a default organization ID
+    // In a real app, this would come from the authenticated user's context
+    const organizationId = "demo-org-id";
+    
     try {
-      // For demo purposes, use a default organization ID
-      // In a real app, this would come from the authenticated user's context
-      const organizationId = "demo-org-id";
       
       // Call the backend API to generate the dashboard
+      console.log('🚀 Sending dashboard generation request:', { formData, organizationId });
       const response = await apiClient.generateDashboard(formData, organizationId);
       
+      console.log('📥 Dashboard generation response:', response);
+      
       if (response.success && response.data) {
-        console.log('Dashboard generation response:', response.data);
+        console.log('✅ Dashboard generation successful:', response.data);
         
         // Validate that we have the required data
         if (!response.data.uniqueUrl || !response.data.dashboardUrl) {
@@ -172,15 +176,23 @@ export default function GeneratePage() {
         console.log('Redirecting to:', response.data.dashboardUrl);
         window.location.href = response.data.dashboardUrl;
       } else {
+        console.error('❌ Dashboard generation failed:', response);
         throw new Error(response.error || 'Failed to generate dashboard');
       }
     } catch (error) {
-      console.error('Error generating dashboard:', error);
+      console.error('❌ Error generating dashboard:', error);
+      console.error('📋 Error details:', {
+        message: error.message,
+        stack: error.stack,
+        formData: formData,
+        organizationId: organizationId
+      });
       alert(`Error generating dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">

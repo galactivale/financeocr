@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { TableWrapper } from "@/components/table/table";
-import { Card, CardBody, CardHeader, Spinner } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Spinner, Button } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { 

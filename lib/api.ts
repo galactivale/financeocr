@@ -929,6 +929,103 @@ class ApiClient {
     const query = queryParams.toString();
     return this.request(`/api/enhanced-nexus/state-compliance/${clientId}${query ? `?${query}` : ''}`);
   }
+
+  // Delete all client data and dashboards
+  async deleteAllClientData(organizationId: string): Promise<ApiResponse<{ deletedCount: number }>> {
+    return this.request(`/api/dashboards/delete-all?organizationId=${organizationId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Delete a specific dashboard
+  async deleteDashboard(dashboardId: string): Promise<ApiResponse<{ deleted: boolean }>> {
+    return this.request(`/api/dashboards/${dashboardId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Nexus Monitoring API methods
+  async createClientState(data: {
+    clientId: string;
+    organizationId: string;
+    stateCode: string;
+    stateName: string;
+    status?: string;
+    thresholdAmount?: number;
+    currentAmount?: number;
+    notes?: string;
+    lastUpdated?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request('/api/nexus/client-states', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateClientState(id: string, data: {
+    status?: string;
+    thresholdAmount?: number;
+    currentAmount?: number;
+    notes?: string;
+    lastUpdated?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request(`/api/nexus/client-states/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteClientState(id: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return this.request(`/api/nexus/client-states/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createNexusAlert(data: {
+    clientId: string;
+    organizationId: string;
+    stateCode: string;
+    alertType?: string;
+    priority?: string;
+    status?: string;
+    title: string;
+    description?: string;
+    thresholdAmount?: number;
+    currentAmount?: number;
+    penaltyRisk?: number;
+    dueDate?: string;
+    assignedTo?: string;
+    notes?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request('/api/nexus/alerts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateNexusAlert(id: string, data: {
+    status?: string;
+    priority?: string;
+    title?: string;
+    description?: string;
+    thresholdAmount?: number;
+    currentAmount?: number;
+    penaltyRisk?: number;
+    dueDate?: string;
+    assignedTo?: string;
+    notes?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request(`/api/nexus/alerts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteNexusAlert(id: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return this.request(`/api/nexus/alerts/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 // Create singleton instance
