@@ -171,9 +171,9 @@ export default function GeneratePage() {
     setGenerationProgress(0);
     setCurrentStepMessage("");
     
-    // For demo purposes, use a default organization ID
-    // In a real app, this would come from the authenticated user's context
-    const organizationId = "demo-org-id";
+    // Generate a unique organization ID for each dashboard generation
+    // This ensures each firm only sees their own clients
+    const organizationId = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     
     try {
       // Start progress simulation

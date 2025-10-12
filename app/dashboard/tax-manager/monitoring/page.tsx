@@ -14,12 +14,19 @@ import {
   Chip, 
   Input,
   Progress,
-  Badge
+  Badge,
+  Tabs,
+  Tab,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem
 } from "@nextui-org/react";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";
 import { SidebarContext } from "@/components/layout/layout-context";
 import { useNexusDashboardSummary, useClientStates, useNexusAlerts } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
 // Client data structure for monitoring
 interface Client {
@@ -63,10 +70,13 @@ const TaxManagerMonitoring = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [forceRefresh, setForceRefresh] = useState(0);
 
+  // Personalized dashboard context
+  const { organizationId } = usePersonalizedDashboard();
+
   // API hooks for data fetching with refresh capability - fetch more data
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary('demo-org-id');
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100 });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100 });
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || 'demo-org-id');
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || undefined });
+  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || undefined });
 
   // Fallback data for testing when API is not available
   const fallbackClientStates = [
@@ -779,7 +789,7 @@ const TaxManagerMonitoring = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
-                      <span className="text-white text-sm font-medium">In Transit</span>
+                      <span className="text-white text-sm font-medium">Transit</span>
                       <span className="text-cyan-400 text-sm font-semibold ml-auto">
                         {filteredClients.filter(c => c.nexusStatus === 'transit').length}
                       </span>
@@ -829,7 +839,7 @@ const TaxManagerMonitoring = () => {
                       case 'critical': return 'Critical';
                       case 'warning': return 'Warning';
                       case 'pending': return 'Pending';
-                      case 'transit': return 'In Transit';
+                      case 'transit': return 'Transit';
                       case 'compliant': return 'Compliant';
                       default: 
                         console.warn('🔍 Unknown status value:', status, 'for client');
@@ -1265,7 +1275,7 @@ const TaxManagerMonitoring = () => {
                     {selectedClient.nexusStatus === 'critical' ? 'Critical' :
                      selectedClient.nexusStatus === 'warning' ? 'Warning' :
                      selectedClient.nexusStatus === 'pending' ? 'Pending' :
-                     selectedClient.nexusStatus === 'transit' ? 'In Transit' :
+                     selectedClient.nexusStatus === 'transit' ? 'Transit' :
                      'Compliant'}
                   </span>
                 </div>

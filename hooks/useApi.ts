@@ -53,10 +53,11 @@ export function useClients(params?: {
   search?: string;
   status?: string;
   riskLevel?: string;
+  organizationId?: string;
 }) {
   return useApi(
     () => apiClient.getClients(params),
-    [params?.page, params?.limit, params?.search, params?.status, params?.riskLevel]
+    [params?.page, params?.limit, params?.search, params?.status, params?.riskLevel, params?.organizationId]
   );
 }
 
@@ -138,10 +139,11 @@ export function useNexusAlerts(params?: {
   status?: string;
   priority?: string;
   stateCode?: string;
+  organizationId?: string;
 }) {
   return useApi(
     () => apiClient.getNexusAlerts(params),
-    [params?.limit, params?.offset, params?.status, params?.priority, params?.stateCode]
+    [params?.limit, params?.offset, params?.status, params?.priority, params?.stateCode, params?.organizationId]
   );
 }
 
@@ -151,10 +153,11 @@ export function useNexusActivities(params?: {
   clientId?: string;
   stateCode?: string;
   activityType?: string;
+  organizationId?: string;
 }) {
   return useApi(
     () => apiClient.getNexusActivities(params),
-    [params?.limit, params?.offset, params?.clientId, params?.stateCode, params?.activityType]
+    [params?.limit, params?.offset, params?.clientId, params?.stateCode, params?.activityType, params?.organizationId]
   );
 }
 
@@ -164,10 +167,11 @@ export function useClientStates(params?: {
   clientId?: string;
   stateCode?: string;
   status?: string;
+  organizationId?: string;
 }) {
   return useApi(
     () => apiClient.getClientStates(params),
-    [params?.limit, params?.offset, params?.clientId, params?.stateCode, params?.status]
+    [params?.limit, params?.offset, params?.clientId, params?.stateCode, params?.status, params?.organizationId]
   );
 }
 

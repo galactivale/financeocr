@@ -7,6 +7,7 @@ interface PersonalizedDashboardContextType {
   dashboardUrl: string | null;
   isPersonalizedMode: boolean;
   clientName: string | null;
+  organizationId: string | null;
   setDashboardSession: (session: DashboardSession) => void;
   clearDashboardSession: () => void;
 }
@@ -28,6 +29,7 @@ interface PersonalizedDashboardProviderProps {
 export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboardProviderProps) => {
   const [dashboardUrl, setDashboardUrl] = useState<string | null>(null);
   const [clientName, setClientName] = useState<string | null>(null);
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -37,9 +39,11 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
     if (session) {
       setDashboardUrl(session.dashboardUrl);
       setClientName(session.clientName);
+      setOrganizationId(session.organizationId);
     } else {
       setDashboardUrl(null);
       setClientName(null);
+      setOrganizationId(null);
     }
     
     setIsInitialized(true);
@@ -49,12 +53,14 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
     cookieUtils.setDashboardSession(session);
     setDashboardUrl(session.dashboardUrl);
     setClientName(session.clientName);
+    setOrganizationId(session.organizationId);
   };
 
   const clearDashboardSession = () => {
     cookieUtils.clearDashboardSession();
     setDashboardUrl(null);
     setClientName(null);
+    setOrganizationId(null);
   };
 
   const isPersonalizedMode = dashboardUrl !== null;
@@ -63,6 +69,7 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
     dashboardUrl,
     isPersonalizedMode,
     clientName,
+    organizationId,
     setDashboardSession,
     clearDashboardSession
   };

@@ -36,9 +36,9 @@ export const CollapseItems = ({ icon, items, title, isActive = false }: Props) =
           key="1"
           indicator={<ChevronDownIcon />}
           classNames={{
-            indicator: "data-[open=true]:-rotate-180 text-gray-400",
+            indicator: "data-[open=true]:-rotate-180 text-gray-400 transition-transform duration-300 ease-out",
             trigger:
-              "py-0 min-h-[36px] hover:bg-white/5 rounded-lg active:scale-[0.98] transition-all duration-200 px-3",
+              "py-0 min-h-[36px] hover:bg-white/5 hover:backdrop-blur-sm hover:border hover:border-white/10 rounded-lg active:scale-[0.98] transition-all duration-300 ease-out px-3 border border-transparent",
 
             title:
               "px-0 flex text-sm gap-3 h-full items-center cursor-pointer",
@@ -46,23 +46,23 @@ export const CollapseItems = ({ icon, items, title, isActive = false }: Props) =
           aria-label="Accordion 1"
           title={
             <div className="flex flex-row gap-3 items-center">
-              <div className="w-4 h-4 flex items-center justify-center [&_svg_path]:fill-gray-400 [&_svg]:text-gray-400">
+              <div className="w-5 h-5 flex items-center justify-center [&_svg_path]:fill-gray-400 [&_svg]:text-gray-400">
                 {icon}
               </div>
               <span className="text-gray-300 font-medium">{title}</span>
             </div>
           }
         >
-          <div className="pl-7 space-y-1">
+          <div className="pl-6 mt-1 space-y-1">
             {items.map((item, index) => (
               <NextLink
                 key={index}
                 href={item.href}
                 className={clsx(
-                  "w-full flex text-sm transition-colors duration-200 py-1 px-2 rounded hover:bg-white/5 cursor-pointer",
+                  "w-full flex text-sm transition-all duration-300 ease-out py-1.5 px-2.5 rounded-md cursor-pointer border border-transparent",
                   pathname === item.href 
-                    ? "text-white bg-white/10" 
-                    : "text-gray-400 hover:text-white"
+                    ? "text-white bg-white/10 backdrop-blur-sm border-white/20 shadow-md shadow-white/5" 
+                    : "text-gray-400 hover:text-white hover:bg-white/5 hover:backdrop-blur-sm hover:border-white/10"
                 )}
               >
                 {item.name}

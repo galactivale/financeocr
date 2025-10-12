@@ -43,6 +43,54 @@ function generateDashboardUrls(clientName, uniqueUrl) {
 }
 
 // Helper functions for portfolio metrics
+function cleanRevenueValue(revenue) {
+  // Handle string concatenation issue - if it's a string with multiple numbers, take the first valid number
+  if (typeof revenue === 'string') {
+    // Extract the first valid number from the string
+    const numberMatch = revenue.match(/\d+/);
+    if (numberMatch) {
+      const cleanValue = parseInt(numberMatch[0]);
+      // Ensure it's within limits
+      return Math.min(Math.max(cleanValue, 50000), 600000);
+    } else {
+      return 50000; // Default fallback
+    }
+  }
+  
+  // If it's already a number, validate and clean it
+  const numValue = parseFloat(revenue);
+  if (isNaN(numValue)) {
+    return 50000; // Default fallback
+  }
+  
+  // Ensure it's within limits and is a clean integer
+  return Math.round(Math.min(Math.max(numValue, 50000), 600000));
+}
+
+function cleanPenaltyExposureValue(penaltyExposure) {
+  // Handle string concatenation issue - if it's a string with multiple numbers, take the first valid number
+  if (typeof penaltyExposure === 'string') {
+    // Extract the first valid number from the string
+    const numberMatch = penaltyExposure.match(/\d+/);
+    if (numberMatch) {
+      const cleanValue = parseInt(numberMatch[0]);
+      // Ensure it's within reasonable limits (0 to 200,000)
+      return Math.min(Math.max(cleanValue, 0), 200000);
+    } else {
+      return 0; // Default fallback
+    }
+  }
+  
+  // If it's already a number, validate and clean it
+  const numValue = parseFloat(penaltyExposure);
+  if (isNaN(numValue)) {
+    return 0; // Default fallback
+  }
+  
+  // Ensure it's within reasonable limits and is a clean integer
+  return Math.round(Math.min(Math.max(numValue, 0), 200000));
+}
+
 function calculateRiskDistribution(clients) {
   const distribution = { low: 0, medium: 0, high: 0, critical: 0 };
   clients.forEach(client => {
@@ -54,7 +102,12 @@ function calculateRiskDistribution(clients) {
 }
 
 function calculateTotalPenaltyExposure(clients) {
-  return clients.reduce((sum, client) => sum + (client.penaltyExposure || 0), 0);
+  return clients.reduce((sum, client) => {
+    // Use the helper function to clean and validate penalty exposure values
+    const cleanPenaltyExposure = cleanPenaltyExposureValue(client.penaltyExposure);
+    console.log(`🔍 Client "${client.name}": Original penalty exposure: ${client.penaltyExposure}, Clean penalty exposure: ${cleanPenaltyExposure}`);
+    return sum + cleanPenaltyExposure;
+  }, 0);
 }
 
 // Generate comprehensive dashboard data using enhanced approach
@@ -301,7 +354,12 @@ router.post('/generate', async (req, res) => {
     const totalClients = clients.length;
     const riskDistribution = generatedData.riskDistribution || calculateRiskDistribution(clients);
     const totalPenaltyExposure = generatedData.totalPenaltyExposure || calculateTotalPenaltyExposure(clients);
-    const totalRevenue = clients.reduce((sum, c) => sum + (c.annualRevenue || 0), 0);
+    const totalRevenue = clients.reduce((sum, c) => {
+      // Use the helper function to clean and validate revenue values
+      const cleanRevenue = cleanRevenueValue(c.annualRevenue);
+      console.log(`🔍 Client "${c.name}": Original revenue: ${c.annualRevenue}, Clean revenue: ${cleanRevenue}`);
+      return sum + cleanRevenue;
+    }, 0);
     const averageQualityScore = totalClients > 0 ? Math.round(clients.reduce((sum, c) => sum + (c.qualityScore || 0), 0) / totalClients) : 0;
         
         console.log('💾 Creating dashboard with data:', {

@@ -58,12 +58,28 @@ class EnhancedDataGenerator {
           const clientData = await this.generateUniqueClient(formData, i);
           
           // Ensure revenue is within limits and properly formatted as number
-          let revenue = parseFloat(clientData.annualRevenue);
+          let revenue = clientData.annualRevenue;
+          
+          // Handle string concatenation issue - if it's a string with multiple numbers, take the first valid number
+          if (typeof revenue === 'string') {
+            // Extract the first valid number from the string
+            const numberMatch = revenue.match(/\d+/);
+            if (numberMatch) {
+              revenue = parseInt(numberMatch[0]);
+            } else {
+              revenue = 50000; // Default fallback
+            }
+          }
+          
+          // Convert to number and validate
+          revenue = parseFloat(revenue);
           if (isNaN(revenue) || revenue > 600000) {
             console.log(`⚠️ Client ${i + 1} revenue ${clientData.annualRevenue} exceeds limit or is invalid, capping at $600K`);
             revenue = 600000;
           }
-          clientData.annualRevenue = Math.round(revenue); // Ensure it's a clean integer
+          
+          // Ensure it's a clean integer
+          clientData.annualRevenue = Math.round(revenue);
           
           console.log(`✅ Client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
           
@@ -72,7 +88,7 @@ class EnhancedDataGenerator {
           generatedData.clients.push(client);
           
           // Generate related data for this client
-          await this.generateClientRelatedData(client, organizationId, generatedData);
+          await this.generateClientRelatedData(client, organizationId, generatedData, formData);
           
           console.log(`✅ Client ${i + 1} and related data created successfully`);
         } catch (error) {
@@ -156,6 +172,7 @@ COMPANY REQUIREMENTS:
 - Must be a multi-state business with nexus exposure
 - Must have realistic financial data for this industry and business type
 - Must have complete business profile data
+- PRIORITY STATES: ${formData.priorityStates ? formData.priorityStates.join(', ') : 'Multi-state operations'} (focus business operations in these states)
 
 RISK CHARACTERISTICS:
 - Risk Level: ${riskLevel}
@@ -241,24 +258,35 @@ Return JSON with ALL required fields for a complete client profile:
       "type": "Headquarters",
       "address": "Primary Business Address",
       "city": "Primary City",
-      "state": "Primary State",
+      "state": "${formData.priorityStates && formData.priorityStates.length > 0 ? formData.priorityStates[0] : 'Primary State'}",
       "postalCode": "XXXXX",
       "country": "US",
       "propertyType": "Owned/Leased",
       "employeeCount": 10-50,
       "nexusRelevant": true
-    },
+    }${formData.priorityStates && formData.priorityStates.length > 1 ? `,
     {
       "type": "Branch/Warehouse/Office",
       "address": "Secondary Business Address",
       "city": "Secondary City",
-      "state": "Secondary State",
+      "state": "${formData.priorityStates[1]}",
       "postalCode": "XXXXX",
       "country": "US",
       "propertyType": "Leased",
       "employeeCount": 5-25,
       "nexusRelevant": true
-    }
+    }` : ''}${formData.priorityStates && formData.priorityStates.length > 2 ? `,
+    {
+      "type": "Regional Office",
+      "address": "Regional Business Address",
+      "city": "Regional City",
+      "state": "${formData.priorityStates[2]}",
+      "postalCode": "XXXXX",
+      "country": "US",
+      "propertyType": "Leased",
+      "employeeCount": 3-15,
+      "nexusRelevant": true
+    }` : ''}
   ],
   "revenueBreakdowns": [
     {
@@ -284,7 +312,27 @@ Return JSON with ALL required fields for a complete client profile:
     "monthlyRecurringRevenue": "${businessType === 'SaaS' ? '5000-50000' : businessType === 'Subscription' ? '3000-30000' : '1000-20000'}"
   },
   "geographicDistributions": [
-    {
+    ${formData.priorityStates && formData.priorityStates.length > 0 ? 
+      formData.priorityStates.map((state, index) => {
+        const stateCode = state.length === 2 ? state : 
+          {'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
+           'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
+           'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA',
+           'Maine': 'ME', 'Maryland': 'MD', 'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
+           'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+           'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK',
+           'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD',
+           'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA',
+           'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'}[state] || state;
+        const percentage = index === 0 ? '20.0-35.0' : index === 1 ? '15.0-25.0' : index === 2 ? '10.0-20.0' : '5.0-15.0';
+        const customerCount = index === 0 ? '15-150' : index === 1 ? '10-100' : index === 2 ? '8-80' : '5-50';
+        return `{
+      "stateCode": "${stateCode}",
+      "customerCount": ${customerCount},
+      "percentage": ${percentage}
+    }`;
+      }).join(',\n    ') :
+      `{
       "stateCode": "CA",
       "customerCount": 10-100,
       "percentage": 15.0-25.0
@@ -313,6 +361,7 @@ Return JSON with ALL required fields for a complete client profile:
       "stateCode": "WA",
       "customerCount": 3-30,
       "percentage": 5.0-10.0
+    }`
     }
   ]
 }
@@ -325,6 +374,10 @@ IMPORTANT:
 - Focus on creating diverse scenarios for the CPA firm to monitor across different industries and business models
 - CRITICAL: Annual revenue MUST be between $50,000 and $600,000 - do not exceed $600,000 under any circumstances
 - CRITICAL: All numeric values (annualRevenue, employeeCount, etc.) must be clean integers with no decimal places
+- CRITICAL: Do NOT concatenate multiple numbers together - each field should contain only ONE number
+- CRITICAL: annualRevenue should be a single integer like 150000, NOT multiple numbers like 150000250000350000
+- CRITICAL: Focus business operations and geographic distributions on the PRIORITY STATES: ${formData.priorityStates ? formData.priorityStates.join(', ') : 'Multi-state operations'}
+- CRITICAL: The business should have significant operations, customers, or revenue in the priority states to create realistic nexus monitoring scenarios
 `;
 
     try {
@@ -465,13 +518,37 @@ IMPORTANT:
     return 'compliant';
   }
 
+  cleanRevenueValue(revenue) {
+    // Handle string concatenation issue - if it's a string with multiple numbers, take the first valid number
+    if (typeof revenue === 'string') {
+      // Extract the first valid number from the string
+      const numberMatch = revenue.match(/\d+/);
+      if (numberMatch) {
+        const cleanValue = parseInt(numberMatch[0]);
+        // Ensure it's within limits
+        return Math.min(Math.max(cleanValue, 50000), 600000);
+      } else {
+        return 50000; // Default fallback
+      }
+    }
+    
+    // If it's already a number, validate and clean it
+    const numValue = parseFloat(revenue);
+    if (isNaN(numValue)) {
+      return 50000; // Default fallback
+    }
+    
+    // Ensure it's within limits and is a clean integer
+    return Math.round(Math.min(Math.max(numValue, 50000), 600000));
+  }
+
   async createClientWithRelationships(clientData, organizationId) {
     // Ensure all numeric fields are clean integers
     const cleanClientData = {
       ...clientData,
       foundedYear: parseInt(clientData.foundedYear),
       employeeCount: parseInt(clientData.employeeCount),
-      annualRevenue: parseInt(clientData.annualRevenue),
+      annualRevenue: this.cleanRevenueValue(clientData.annualRevenue),
       penaltyExposure: parseFloat(clientData.penaltyExposure),
       qualityScore: parseInt(clientData.qualityScore)
     };
@@ -514,7 +591,7 @@ IMPORTANT:
     return client;
   }
 
-  async generateClientRelatedData(client, organizationId, generatedData) {
+  async generateClientRelatedData(client, organizationId, generatedData, formData) {
     // Create business profile
     if (client.businessProfile) {
       const businessProfile = await this.prisma.businessProfile.create({
@@ -628,7 +705,7 @@ IMPORTANT:
     }
 
     // Generate nexus monitoring data
-    await this.generateNexusMonitoringData(client, organizationId, generatedData);
+    await this.generateNexusMonitoringData(client, organizationId, generatedData, formData);
 
     // Generate alerts and tasks
     await this.generateAlertsAndTasks(client, organizationId, generatedData);
@@ -643,9 +720,33 @@ IMPORTANT:
     await this.generateAuditTrail(client, organizationId, generatedData);
   }
 
-  async generateNexusMonitoringData(client, organizationId, generatedData) {
-    // Create diverse nexus scenarios based on client characteristics
-    const states = ['CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI', 'NJ', 'VA', 'WA', 'AZ', 'MA', 'TN', 'IN', 'MO', 'MD', 'WI'];
+  async generateNexusMonitoringData(client, organizationId, generatedData, formData) {
+    // Use Priority States from the form data instead of random states
+    const priorityStates = formData.priorityStates || [];
+    
+    // If no priority states selected, fall back to a default set
+    const defaultStates = ['CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI', 'NJ', 'VA', 'WA', 'AZ', 'MA', 'TN', 'IN', 'MO', 'MD', 'WI'];
+    const availableStates = priorityStates.length > 0 ? priorityStates : defaultStates;
+    
+    // Convert state names to state codes if needed
+    const stateCodeMap = {
+      'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA', 'Colorado': 'CO',
+      'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
+      'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA',
+      'Maine': 'ME', 'Maryland': 'MD', 'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
+      'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+      'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK',
+      'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD',
+      'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA',
+      'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
+    };
+    
+    // Convert state names to codes, or use as-is if already codes
+    const states = availableStates.map(state => {
+      return stateCodeMap[state] || state;
+    });
+    
+    console.log(`🎯 Using Priority States for client ${client.name}:`, states);
     
     // Vary the number of states based on client risk level and business type
     let numStates;
@@ -657,6 +758,10 @@ IMPORTANT:
       numStates = Math.floor(Math.random() * 3) + 2; // 2-4 states
     }
     
+    // Ensure we don't exceed the number of available priority states
+    numStates = Math.min(numStates, states.length);
+    
+    // Select states from the priority states list
     const selectedStates = states.sort(() => 0.5 - Math.random()).slice(0, numStates);
 
     for (const stateCode of selectedStates) {
@@ -971,19 +1076,35 @@ IMPORTANT:
           const clientData = this.getFallbackClientData(i, riskLevel, companyName, industry);
           
           // Ensure revenue is within limits and properly formatted as number
-          let revenue = parseFloat(clientData.annualRevenue);
+          let revenue = clientData.annualRevenue;
+          
+          // Handle string concatenation issue - if it's a string with multiple numbers, take the first valid number
+          if (typeof revenue === 'string') {
+            // Extract the first valid number from the string
+            const numberMatch = revenue.match(/\d+/);
+            if (numberMatch) {
+              revenue = parseInt(numberMatch[0]);
+            } else {
+              revenue = 50000; // Default fallback
+            }
+          }
+          
+          // Convert to number and validate
+          revenue = parseFloat(revenue);
           if (isNaN(revenue) || revenue > 600000) {
             console.log(`⚠️ Fallback client ${i + 1} revenue ${clientData.annualRevenue} exceeds limit or is invalid, capping at $600K`);
             revenue = 600000;
           }
-          clientData.annualRevenue = Math.round(revenue); // Ensure it's a clean integer
+          
+          // Ensure it's a clean integer
+          clientData.annualRevenue = Math.round(revenue);
           
           console.log(`✅ Fallback client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
           
           const client = await this.createClientWithRelationships(clientData, organizationId);
           
           generatedData.clients.push(client);
-          await this.generateClientRelatedData(client, organizationId, generatedData);
+          await this.generateClientRelatedData(client, organizationId, generatedData, formData);
           
           console.log(`✅ Fallback client ${i + 1} and related data created successfully`);
         } catch (error) {

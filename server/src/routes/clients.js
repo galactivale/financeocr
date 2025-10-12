@@ -12,10 +12,20 @@ router.get('/', async (req, res) => {
       limit = 10, 
       search, 
       status, 
-      riskLevel 
+      riskLevel,
+      organizationId 
     } = req.query;
     
     const where = {};
+    
+    // CRITICAL: Filter by organization ID to ensure data isolation
+    if (organizationId) {
+      where.organizationId = organizationId;
+    } else {
+      return res.status(400).json({ 
+        error: 'Organization ID is required for data isolation' 
+      });
+    }
     
     // Add search filter
     if (search) {
@@ -175,10 +185,18 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { organizationId } = req.query;
+    
+    // CRITICAL: Filter by organization ID to ensure data isolation
+    if (!organizationId) {
+      return res.status(400).json({ 
+        error: 'Organization ID is required for data isolation' 
+      });
+    }
     
     // Check if id is a UUID or slug
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const whereClause = isUUID ? { id } : { slug: id };
+    const whereClause = isUUID ? { id, organizationId } : { slug: id, organizationId };
     
     console.log('Looking for client with:', whereClause);
     

@@ -293,6 +293,7 @@ class ApiClient {
     search?: string;
     status?: string;
     riskLevel?: string;
+    organizationId?: string;
   }): Promise<ApiResponse<{ clients: Client[]; total: number; page: number; limit: number }>> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -300,13 +301,17 @@ class ApiClient {
     if (params?.search) queryParams.append('search', params.search);
     if (params?.status) queryParams.append('status', params.status);
     if (params?.riskLevel) queryParams.append('riskLevel', params.riskLevel);
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
 
     const query = queryParams.toString();
     return this.request(`/api/clients${query ? `?${query}` : ''}`);
   }
 
-  async getClient(id: string): Promise<ApiResponse<Client>> {
-    return this.request<Client>(`/api/clients/${id}`);
+  async getClient(id: string, organizationId?: string): Promise<ApiResponse<Client>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    const query = queryParams.toString();
+    return this.request<Client>(`/api/clients/${id}${query ? `?${query}` : ''}`);
   }
 
   async getClientDetail(id: string): Promise<ApiResponse<any>> {
@@ -430,6 +435,7 @@ class ApiClient {
     status?: string;
     priority?: string;
     stateCode?: string;
+    organizationId?: string;
   }): Promise<ApiResponse<{
     alerts: any[];
     total: number;
@@ -442,6 +448,7 @@ class ApiClient {
     if (params?.status) queryParams.append('status', params.status);
     if (params?.priority) queryParams.append('priority', params.priority);
     if (params?.stateCode) queryParams.append('stateCode', params.stateCode);
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
     
     const queryString = queryParams.toString();
     return this.request(`/api/nexus/alerts${queryString ? `?${queryString}` : ''}`);
@@ -453,6 +460,7 @@ class ApiClient {
     clientId?: string;
     stateCode?: string;
     activityType?: string;
+    organizationId?: string;
   }): Promise<ApiResponse<{
     activities: any[];
     total: number;
@@ -465,6 +473,7 @@ class ApiClient {
     if (params?.clientId) queryParams.append('clientId', params.clientId);
     if (params?.stateCode) queryParams.append('stateCode', params.stateCode);
     if (params?.activityType) queryParams.append('activityType', params.activityType);
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
     
     const queryString = queryParams.toString();
     return this.request(`/api/nexus/activities${queryString ? `?${queryString}` : ''}`);
@@ -476,6 +485,7 @@ class ApiClient {
     clientId?: string;
     stateCode?: string;
     status?: string;
+    organizationId?: string;
   }): Promise<ApiResponse<{
     clientStates: any[];
     total: number;
@@ -488,6 +498,7 @@ class ApiClient {
     if (params?.clientId) queryParams.append('clientId', params.clientId);
     if (params?.stateCode) queryParams.append('stateCode', params.stateCode);
     if (params?.status) queryParams.append('status', params.status);
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
     
     const queryString = queryParams.toString();
     return this.request(`/api/nexus/client-states${queryString ? `?${queryString}` : ''}`);

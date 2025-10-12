@@ -1,45 +1,28 @@
 import { tv } from "@nextui-org/react";
 
 export const SidebarWrapper = tv({
-  base: "bg-black/95 backdrop-blur-xl transition-transform h-full fixed -translate-x-full w-64 shrink-0 z-[202] overflow-y-auto border-r border-white/5 flex-col py-4 px-2 md:ml-0 md:flex md:static md:h-screen md:translate-x-0 shadow-2xl",
+  base: "bg-white/5 backdrop-blur-2xl transition-all duration-300 ease-out h-full fixed -translate-x-full w-72 shrink-0 z-[202] overflow-y-auto border-r border-white/10 flex-col py-4 px-3 md:ml-0 md:flex md:static md:h-screen md:translate-x-0 shadow-2xl shadow-black/20",
 
   variants: {
     collapsed: {
-      true: "translate-x-0 ml-0 pt-20 [display:inherit]",
+      true: "translate-x-0 ml-0 pt-20 [display:inherit] w-16 px-2",
     },
   },
-  // ""
-  //   "@md": {
-  //     marginLeft: "0",
-  //     display: "flex",
-  //     position: "static",
-  //     height: "100vh",
-  //     transform: "translateX(0)",
-  //   },
-  //   variants: {
-  //     collapsed: {
-  //       true: {
-  //         display: "inherit",
-  //         marginLeft: "0 ",
-  //         transform: "translateX(0)",
-  //       },
-  //     },
-  //   },
 });
 export const Overlay = tv({
-  base: "bg-[rgb(15_23_42/0.3)] fixed inset-0 z-[201] opacity-80 transition-opacity md:hidden md:z-auto md:opacity-100",
+  base: "bg-black/20 backdrop-blur-sm fixed inset-0 z-[201] opacity-80 transition-all duration-300 ease-out md:hidden md:z-auto md:opacity-100",
 });
 
 export const Header = tv({
-  base: "flex gap-3 items-center px-3 py-2",
+  base: "flex gap-3 items-center px-3 py-3 border-b border-white/5",
 });
 
 export const Body = tv({
-  base: "flex flex-col gap-4 mt-6 px-1",
+  base: "flex flex-col gap-1 mt-4 px-1",
 });
 
 export const Footer = tv({
-  base: "flex items-center justify-center gap-4 pt-6 pb-4 px-3 md:pt-4 md:pb-0",
+  base: "flex items-center justify-center gap-4 pt-4 pb-3 px-3 md:pt-3 md:pb-0 border-t border-white/5 mt-auto",
 });
 
 export const Sidebar = Object.assign(SidebarWrapper, {

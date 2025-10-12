@@ -11,9 +11,19 @@ const prisma = new PrismaClient();
 // Get all nexus alerts
 router.get('/alerts', async (req, res) => {
   try {
-    const { limit = 10, offset = 0, status, priority, stateCode } = req.query;
+    const { limit = 10, offset = 0, status, priority, stateCode, organizationId } = req.query;
     
     const where = {};
+    
+    // CRITICAL: Filter by organization ID to ensure data isolation
+    if (organizationId) {
+      where.organizationId = organizationId;
+    } else {
+      return res.status(400).json({ 
+        error: 'Organization ID is required for data isolation' 
+      });
+    }
+    
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (stateCode) where.stateCode = stateCode;
@@ -52,9 +62,19 @@ router.get('/alerts', async (req, res) => {
 // Get nexus activities
 router.get('/activities', async (req, res) => {
   try {
-    const { limit = 10, offset = 0, clientId, stateCode, activityType } = req.query;
+    const { limit = 10, offset = 0, clientId, stateCode, activityType, organizationId } = req.query;
     
     const where = {};
+    
+    // CRITICAL: Filter by organization ID to ensure data isolation
+    if (organizationId) {
+      where.organizationId = organizationId;
+    } else {
+      return res.status(400).json({ 
+        error: 'Organization ID is required for data isolation' 
+      });
+    }
+    
     if (clientId) where.clientId = clientId;
     if (stateCode) where.stateCode = stateCode;
     if (activityType) where.activityType = activityType;
@@ -92,9 +112,19 @@ router.get('/activities', async (req, res) => {
 // Get client states
 router.get('/client-states', async (req, res) => {
   try {
-    const { limit = 10, offset = 0, clientId, stateCode, status } = req.query;
+    const { limit = 10, offset = 0, clientId, stateCode, status, organizationId } = req.query;
     
     const where = {};
+    
+    // CRITICAL: Filter by organization ID to ensure data isolation
+    if (organizationId) {
+      where.organizationId = organizationId;
+    } else {
+      return res.status(400).json({ 
+        error: 'Organization ID is required for data isolation' 
+      });
+    }
+    
     if (clientId) where.clientId = clientId;
     if (stateCode) where.stateCode = stateCode;
     if (status) where.status = status;

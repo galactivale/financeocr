@@ -31,6 +31,34 @@ import {
   EyeIcon,
   LineChart
 } from "lucide-react";
+import { 
+  Home as MuiHome,
+  People as MuiPeople,
+  Business as MuiBusiness,
+  Warning as MuiWarning,
+  AttachMoney as MuiAttachMoney,
+  BarChart as MuiBarChart,
+  Code as MuiCode,
+  Visibility as MuiVisibility,
+  MonitorHeart as MuiMonitorHeart,
+  Scale as MuiScale,
+  Description as MuiDescription,
+  LocationOn as MuiLocationOn,
+  AssignmentTurnedIn as MuiAssignmentTurnedIn,
+  Security as MuiSecurity,
+  Message as MuiMessage,
+  TrendingUp as MuiTrendingUp,
+  CheckBox as MuiCheckBox,
+  Storage as MuiStorage,
+  Help as MuiHelp,
+  Notifications as MuiNotifications,
+  Person as MuiPerson,
+  History as MuiHistory,
+  AccessTime as MuiAccessTime,
+  PieChart as MuiPieChart,
+  ShowChart as MuiShowChart,
+  CreditCard as MuiCreditCard
+} from "@mui/icons-material";
 import { CollapseItems } from "./collapse-items";
 import { SidebarItem } from "./sidebar-item";
 import { SidebarMenu } from "./sidebar-menu";
@@ -65,7 +93,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<Home />}
+              icon={<MuiHome />}
               isActive={pathname === "/dashboard/managing-partner"}
               href="/dashboard/managing-partner"
             />
@@ -74,19 +102,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/monitoring"}
                 title="Monitoring"
-                icon={<Activity />}
+                icon={<MuiMonitorHeart />}
                 href="/dashboard/managing-partner/monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/alerts"}
                 title="Alerts"
-                icon={<AlertTriangle />}
+                icon={<MuiWarning />}
                 href="/dashboard/managing-partner/alerts"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/analytics"}
                 title="Analytics"
-                icon={<TrendingUp />}
+                icon={<MuiTrendingUp />}
                 href="/dashboard/managing-partner/analytics"
               />
             </SidebarMenu>
@@ -95,19 +123,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/clients"}
                 title="Clients"
-                icon={<Building2 />}
+                icon={<MuiBusiness />}
                 href="/dashboard/managing-partner/clients"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/team-management"}
                 title="Team"
-                icon={<Users />}
+                icon={<MuiPeople />}
                 href="/dashboard/managing-partner/team-management"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/risk-management"}
                 title="Risk"
-                icon={<Shield />}
+                icon={<MuiSecurity />}
                 href="/dashboard/managing-partner/risk-management"
               />
             </SidebarMenu>
@@ -116,7 +144,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner/compliance"}
                 title="Compliance"
-                icon={<ClipboardCheck />}
+                icon={<MuiAssignmentTurnedIn />}
                 href="/dashboard/managing-partner/compliance"
               />
             </SidebarMenu>
@@ -124,7 +152,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarItem
               isActive={pathname === "/dashboard/managing-partner/settings"}
               title="Settings"
-              icon={<User />}
+              icon={<MuiPerson />}
               href="/dashboard/managing-partner/settings"
             />
           </>
@@ -135,7 +163,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<Home />}
+              icon={<MuiHome />}
               isActive={pathname === "/dashboard/tax-manager"}
               href="/dashboard/tax-manager"
             />
@@ -143,25 +171,25 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/monitoring"}
                 title="Monitoring"
-                icon={<Activity />}
+                icon={<MuiMonitorHeart />}
                 href="/dashboard/tax-manager/monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/alerts"}
                 title="Alerts"
-                icon={<AlertTriangle />}
+                icon={<MuiWarning />}
                 href="/dashboard/tax-manager/alerts"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/clients"}
                 title="Clients"
-                icon={<Building2 />}
+                icon={<MuiBusiness />}
                 href="/dashboard/tax-manager/clients"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/reports"}
                 title="Reports"
-                icon={<LineChart />}
+                icon={<MuiShowChart />}
                 href="/dashboard/tax-manager/reports"
               />
             </SidebarMenu>
@@ -170,25 +198,25 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/communications"}
                 title="Messages"
-                icon={<MessageSquare />}
+                icon={<MuiMessage />}
                 href="/dashboard/tax-manager/communications"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/liability"}
                 title="Liability"
-                icon={<Scale />}
+                icon={<MuiScale />}
                 href="/dashboard/tax-manager/liability"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/regulatory"}
                 title="Regulatory"
-                icon={<EyeIcon />}
+                icon={<MuiVisibility />}
                 href="/dashboard/tax-manager/regulatory"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/audit-trail"}
                 title="Audit"
-                icon={<Clock />}
+                icon={<MuiAccessTime />}
                 href="/dashboard/tax-manager/audit-trail"
               />
             </SidebarMenu>
@@ -196,7 +224,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             <SidebarItem
               isActive={pathname === "/dashboard/tax-manager/settings"}
               title="Settings"
-              icon={<User />}
+              icon={<MuiPerson />}
               href="/dashboard/tax-manager/settings"
             />
           </>
@@ -208,7 +236,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<Home />}
+              icon={<MuiHome />}
               isActive={pathname === "/dashboard/system-admin"}
               href="/dashboard/system-admin"
             />
@@ -217,19 +245,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/system-monitoring"}
                 title="Monitoring"
-                icon={<Activity />}
+                icon={<MuiMonitorHeart />}
                 href="/dashboard/system-admin/system-monitoring"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/user-management"}
                 title="Users"
-                icon={<Users />}
+                icon={<MuiPeople />}
                 href="/dashboard/system-admin/user-management"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/integrations"}
                 title="Integrations"
-                icon={<Package />}
+                icon={<MuiStorage />}
                 href="/dashboard/system-admin/integrations"
               />
             </SidebarMenu>
@@ -238,19 +266,19 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/backup-recovery"}
                 title="Backup"
-                icon={<Database />}
+                icon={<MuiStorage />}
                 href="/dashboard/system-admin/backup-recovery"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/audit-logs"}
                 title="Logs"
-                icon={<Eye />}
+                icon={<MuiVisibility />}
                 href="/dashboard/system-admin/audit-logs"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin/configuration"}
                 title="Config"
-                icon={<User />}
+                icon={<MuiPerson />}
                 href="/dashboard/system-admin/configuration"
               />
             </SidebarMenu>
@@ -262,7 +290,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Dashboard"
-              icon={<Home />}
+              icon={<MuiHome />}
               isActive={pathname === "/client-portal"}
               href="/client-portal"
             />
@@ -270,13 +298,13 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/compliance"}
                 title="Compliance"
-                icon={<DollarSign />}
+                icon={<MuiAttachMoney />}
                 href="/client-portal/compliance"
               />
               <SidebarItem
                 isActive={pathname === "/client-portal/reports"}
                 title="Reports"
-                icon={<BarChart3 />}
+                icon={<MuiBarChart />}
                 href="/client-portal/reports"
               />
             </SidebarMenu>
@@ -284,7 +312,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/upload"}
                 title="Upload"
-                icon={<CreditCard />}
+                icon={<MuiCreditCard />}
                 href="/client-portal/upload"
               />
             </SidebarMenu>
@@ -292,13 +320,13 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/communications"}
                 title="Messages"
-                icon={<Users />}
+                icon={<MuiPeople />}
                 href="/client-portal/communications"
               />
               <SidebarItem
                 isActive={pathname === "/client-portal/help"}
                 title="Help"
-                icon={<Code />}
+                icon={<MuiCode />}
                 href="/client-portal/help"
               />
             </SidebarMenu>
@@ -306,7 +334,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/client-portal/account"}
                 title="Account"
-                icon={<User />}
+                icon={<MuiPerson />}
                 href="/client-portal/account"
               />
             </SidebarMenu>
@@ -318,7 +346,7 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
           <>
             <SidebarItem
               title="Home"
-              icon={<Home />}
+              icon={<MuiHome />}
               isActive={pathname === "/"}
               href="/"
             />
@@ -326,25 +354,25 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
               <SidebarItem
                 isActive={pathname === "/dashboard/managing-partner"}
                 title="Partner"
-                icon={<DollarSign />}
+                icon={<MuiAttachMoney />}
                 href="/dashboard/managing-partner"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager"}
                 title="Manager"
-                icon={<CreditCard />}
+                icon={<MuiCreditCard />}
                 href="/dashboard/tax-manager"
               />
               <SidebarItem
                 isActive={pathname === "/dashboard/system-admin"}
                 title="Admin"
-                icon={<Code />}
+                icon={<MuiCode />}
                 href="/dashboard/system-admin"
               />
               <SidebarItem
                 isActive={pathname === "/client-portal"}
                 title="Client"
-                icon={<Building2 />}
+                icon={<MuiBusiness />}
                 href="/client-portal"
               />
             </SidebarMenu>

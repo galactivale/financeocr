@@ -66,16 +66,16 @@ const ManagingPartnerMonitoring = () => {
   const [forceRefresh, setForceRefresh] = useState(0);
 
   // Check if we're in personalized dashboard mode
-  const { dashboardUrl, isPersonalizedMode, clientName } = usePersonalizedDashboard();
+  const { dashboardUrl, isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
 
   // Personalized data hooks
   const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
 
   // API hooks for data fetching with refresh capability - fetch more data (fallback when not in personalized mode)
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary('demo-org-id');
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100 });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100 });
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || 'demo-org-id');
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || undefined });
+  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || undefined });
 
   // Fallback data for testing when API is not available
   const fallbackClientStates = [

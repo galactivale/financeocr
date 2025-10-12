@@ -311,15 +311,15 @@ export default function ManagingPartnerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   
   // Personalized dashboard context
-  const { dashboardUrl, isPersonalizedMode, clientName, clearDashboardSession } = usePersonalizedDashboard();
+  const { dashboardUrl, isPersonalizedMode, clientName, organizationId, clearDashboardSession } = usePersonalizedDashboard();
   
   // API hooks for data fetching
-  const { data: clientsData, loading: clientsLoading } = useClients();
+  const { data: clientsData, loading: clientsLoading } = useClients({ organizationId: organizationId || undefined });
   const { data: alertsData, loading: alertsLoading } = useAlerts();
   const { data: analyticsData, loading: analyticsLoading } = useAnalytics();
   const { data: tasksData, loading: tasksLoading } = useTasks();
-  const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts();
-  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates();
+  const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts({ organizationId: organizationId || undefined });
+  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ organizationId: organizationId || undefined });
   
   // Extract data from API responses
   const clients = clientsData?.clients || [];
