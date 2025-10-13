@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Card, 
   CardBody, 
@@ -222,6 +223,9 @@ const decisionTemplates: DecisionTemplate[] = [
 ];
 
 export default function DecisionBuilder() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
   const [decision, setDecision] = useState<DecisionRecord>({
     id: `DEC-${Date.now()}`,
     client: "",
@@ -250,12 +254,14 @@ export default function DecisionBuilder() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [draggedBlockType, setDraggedBlockType] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'workflow'>('workflow');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'workflow'>('list');
   const [isLoading, setIsLoading] = useState(true);
   const [showClientModal, setShowClientModal] = useState(false);
   const [clientModalSearch, setClientModalSearch] = useState("");
   const [clientModalFilter, setClientModalFilter] = useState("all");
   const [showNexusAlertDropdown, setShowNexusAlertDropdown] = useState<{[key: string]: boolean}>({});
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [showSeal, setShowSeal] = useState(false);
   const clientDropdownRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -267,6 +273,99 @@ export default function DecisionBuilder() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Prefill form with URL parameters from alerts page
+  useEffect(() => {
+    const client = searchParams.get('client');
+    const state = searchParams.get('state');
+    const alertId = searchParams.get('alertId');
+    const currentAmount = searchParams.get('currentAmount');
+    const threshold = searchParams.get('threshold');
+    const penaltyRisk = searchParams.get('penaltyRisk');
+    const priority = searchParams.get('priority');
+    const issue = searchParams.get('issue');
+
+    if (client || state || alertId) {
+      // Find the client by name in mockClients
+      const clientObj = mockClients.find(c => c.name === client);
+      const clientId = clientObj?.id || '';
+
+      // Determine decision type based on priority and threshold
+      let decisionType = 'nexus_registration';
+      if (priority === 'high') {
+        decisionType = 'nexus_registration';
+      } else if (priority === 'medium') {
+        decisionType = 'voluntary_disclosure';
+      }
+
+      // Create description based on alert data
+      const description = issue || `Client has exceeded economic nexus threshold in ${state}. Current revenue: ${currentAmount}, Threshold: ${threshold}. Penalty risk: ${penaltyRisk}.`;
+
+      // Determine risk level based on priority
+      let riskLevel = 'medium';
+      if (priority === 'high') {
+        riskLevel = 'high';
+      } else if (priority === 'low') {
+        riskLevel = 'low';
+      }
+
+      // Calculate exposure from penalty risk
+      const exposure = penaltyRisk ? parseFloat(penaltyRisk.replace(/[$,K]/g, '')) * 1000 : 0;
+
+      setDecision(prev => ({
+        ...prev,
+        client: clientId,
+        decisionType,
+        description,
+        riskLevel: riskLevel as 'low' | 'medium' | 'high',
+        exposure
+      }));
+
+      // Set client search term and preselect client
+      setClientSearchTerm(client || '');
+      
+      // Preselect the client in the dropdown
+      if (clientId) {
+        setDecision(prev => ({ ...prev, client: clientId }));
+      }
+
+      // Add nexus alert block if alertId is provided and doesn't already exist
+      if (alertId && state && currentAmount && threshold) {
+        setDecision(prev => {
+          // Check if a nexus alert block for this alert already exists
+          const existingNexusBlock = prev.blocks.find(block => 
+            block.type === 'nexus_alert' && 
+            block.metadata?.alertId === alertId
+          );
+
+          // Only add if it doesn't already exist
+          if (!existingNexusBlock) {
+            const nexusAlertBlock: Block = {
+              id: `block-${Date.now()}`,
+              type: 'nexus_alert',
+              title: `Nexus Alert - ${state}`,
+              content: `Client: ${client}\nState: ${state}\nCurrent Amount: ${currentAmount}\nThreshold: ${threshold}\nPenalty Risk: ${penaltyRisk}\nPriority: ${priority}`,
+              metadata: {
+                alertId,
+                state,
+                currentAmount,
+                threshold,
+                penaltyRisk,
+                priority
+              }
+            };
+
+            return {
+              ...prev,
+              blocks: [nexusAlertBlock, ...prev.blocks]
+            };
+          }
+
+          return prev;
+        });
+      }
+    }
+  }, [searchParams]);
 
   // Auto-save functionality
   const autoSave = useCallback(() => {
@@ -432,6 +531,11 @@ export default function DecisionBuilder() {
 
   const selectedClient = mockClients.find(client => client.id === decision.client);
 
+  // Filter nexus alerts to only show alerts for the selected client
+  const filteredNexusAlerts = selectedClient 
+    ? mockNexusAlerts.filter(alert => alert.client === selectedClient.name)
+    : mockNexusAlerts;
+
   // Filter clients for modal
   const filteredModalClients = mockClients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(clientModalSearch.toLowerCase()) ||
@@ -460,7 +564,7 @@ export default function DecisionBuilder() {
       ...prev,
       blocks: prev.blocks.map(block => 
         block.id === blockId 
-          ? { ...block, selectedNexusAlert: alertId, content: mockNexusAlerts.find(a => a.id === alertId)?.description || block.content }
+          ? { ...block, selectedNexusAlert: alertId, content: filteredNexusAlerts.find(a => a.id === alertId)?.description || block.content }
           : block
       )
     }));
@@ -509,11 +613,22 @@ export default function DecisionBuilder() {
 
     const newBlocks = [...decision.blocks];
     [newBlocks[currentIndex], newBlocks[newIndex]] = [newBlocks[newIndex], newBlocks[currentIndex]];
-    
+
     setDecision(prev => ({
       ...prev,
       blocks: newBlocks
     }));
+  };
+
+  const handleFinalize = async () => {
+    setIsFinalizing(true);
+    setShowSeal(true);
+    
+    // Simulate cryptographic seal process
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Navigate back to previous page
+    router.back();
   };
 
   // Loading Animation Component
@@ -636,10 +751,13 @@ export default function DecisionBuilder() {
               
               <Button
                 size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              startContent={<Play className="w-4 h-4" />}
-            >
-              Run
+                className="bg-green-600 hover:bg-green-700 text-white"
+                startContent={<Lock className="w-4 h-4" />}
+                onPress={handleFinalize}
+                isLoading={isFinalizing}
+                isDisabled={isFinalizing}
+              >
+                {isFinalizing ? "Finalizing..." : "Finalize"}
               </Button>
             </div>
           </div>
@@ -910,7 +1028,7 @@ export default function DecisionBuilder() {
                                 <input
                                   type="text"
                                   placeholder="Select nexus alert..."
-                                  value={block.selectedNexusAlert ? mockNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.client + " - " + mockNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.state : ""}
+                                  value={block.selectedNexusAlert ? filteredNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.client + " - " + filteredNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.state : ""}
                                   readOnly
                                   onClick={() => setShowNexusAlertDropdown(prev => ({ ...prev, [block.id]: !prev[block.id] }))}
                                   className="w-full bg-white/5 border border-red-500/30 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-200 text-sm cursor-pointer"
@@ -922,7 +1040,7 @@ export default function DecisionBuilder() {
                                 {showNexusAlertDropdown[block.id] && (
                                   <div className="absolute top-full left-0 right-0 mt-1 bg-black/95 backdrop-blur-xl border border-red-500/30 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto">
                                     <div className="p-2">
-                                      {mockNexusAlerts.map((alert) => (
+                                      {filteredNexusAlerts.map((alert) => (
                                         <div
                                           key={alert.id}
                                           className="p-3 hover:bg-white/10 cursor-pointer rounded-lg transition-all duration-200"
@@ -1009,7 +1127,7 @@ export default function DecisionBuilder() {
                                   <input
                                     type="text"
                                     placeholder="Select nexus alert..."
-                                    value={block.selectedNexusAlert ? mockNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.client + " - " + mockNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.state : ""}
+                                    value={block.selectedNexusAlert ? filteredNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.client + " - " + filteredNexusAlerts.find(a => a.id === block.selectedNexusAlert)?.state : ""}
                                     readOnly
                                     onClick={() => setShowNexusAlertDropdown(prev => ({ ...prev, [block.id]: !prev[block.id] }))}
                                     className="w-full bg-white/5 border border-red-500/30 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-200 text-sm cursor-pointer"
@@ -1021,7 +1139,7 @@ export default function DecisionBuilder() {
                                   {showNexusAlertDropdown[block.id] && (
                                     <div className="absolute top-full left-0 right-0 mt-1 bg-black/95 backdrop-blur-xl border border-red-500/30 rounded-lg shadow-2xl z-50 max-h-60 overflow-y-auto">
                                       <div className="p-2">
-                                        {mockNexusAlerts.map((alert) => (
+                                        {filteredNexusAlerts.map((alert) => (
                                           <div
                                             key={alert.id}
                                             className="p-3 hover:bg-white/10 cursor-pointer rounded-lg transition-all duration-200"
@@ -1424,7 +1542,7 @@ export default function DecisionBuilder() {
                           {block.type === 'nexus_alert' && block.selectedNexusAlert && (
                             <div className="mb-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
                               {(() => {
-                                const selectedAlert = mockNexusAlerts.find(alert => alert.id === block.selectedNexusAlert);
+                                const selectedAlert = filteredNexusAlerts.find(alert => alert.id === block.selectedNexusAlert);
                                 return selectedAlert ? (
                                   <div>
                                     <p className="text-blue-400 font-medium text-sm">Selected Nexus Alert:</p>
@@ -1659,6 +1777,31 @@ export default function DecisionBuilder() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cryptographic Seal Overlay */}
+      {showSeal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-32 h-32 mx-auto mb-8 relative">
+              {/* Animated seal */}
+              <div className="absolute inset-0 border-4 border-green-500 rounded-full animate-spin"></div>
+              <div className="absolute inset-2 border-4 border-green-400 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+              <div className="absolute inset-4 border-4 border-green-300 rounded-full animate-spin" style={{ animationDuration: '2s' }}></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Lock className="w-12 h-12 text-green-400 animate-pulse" />
+              </div>
+            </div>
+            
+            <h3 className="text-2xl font-bold text-white mb-4">Applying Cryptographic Seal</h3>
+            <p className="text-gray-400 text-lg mb-2">Securing decision with blockchain verification</p>
+            <div className="flex items-center justify-center space-x-2 text-green-400">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
           </div>
         </div>

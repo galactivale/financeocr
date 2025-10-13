@@ -315,7 +315,7 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
           <TableColumn>ACTIONS</TableColumn>
         </TableHeader>
         <TableBody>
-          {(clients || []).slice(0, 5).map((client, index) => {
+          {(clients || []).slice(0, 3).map((client, index) => {
             const clientAlerts = (alerts || []).filter(alert => alert.clientId === client.id);
             const hasAlerts = clientAlerts.length > 0;
                   
@@ -434,7 +434,7 @@ export default function ManagingPartnerDashboard() {
 
   return (
     <div className="min-h-screen bg-black">
-    <div className="h-full lg:px-6">
+      <div className="h-full lg:px-6">
         <div className="flex justify-center gap-2 xl:gap-[10px] pt-2 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full">
           <div className="mt-6 gap-8 flex flex-col w-full">
             {/* Header */}
@@ -505,12 +505,29 @@ export default function ManagingPartnerDashboard() {
 
             {/* Client Performance Table - Right Column */}
             <div className="h-full flex flex-col gap-4">
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                      <ClientPerformanceTable clients={clients || []} alerts={alerts || []} />
-                    </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
+                  <h2 className="text-2xl font-semibold text-white tracking-tight">Client Performance Overview</h2>
+                </div>
+                <Link
+                  href="/dashboard/managing-partner/clients"
+                  as={NextLink}
+                  className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+                >
+                  <span className="text-sm font-medium">View More</span>
+                  <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              
+              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+                <ClientPerformanceTable clients={clients || []} alerts={alerts || []} />
               </div>
             </div>
-              </>
+          </div>
+            </>
           </div>
         </div>
       </div>

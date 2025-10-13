@@ -650,7 +650,20 @@ export default function AlertDetailPage() {
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-lg shadow-green-600/25"
                     startContent={<Flag className="w-4 h-4" />}
-                    onPress={onOpen}
+                    onPress={() => {
+                      // Navigate to decision builder with prefilled parameters
+                      const params = new URLSearchParams({
+                        client: selectedAlert?.client || '',
+                        state: selectedAlert?.state || '',
+                        alertId: selectedAlert?.id || '',
+                        currentAmount: selectedAlert?.currentAmount || '',
+                        threshold: selectedAlert?.threshold || '',
+                        penaltyRisk: selectedAlert?.penaltyRisk || '',
+                        priority: selectedAlert?.priority || '',
+                        issue: selectedAlert?.issue || ''
+                      });
+                      router.push(`/dashboard/tax-manager/liability/decision-builder?${params.toString()}`);
+                    }}
                   >
                     Make Decision
                   </Button>

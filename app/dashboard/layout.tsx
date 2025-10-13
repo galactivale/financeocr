@@ -32,6 +32,18 @@ export default function DashboardLayout({ children }: Props) {
 
   const userRole = getUserRole();
 
+  // Check if this is a view page (no sidebar needed)
+  const isViewPage = pathname.includes('/view/');
+
+  if (isViewPage) {
+    // For view pages, render without sidebar
+    return (
+      <div className="min-h-screen">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <SidebarContext.Provider
       value={{

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   Card, 
   CardBody, 
@@ -17,7 +17,9 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure
+  useDisclosure,
+  Select,
+  SelectItem
 } from "@nextui-org/react";
 import { 
   Mail, 
@@ -30,59 +32,53 @@ import {
   XCircle,
   Search,
   RefreshCw,
-  ChevronRight
+  ChevronRight,
+  Filter,
+  X
 } from "lucide-react";
+import { useCommunications } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
-// Simple communication data structure
+// Communication data structure from API
 interface Communication {
   id: string;
   type: 'email' | 'sms';
-  client: string;
   subject: string;
-  status: 'sent' | 'delivered' | 'read' | 'failed';
-  date: string;
   content: string;
+  status: 'sent' | 'delivered' | 'read' | 'failed';
+  sentDate: string;
+  deliveryDate?: string;
+  readDate?: string;
+  failureReason?: string;
+  professionalReasoning?: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+  organizationId: string;
+  clientId: string;
+  alertId: string;
+  client: {
+    id: string;
+    name: string;
+    slug: string;
+    industry: string;
+    primaryContactEmail?: string;
+    primaryContactPhone?: string;
+  };
+  alert: {
+    id: string;
+    title: string;
+    issue: string;
+    stateCode: string;
+    stateName: string;
+    currentAmount: number;
+    thresholdAmount: number;
+    penaltyRisk: number;
+    priority: string;
+    severity: string;
+    status: string;
+    deadline: string;
+  };
 }
-
-// Sample data
-const communications: Communication[] = [
-  {
-    id: "1",
-    type: "email",
-    client: "TechCorp SaaS",
-    subject: "California Registration Required - Urgent",
-    status: "read",
-    date: "Dec 1, 2024",
-    content: "Dear TechCorp Team, We need to discuss the California registration requirement that was triggered by your Q4 revenue exceeding the threshold..."
-  },
-  {
-    id: "2",
-    type: "sms",
-    client: "RetailChain LLC",
-    subject: "Nexus Alert - New York Threshold",
-    status: "delivered",
-    date: "Nov 28, 2024",
-    content: "Alert: Your NY revenue is approaching the threshold. Please review your Q4 numbers."
-  },
-  {
-    id: "3",
-    type: "email",
-    client: "TechCorp SaaS",
-    subject: "Quarterly Compliance Review",
-    status: "sent",
-    date: "Nov 25, 2024",
-    content: "Please find attached your quarterly compliance review. We've identified several areas that need attention..."
-  },
-  {
-    id: "4",
-    type: "email",
-    client: "Manufacturing Plus",
-    subject: "Registration Deadline Reminder",
-    status: "failed",
-    date: "Nov 20, 2024",
-    content: "This is a reminder that your Texas registration deadline is approaching. Please contact us to discuss next steps."
-  }
-];
 
 export default function CommunicationsPage() {
   const [searchTerm, setSearchTerm] = useState("");

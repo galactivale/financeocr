@@ -617,164 +617,153 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
 );
 };
 
-const CardStateAnalysis = ({ alerts, clientStates }: { alerts: any[], clientStates: any[] }) => {
-  // Generate real data from clientStates
-  const stateData = useMemo(() => {
-    const stateMap: Record<string, { revenue: number; segments: number[] }> = {};
-    
-    // Process client states to aggregate revenue by state
-    clientStates.forEach(clientState => {
-      const stateCode = clientState.stateCode;
-      const revenue = clientState.currentAmount || 0;
-      
-      if (!stateMap[stateCode]) {
-        stateMap[stateCode] = {
-          revenue: 0,
-          segments: [0, 0, 0, 0, 0] // Initialize segments for different tax types
-        };
-      }
-      
-      stateMap[stateCode].revenue += revenue;
-      
-      // Distribute revenue across segments based on status
-      const segmentIndex = clientState.status === 'critical' ? 0 :
-                          clientState.status === 'warning' ? 1 :
-                          clientState.status === 'pending' ? 2 :
-                          clientState.status === 'transit' ? 3 : 4;
-      stateMap[stateCode].segments[segmentIndex] += revenue;
-    });
-    
-    // Convert to array and sort by revenue
-    return Object.entries(stateMap)
-      .map(([state, data]) => ({
-        state,
-        revenue: data.revenue,
-        segments: data.segments
-      }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 12); // Top 12 states
-  }, [clientStates]);
+const CardRiskDistribution = ({ clients, alerts }: { clients: any[], alerts: any[] }) => {
+  // Calculate risk distribution from clients data
+  const riskData = useMemo(() => {
+    if (!clients || clients.length === 0) {
+      return {
+        critical: 0,
+        high: 0,
+        medium: 0,
+        low: 0
+      };
+    }
 
-  const maxRevenue = Math.max(...stateData.map(d => d.revenue));
-  const colors = ['#EC4899', '#F472B6', '#60A5FA', '#06B6D4', '#10B981'];
+    const distribution = { critical: 0, high: 0, medium: 0, low: 0 };
+    
+    clients.forEach(client => {
+      const riskLevel = client.riskLevel?.toLowerCase() || 'medium';
+      if (distribution.hasOwnProperty(riskLevel)) {
+        distribution[riskLevel as keyof typeof distribution]++;
+      }
+    });
+
+    return distribution;
+  }, [clients]);
+
+  const totalClients = Object.values(riskData).reduce((sum, count) => sum + count, 0);
+  const riskColors = {
+    critical: '#EF4444',
+    high: '#F97316', 
+    medium: '#EAB308',
+    low: '#22C55E'
+  };
+
+  const riskLabels = {
+    critical: 'Critical Risk',
+    high: 'High Risk',
+    medium: 'Medium Risk', 
+    low: 'Low Risk'
+  };
 
   return (
-    <div className="bg-black rounded-2xl border border-white/10 p-4">
-      {/* Header with Title and Filters */}
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-white font-bold text-sm">Top 12 States</h3>
-        <div className="flex gap-2">
-          <div className="flex items-center bg-white/10 rounded-lg px-2 py-1">
-            <span className="text-white text-xs mr-1">Revenue</span>
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-          <div className="flex items-center bg-white/10 rounded-lg px-2 py-1">
-            <span className="text-white text-xs mr-1">This Month</span>
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-1 h-8 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></div>
+          <h3 className="text-2xl font-semibold text-white tracking-tight">Client Risk Distribution</h3>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-3 py-2">
+          <span className="text-white text-sm font-medium">{totalClients} Total Clients</span>
         </div>
       </div>
 
-      {/* Compact Chart Container */}
-      <div className="relative h-48 w-full">
-        <svg className="w-full h-full" viewBox="0 0 600 180">
-          {/* Y-axis labels (Revenue thresholds) */}
-          {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-            <text
-              key={value}
-              x="10"
-              y={160 - (value * 25)}
-              className="fill-white text-xs"
-              style={{ fontSize: '10px' }}
-            >
-              {value}k
-            </text>
-          ))}
-
-          {/* Horizontal grid lines */}
-          {[0, 1, 2, 3, 4, 5, 6].map((value) => (
-            <line
-              key={`grid-${value}`}
-              x1="30"
-              y1={160 - (value * 25)}
-              x2="580"
-              y2={160 - (value * 25)}
-              stroke="rgba(255, 255, 255, 0.1)"
-              strokeWidth="1"
-            />
-          ))}
-
-          {/* Stacked bars */}
-          {stateData.map((state, index) => {
-            const x = 40 + (index * 45);
-            let currentY = 160;
+      {/* Risk Distribution Chart */}
+      <div className="relative h-48 w-full mb-6">
+        <svg className="w-full h-full" viewBox="0 0 400 180">
+          {/* Background */}
+          <rect width="100%" height="100%" fill="rgba(255, 255, 255, 0.02)" rx="12" />
+          
+          {/* Pie chart segments */}
+          {(() => {
+            let currentAngle = 0;
+            const radius = 60;
+            const centerX = 200;
+            const centerY = 90;
             
-            return (
-              <g key={state.state}>
-                {state.segments.map((segment, segIndex) => {
-                  const segmentHeight = (segment / 1000) * 25; // Convert to k scale
-                  const y = currentY - segmentHeight;
-                  
-                  const rect = (
-                    <rect
-                      key={segIndex}
-                      x={x}
-                      y={y}
-                      width="30"
-                      height={segmentHeight}
-                      fill={colors[segIndex]}
-                      rx="2"
-                      ry="2"
-                    />
-                  );
-                  
-                  currentY = y;
-                  return rect;
-                })}
-              </g>
-            );
-          })}
-
-          {/* X-axis labels (States) */}
-          {stateData.map((state, index) => {
-            const x = 40 + (index * 45) + 15;
-            return (
-              <text
-                key={state.state}
-                x={x}
-                y="175"
-                textAnchor="middle"
-                className="fill-white text-xs"
-                style={{ fontSize: '10px' }}
-              >
-                {state.state}
-              </text>
-            );
-          })}
+            return Object.entries(riskData).map(([risk, count], index) => {
+              if (count === 0) return null;
+              
+              const percentage = count / totalClients;
+              const angle = percentage * 360;
+              const startAngle = currentAngle;
+              const endAngle = currentAngle + angle;
+              
+              const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+              const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+              const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+              const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+              
+              const largeArcFlag = angle > 180 ? 1 : 0;
+              
+              const pathData = [
+                `M ${centerX} ${centerY}`,
+                `L ${x1} ${y1}`,
+                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                'Z'
+              ].join(' ');
+              
+              currentAngle += angle;
+              
+              return (
+                <path
+                  key={risk}
+                  d={pathData}
+                  fill={riskColors[risk as keyof typeof riskColors]}
+                  className="drop-shadow-sm hover:drop-shadow-lg transition-all duration-200"
+                  style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+                />
+              );
+            });
+          })()}
+          
+          {/* Center circle */}
+          <circle cx="200" cy="90" r="25" fill="rgba(0, 0, 0, 0.3)" />
+          <text x="200" y="95" textAnchor="middle" className="fill-white text-sm font-bold">
+            {totalClients}
+          </text>
         </svg>
       </div>
 
-      {/* Legend */}
-      <div className="mt-3 flex flex-wrap gap-3 justify-center">
-        {[
-          { color: '#EC4899', label: 'Critical' },
-          { color: '#F472B6', label: 'Warning' },
-          { color: '#60A5FA', label: 'Pending' },
-          { color: '#06B6D4', label: 'In Transit' },
-          { color: '#10B981', label: 'Compliant' }
-        ].map((item, index) => (
-          <div key={index} className="flex items-center gap-1">
-            <div 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: item.color }}
-            />
-            <span className="text-white text-xs">{item.label}</span>
+      {/* Risk Statistics */}
+      <div className="grid grid-cols-2 gap-4">
+        {Object.entries(riskData).map(([risk, count]) => {
+          const percentage = totalClients > 0 ? ((count / totalClients) * 100).toFixed(1) : '0';
+          
+          return (
+            <div key={risk} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+              <div className="flex items-center space-x-3">
+                <div 
+                  className="w-4 h-4 rounded-full shadow-sm" 
+                  style={{ backgroundColor: riskColors[risk as keyof typeof riskColors] }}
+                />
+                <div>
+                  <div className="text-white text-sm font-medium">{riskLabels[risk as keyof typeof riskLabels]}</div>
+                  <div className="text-white/60 text-xs">{count} clients</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-white text-lg font-bold">{percentage}%</div>
+                <div className="text-white/60 text-xs">of total</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Alert Summary */}
+      <div className="mt-6 p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-xl border border-red-500/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-white font-medium">Active Alerts</span>
           </div>
-        ))}
+          <span className="text-white text-xl font-bold">{alerts?.length || 0}</span>
+        </div>
+        <div className="text-white/60 text-sm mt-1">
+          {alerts?.filter(alert => alert.priority === 'high' || alert.priority === 'critical').length || 0} require immediate attention
+        </div>
       </div>
     </div>
   );
@@ -1186,23 +1175,8 @@ export default function TaxManagerDashboard() {
             </div>
             <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
             <CardPriorityAlerts alerts={nexusAlerts} clients={clients} />
-            <CardStateAnalysis alerts={nexusAlerts} clientStates={clientStates} />
+            <CardRiskDistribution clients={clients} alerts={nexusAlerts} />
             
-            {/* Debug Panel - Temporary */}
-            <div className="bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-600 p-4">
-              <h4 className="text-white font-medium mb-3">Debug Info</h4>
-              <div className="text-xs text-gray-300 space-y-1">
-                <div>Nexus Alerts Length: {nexusAlerts?.length || 0}</div>
-                <div>Clients Length: {clients?.length || 0}</div>
-                <div>Loading: {nexusAlertsLoading ? 'Yes' : 'No'}</div>
-                <div>Error: {nexusAlertsError || 'None'}</div>
-                <div>Personalized Mode: {isPersonalizedMode ? 'Yes' : 'No'}</div>
-                <div>Personalized Nexus Alerts: {personalizedNexusAlerts ? 'Exists' : 'Null'}</div>
-                <div>Personalized Client States: {personalizedClientStates ? 'Exists' : 'Null'}</div>
-                <div>Raw Data: {JSON.stringify(nexusAlertsData, null, 2).substring(0, 200)}...</div>
-                <div>Personalized Data: {JSON.stringify(personalizedNexusAlerts, null, 2).substring(0, 200)}...</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

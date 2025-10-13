@@ -15,7 +15,7 @@ import {
   Divider
 } from "@nextui-org/react";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
-import { useClients } from "@/hooks/useApi";
+import { useClient } from "@/hooks/useApi";
 
 // Utility functions
 const formatCurrency = (amount: number): string => {
@@ -74,20 +74,30 @@ export default function ClientDetailPage() {
   const [selectedTab, setSelectedTab] = useState("overview");
 
   const clientId = params.id as string;
-  const finalOrganizationId = organizationId || 'demo-org-id';
-
-  // Fetch clients from database
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({
-    organizationId: finalOrganizationId,
-    limit: 100
+  const finalOrganizationId = organizationId || 'org-1760376582926-5cfsef';
+  
+  console.log('Client Detail Page Debug:', {
+    clientId,
+    organizationId,
+    finalOrganizationId,
+    params
   });
 
-  // Find the specific client
+  // Fetch specific client from database
+  const { data: clientData, loading: clientLoading, error: clientError } = useClient(clientId, finalOrganizationId);
+
+  // Process the client data
   const client = useMemo(() => {
-    if (!clientsData?.clients) return null;
+    console.log('Client Detail Debug:', {
+      clientId,
+      organizationId: finalOrganizationId,
+      clientData,
+      hasData: !!clientData?.data
+    });
     
-    const foundClient = clientsData.clients.find((c: any) => c.id === clientId);
-    if (!foundClient) return null;
+    if (!clientData?.data) return null;
+    
+    const foundClient = clientData.data;
 
     return {
       id: foundClient.id,
@@ -167,9 +177,9 @@ export default function ClientDetailPage() {
       recentCommunications: [],
       actionItems: []
     };
-  }, [clientsData, clientId]);
+  }, [clientData, clientId]);
 
-  if (clientsLoading) {
+  if (clientLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -180,12 +190,12 @@ export default function ClientDetailPage() {
     );
   }
 
-  if (clientsError) {
+  if (clientError) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-400 text-xl mb-4">Error Loading Client</div>
-          <p className="text-gray-400 mb-4">{clientsError.message}</p>
+          <p className="text-gray-400 mb-4">{clientError.message}</p>
           <Button onClick={() => router.back()} color="primary">
             Go Back
           </Button>

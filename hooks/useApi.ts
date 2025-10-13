@@ -196,6 +196,13 @@ export function useClientDetail(clientId: string) {
   );
 }
 
+export function useClient(clientId: string, organizationId?: string) {
+  return useApi(
+    () => apiClient.getClient(clientId, organizationId),
+    [clientId, organizationId]
+  );
+}
+
 // Decision Table hooks
 export function useDecisionTables(params?: {
   limit?: number;

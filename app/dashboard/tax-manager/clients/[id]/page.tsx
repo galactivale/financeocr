@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useMemo } from "react";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
 import { Chip } from "@nextui-org/chip";
@@ -42,7 +42,8 @@ import {
   Search
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useClientDetail, useClientNexusStatus, useClientAlerts, useClientCommunications, useClientDocuments } from "@/hooks/useClientDetail";
+import { useClientDetail, useClientNexusStatus, useClientCommunications, useClientDocuments } from "@/hooks/useClientDetail";
+import { useNexusAlerts } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
 // Helper functions for data formatting
@@ -92,7 +93,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   const clientId = resolvedParams.id;
 
   // Get personalized dashboard context
-  const { isPersonalizedMode, clientName } = usePersonalizedDashboard();
+  const { isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
+  
+  const finalOrganizationId = organizationId || 'org-1760376582926-5cfsef';
 
   // Fetch comprehensive client data
   const { 
@@ -101,7 +104,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     error: clientDetailError 
   } = useClientDetail({ 
     clientId: clientId, 
-    organizationId: 'demo-org-id',
+    organizationId: finalOrganizationId,
     enabled: true 
   });
 
@@ -112,19 +115,51 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     error: nexusStatusError 
   } = useClientNexusStatus({ 
     clientId: clientId, 
-    organizationId: 'demo-org-id',
+    organizationId: finalOrganizationId,
     enabled: selectedTab === "nexus" 
   });
 
   const { 
-    data: alertsData, 
+    data: allAlertsData, 
     loading: alertsLoading, 
     error: alertsError 
-  } = useClientAlerts({ 
-    clientId: clientId, 
-    organizationId: 'demo-org-id',
-    enabled: selectedTab === "alerts" 
+  } = useNexusAlerts({ 
+    limit: 100,
+    organizationId: finalOrganizationId
   });
+
+  // Filter alerts for this specific client
+  const alertsData = useMemo(() => {
+    if (!allAlertsData?.alerts) return [];
+    
+    // Try to get client ID from client detail data first
+    let actualClientId = clientDetailData?.data?.id;
+    
+    // If client detail data is not available, try to find the client ID from alerts
+    if (!actualClientId) {
+      // Look for alerts that have a client with matching name (fallback approach)
+      // Convert slug to various possible name formats
+      const slugToName = clientId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const slugToNameLower = clientId.replace(/-/g, ' ').toLowerCase();
+      const slugWithoutNumbers = clientId.replace(/-\d+$/, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      
+      const matchingAlert = allAlertsData.alerts.find((alert: any) => {
+        const alertClientName = alert.client?.name?.toLowerCase() || '';
+        return (
+          alertClientName.includes(slugToName.toLowerCase()) ||
+          alertClientName.includes(slugToNameLower) ||
+          alertClientName.includes(slugWithoutNumbers.toLowerCase()) ||
+          slugToName.toLowerCase().includes(alertClientName) ||
+          slugWithoutNumbers.toLowerCase().includes(alertClientName)
+        );
+      });
+      actualClientId = matchingAlert?.clientId;
+    }
+    
+    if (!actualClientId) return [];
+    
+    return allAlertsData.alerts.filter((alert: any) => alert.clientId === actualClientId);
+  }, [allAlertsData, clientDetailData, clientId]);
 
   const { 
     data: communicationsData, 
@@ -132,7 +167,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     error: communicationsError 
   } = useClientCommunications({ 
     clientId: clientId, 
-    organizationId: 'demo-org-id',
+    organizationId: finalOrganizationId,
     enabled: selectedTab === "communications" 
   });
 
@@ -142,7 +177,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     error: documentsError 
   } = useClientDocuments({ 
     clientId: clientId, 
-    organizationId: 'demo-org-id',
+    organizationId: finalOrganizationId,
     enabled: selectedTab === "documents" 
   });
 
@@ -917,30 +952,32 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                 {alertsLoading ? (
                   <Spinner size="sm" color="primary" />
                 ) : (
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-red-400">{alertsData?.filter(a => a.severity === 'high').length || 0}</div>
-                      <div className="text-gray-400 text-xs">High Priority</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-yellow-400">{alertsData?.filter(a => a.severity === 'medium').length || 0}</div>
-                      <div className="text-gray-400 text-xs">Medium Priority</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-white">{alertsData?.length || 0}</div>
-                      <div className="text-gray-400 text-xs">Total Alerts</div>
-                    </div>
-                    {(alertsData?.length || 0) > 0 && (
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                        <div className="text-red-400 text-sm font-semibold">{alertsData?.length || 0} alerts need attention</div>
-                      </div>
-                    )}
+                <div className="flex items-center space-x-4">
+                  <div className="text-center">
+                      <div className="text-lg font-bold text-red-400">{alertsData?.filter(a => a.priority === 'high').length || 0}</div>
+                    <div className="text-gray-400 text-xs">High Priority</div>
                   </div>
+                  <div className="text-center">
+                      <div className="text-lg font-bold text-yellow-400">{alertsData?.filter(a => a.priority === 'medium').length || 0}</div>
+                    <div className="text-gray-400 text-xs">Medium Priority</div>
+                  </div>
+                  <div className="text-center">
+                      <div className="text-lg font-bold text-white">{alertsData?.length || 0}</div>
+                    <div className="text-gray-400 text-xs">Total Alerts</div>
+                  </div>
+                    {(alertsData?.length || 0) > 0 && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                        <div className="text-red-400 text-sm font-semibold">{alertsData?.length || 0} alerts need attention</div>
+                  </div>
+                    )}
+                </div>
                 )}
               </div>
 
+
               <div className="space-y-4">
-                {alertsData?.map((alert, index) => (
+                {alertsData && alertsData.length > 0 ? (
+                  alertsData.map((alert, index) => (
                   <div
                     key={alert.id || `alert-${index}`}
                     className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4 hover:bg-white/10 transition-all duration-200"
@@ -948,11 +985,11 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          alert.type === "critical" ? "bg-red-500/20" :
-                          alert.type === "warning" ? "bg-yellow-500/20" : "bg-blue-500/20"
+                          alert.priority === "high" ? "bg-red-500/20" :
+                          alert.priority === "medium" ? "bg-yellow-500/20" : "bg-blue-500/20"
                         }`}>
-                          {alert.type === "critical" ? <AlertTriangle className="w-4 h-4 text-red-400" /> :
-                           alert.type === "warning" ? <Clock className="w-4 h-4 text-yellow-400" /> :
+                          {alert.priority === "high" ? <AlertTriangle className="w-4 h-4 text-red-400" /> :
+                           alert.priority === "medium" ? <Clock className="w-4 h-4 text-yellow-400" /> :
                            <CheckCircle className="w-4 h-4 text-blue-400" />}
                         </div>
                         <div>
@@ -961,30 +998,30 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                         </div>
                       </div>
                       <Chip
-                        color={getStatusColor(alert.severity)}
+                        color={alert.priority === "high" ? "danger" : alert.priority === "medium" ? "warning" : "primary"}
                         size="sm"
                         className="text-xs"
                       >
-                        {alert.severity}
+                        {alert.priority}
                       </Chip>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div>
-                        <p className="text-gray-400 text-xs">Financial Impact</p>
-                        <p className="text-white text-sm font-medium">{alert.financialImpact || 'Not specified'}</p>
+                        <p className="text-gray-400 text-xs">Current Amount</p>
+                        <p className="text-white text-sm font-medium">${(alert.currentAmount / 1000).toFixed(0)}K</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-xs">Statute</p>
-                        <p className="text-blue-300 text-sm font-mono">{alert.statute || 'Not specified'}</p>
+                        <p className="text-gray-400 text-xs">Threshold</p>
+                        <p className="text-blue-300 text-sm font-mono">${alert.thresholdAmount ? (alert.thresholdAmount / 1000).toFixed(0) : '500'}K</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-xs">Assigned To</p>
-                        <p className="text-white text-sm">{alert.assignedTo || 'Unassigned'}</p>
+                        <p className="text-gray-400 text-xs">State</p>
+                        <p className="text-white text-sm">{alert.stateCode}</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-xs">Detected</p>
-                        <p className="text-white text-sm">{formatDate(alert.detectedAt)}</p>
+                        <p className="text-gray-400 text-xs">Created</p>
+                        <p className="text-white text-sm">{formatDate(alert.createdAt)}</p>
                       </div>
                     </div>
 
@@ -1010,7 +1047,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       >
                         Client Advisory
                       </Button>
-                      {alert.type === "critical" && (
+                      {alert.priority === "high" && (
                         <Button
                           size="sm"
                           variant="flat"
@@ -1021,7 +1058,31 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       )}
                     </div>
                   </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-green-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">No Active Alerts</h3>
+                    <p className="text-gray-400 mb-6">This client has no outstanding alerts requiring attention.</p>
+                    <div className="flex justify-center space-x-4">
+                      <Button
+                        size="sm"
+                        className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
+                      >
+                        Run Compliance Check
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        className="bg-white/10 text-gray-300 hover:bg-white/20"
+                      >
+                        View Alert History
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1534,20 +1595,20 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                     {client.dataProcessing?.length > 0 ? (
                       client.dataProcessing.map((item, index) => (
                         <div key={item.id || `processing-${index}`} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
-                          <div>
+                        <div>
                             <p className="text-white text-sm font-semibold">{item.fileName || `Processing Item ${index + 1}`}</p>
                             <p className="text-gray-400 text-xs">{item.status || 'Processing'}</p>
-                          </div>
-                          {item.qualityScore && (
-                            <Chip
-                              color={item.qualityScore >= 95 ? "success" : item.qualityScore >= 90 ? "warning" : "danger"}
-                              size="sm"
-                              className="text-xs"
-                            >
-                              {item.qualityScore}%
-                            </Chip>
-                          )}
                         </div>
+                          {item.qualityScore && (
+                          <Chip
+                              color={item.qualityScore >= 95 ? "success" : item.qualityScore >= 90 ? "warning" : "danger"}
+                            size="sm"
+                            className="text-xs"
+                          >
+                              {item.qualityScore}%
+                          </Chip>
+                        )}
+                      </div>
                       ))
                     ) : (
                       <div className="text-center py-4">

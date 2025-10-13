@@ -27,6 +27,7 @@ import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";
 import { SidebarContext } from "@/components/layout/layout-context";
 import { useNexusDashboardSummary, useClientStates, useNexusAlerts } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { useRouter } from "next/navigation";
 
 // Client data structure for monitoring
 interface Client {
@@ -55,6 +56,7 @@ interface StateMonitoringData {
 }
 
 const TaxManagerMonitoring = () => {
+  const router = useRouter();
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
@@ -1618,7 +1620,19 @@ const TaxManagerMonitoring = () => {
 
             {/* Action Buttons */}
             <div className="flex space-x-3">
-              <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+              <button 
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                onClick={() => {
+                  // Find the first alert for this client
+                  const clientAlert = nexusAlertsData?.alerts?.find((alert: any) => alert.clientId === selectedClient.id);
+                  if (clientAlert) {
+                    router.push(`/dashboard/tax-manager/alerts/${clientAlert.id}`);
+                  } else {
+                    // Fallback to general alerts page if no specific alert found
+                    router.push('/dashboard/tax-manager/alerts');
+                  }
+                }}
+              >
                 View Details
               </button>
               <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg font-medium transition-colors">

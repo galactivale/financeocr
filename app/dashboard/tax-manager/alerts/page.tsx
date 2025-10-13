@@ -161,7 +161,6 @@ const priorityOptions = [
 // Status filter options
 const statusOptions = [
   { key: "all", label: "All Status" },
-  { key: "new", label: "New" },
   { key: "in-progress", label: "In Progress" },
   { key: "resolved", label: "Resolved" }
 ];
@@ -481,14 +480,6 @@ export default function TaxManagerAlerts() {
                   </Button>
                   <Button
                     size="sm"
-                    variant={statusFilter === "new" ? "solid" : "ghost"}
-                    className={statusFilter === "new" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
-                    onPress={() => setStatusFilter(statusFilter === "new" ? "all" : "new")}
-                  >
-                    New
-                  </Button>
-                  <Button
-                    size="sm"
                     variant={statusFilter === "resolved" ? "solid" : "ghost"}
                     className={statusFilter === "resolved" ? "bg-green-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
                     onPress={() => setStatusFilter(statusFilter === "resolved" ? "all" : "resolved")}
@@ -586,13 +577,6 @@ export default function TaxManagerAlerts() {
                         <p className="text-gray-400 text-xs">{alert.state}</p>
                       </div>
                     </div>
-                    <div className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                      alert.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                      alert.status === 'in-progress' ? 'bg-orange-500/20 text-orange-400' :
-                      'bg-green-500/20 text-green-400'
-                    }`}>
-                      {alert.status.replace('-', ' ')}
-                    </div>
                   </div>
                   
                   <div className="space-y-3">
@@ -672,13 +656,6 @@ export default function TaxManagerAlerts() {
                       </div>
                       
                       <div className="flex items-center space-x-3">
-                        <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                          alert.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                          alert.status === 'in-progress' ? 'bg-orange-500/20 text-orange-400' :
-                          'bg-green-500/20 text-green-400'
-                        }`}>
-                          {alert.status.replace('-', ' ')}
-                        </div>
                         
                         <div className="flex items-center space-x-2">
                           <Button
