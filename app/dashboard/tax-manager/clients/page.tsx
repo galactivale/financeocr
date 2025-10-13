@@ -49,6 +49,7 @@ import {
   Share
 } from "lucide-react";
 import { useClients } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
 // Client data structure
 interface Client {
@@ -456,7 +457,10 @@ export default function TaxManagerClients() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isOpen: isModalOpen, onOpen: onModalOpen, onOpenChange: onModalOpenChange } = useDisclosure();
 
-  // API integration
+  // Get organizationId from context for data isolation
+  const { organizationId } = usePersonalizedDashboard();
+
+  // API integration with organizationId
   const { 
     data: clientsData, 
     loading: clientsLoading, 
@@ -465,7 +469,8 @@ export default function TaxManagerClients() {
   } = useClients({
     limit: 50,
     search: searchQuery || undefined,
-    riskLevel: riskFilter !== 'all' ? riskFilter : undefined
+    riskLevel: riskFilter !== 'all' ? riskFilter : undefined,
+    organizationId: organizationId || 'demo-org-id'
   });
 
   // Process clients data with fallback

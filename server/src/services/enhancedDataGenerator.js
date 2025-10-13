@@ -9,6 +9,108 @@ class EnhancedDataGenerator {
     this.usedCompanyNames = new Set();
     this.usedTaxIds = new Set();
     this.usedEmails = new Set();
+    
+    // Qualification strategy configurations
+    this.qualificationStrategies = {
+      'conservative': {
+        warningThreshold: 0.6,    // 60% - Early warning
+        alertThreshold: 0.8,      // 80% - Create alerts
+        criticalThreshold: 1.0,   // 100% - Critical alerts
+        description: 'Early warning at 60% threshold, alerts at 80%'
+      },
+      'standard': {
+        warningThreshold: 0.8,    // 80% - Warning
+        alertThreshold: 0.8,      // 80% - Create alerts
+        criticalThreshold: 1.0,   // 100% - Critical alerts
+        description: 'Alerts at 80% threshold, critical at 100%'
+      },
+      'aggressive': {
+        warningThreshold: 0.9,    // 90% - Warning
+        alertThreshold: 0.9,      // 90% - Create alerts
+        criticalThreshold: 1.1,   // 110% - Critical alerts
+        description: 'Alerts at 90% threshold, critical at 110%'
+      },
+      'compliance-focused': {
+        warningThreshold: 0.7,    // 70% - Early warning
+        alertThreshold: 0.7,      // 70% - Create alerts
+        criticalThreshold: 0.9,   // 90% - Critical alerts
+        description: 'Strict monitoring with alerts at 70% threshold'
+      },
+      'risk-tolerant': {
+        warningThreshold: 1.0,    // 100% - Warning
+        alertThreshold: 1.0,      // 100% - Create alerts
+        criticalThreshold: 1.2,   // 120% - Critical alerts
+        description: 'Minimal alerts, only at 100%+ threshold'
+      }
+    };
+  }
+
+  async ensureOrganizationExists(organizationId, formData) {
+    console.log('🏢 Ensuring Organization record exists:', organizationId);
+    
+    try {
+      // Check if organization already exists
+      const existingOrg = await this.prisma.organization.findUnique({
+        where: { id: organizationId }
+      });
+
+      if (existingOrg) {
+        console.log('✅ Organization already exists:', existingOrg.name);
+        return existingOrg;
+      }
+
+      // Create new organization
+      const organizationData = {
+        id: organizationId,
+        slug: `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+        name: formData.clientName ? `${formData.clientName} CPA Firm` : 'Demo CPA Firm',
+        legalName: formData.clientName ? `${formData.clientName} CPA Firm LLC` : 'Demo CPA Firm LLC',
+        taxId: `XX-${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
+        subscriptionTier: 'demo',
+        subscriptionStatus: 'active',
+        subscriptionStartedAt: new Date(),
+        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        settings: {
+          timezone: 'America/New_York',
+          currency: 'USD',
+          dateFormat: 'MM/DD/YYYY',
+          nexusMonitoring: true,
+          priorityStates: formData.priorityStates || []
+        },
+        branding: {
+          primaryColor: '#3B82F6',
+          secondaryColor: '#1E40AF',
+          logo: null
+        },
+        features: {
+          nexusMonitoring: true,
+          clientManagement: true,
+          reporting: true,
+          alerts: true
+        },
+        email: `contact@${formData.clientName ? formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '') : 'demo'}-cpa.com`,
+        phone: `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+        website: `https://${formData.clientName ? formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '') : 'demo'}-cpa.com`,
+        addressLine1: '123 Business Plaza',
+        addressLine2: 'Suite 100',
+        city: 'Business City',
+        state: 'CA',
+        postalCode: '90210',
+        country: 'US',
+        createdBy: 'system'
+      };
+
+      const organization = await this.prisma.organization.create({
+        data: organizationData
+      });
+
+      console.log('✅ Organization created successfully:', organization.name);
+      return organization;
+
+    } catch (error) {
+      console.error('❌ Error ensuring organization exists:', error);
+      throw error;
+    }
   }
 
   async generateCompleteDashboardData(formData, organizationId) {
@@ -17,6 +119,9 @@ class EnhancedDataGenerator {
     console.log('📊 Client count from form:', formData.multiStateClientCount);
 
     try {
+      // First, ensure the Organization record exists
+      await this.ensureOrganizationExists(organizationId, formData);
+
       if (!process.env.GEMINI_API_KEY) {
         console.log('⚠️ GEMINI_API_KEY not found, using fallback data');
         return await this.generateFallbackCompleteData(formData, organizationId);
@@ -491,30 +596,31 @@ IMPORTANT:
     return industries[Math.floor(Math.random() * industries.length)];
   }
 
-  generateClientStateStatus(currentAmount, thresholdAmount, riskLevel) {
+  generateClientStateStatus(currentAmount, thresholdAmount, riskLevel, qualificationStrategy = 'standard') {
     const ratio = currentAmount / thresholdAmount;
+    const strategy = this.qualificationStrategies[qualificationStrategy] || this.qualificationStrategies['standard'];
     
-    // Critical: Exceeded threshold
-    if (ratio >= 1.0) {
+    // Critical: Exceeded critical threshold based on strategy
+    if (ratio >= strategy.criticalThreshold) {
       return 'critical';
     }
     
-    // Warning: Close to threshold (80-99%)
-    if (ratio >= 0.8) {
+    // Warning: Close to warning threshold based on strategy
+    if (ratio >= strategy.warningThreshold) {
       return 'warning';
     }
     
-    // Pending: Moderate activity (50-79%)
-    if (ratio >= 0.5) {
+    // Pending: Moderate activity (50-79% of warning threshold)
+    if (ratio >= (strategy.warningThreshold * 0.5)) {
       return 'pending';
     }
     
-    // Transit: Some activity but low (20-49%)
-    if (ratio >= 0.2) {
+    // Transit: Some activity but low (20-49% of warning threshold)
+    if (ratio >= (strategy.warningThreshold * 0.2)) {
       return 'transit';
     }
     
-    // Compliant: Very low activity (0-19%)
+    // Compliant: Very low activity (below 20% of warning threshold)
     return 'compliant';
   }
 
@@ -792,7 +898,7 @@ IMPORTANT:
           clientId: client.id,
           stateCode,
           stateName: this.getStateName(stateCode),
-          status: this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel),
+          status: this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, formData.qualificationStrategy),
           registrationRequired: currentAmount > thresholdAmount,
           thresholdAmount,
           currentAmount,
@@ -802,22 +908,35 @@ IMPORTANT:
       });
       generatedData.clientStates.push(clientState);
 
-      // Create nexus alert if threshold exceeded
-      if (currentAmount > thresholdAmount) {
+      // Create nexus alert based on qualification strategy
+      const ratio = currentAmount / thresholdAmount;
+      const strategy = this.qualificationStrategies[formData.qualificationStrategy] || this.qualificationStrategies['standard'];
+      
+      if (ratio >= strategy.alertThreshold) {
+        const isExceeded = ratio >= strategy.criticalThreshold;
+        const alertType = isExceeded ? 'threshold_breach' : 'threshold_approaching';
+        const priority = isExceeded ? 'high' : 'medium';
+        const title = isExceeded 
+          ? `${client.name} - ${stateCode} Nexus Threshold Exceeded`
+          : `${client.name} - ${stateCode} Nexus Threshold Approaching`;
+        const description = isExceeded
+          ? `${client.industry} company (${client.customFields?.businessType || 'B2B'}) has exceeded the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(ratio * 100).toFixed(1)}%)`
+          : `${client.industry} company (${client.customFields?.businessType || 'B2B'}) is approaching the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(ratio * 100).toFixed(1)}%)`;
+        
         const nexusAlert = await this.prisma.nexusAlert.create({
           data: {
             organizationId,
             clientId: client.id,
             stateCode,
-            alertType: 'threshold_breach',
-            priority: 'high',
+            alertType,
+            priority,
             status: 'open',
-            title: `${client.name} - ${stateCode} Nexus Threshold Exceeded`,
-            description: `${client.industry} company (${client.customFields?.businessType || 'B2B'}) has exceeded the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()}`,
+            title,
+            description,
             thresholdAmount,
             currentAmount,
-            penaltyRisk: Math.floor((currentAmount - thresholdAmount) * 0.1),
-            deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+            penaltyRisk: isExceeded ? Math.floor((currentAmount - thresholdAmount) * 0.1) : 0,
+            deadline: new Date(Date.now() + (isExceeded ? 30 : 60) * 24 * 60 * 60 * 1000), // 30 days for exceeded, 60 days for approaching
           },
         });
         generatedData.nexusAlerts.push(nexusAlert);
@@ -1039,6 +1158,9 @@ IMPORTANT:
 
   async generateFallbackCompleteData(formData, organizationId) {
     console.log('🔄 Generating fallback complete data...');
+    
+    // Ensure organization exists for fallback data too
+    await this.ensureOrganizationExists(organizationId, formData);
     
     const clientCount = 10;
     const generatedData = {

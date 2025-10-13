@@ -17,6 +17,7 @@ import {
   Textarea
 } from "@nextui-org/react";
 import { useNexusAlerts } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { apiClient } from "@/lib/api";
 import { 
   AlertTriangle, 
@@ -185,9 +186,13 @@ export default function AlertDetailPage() {
   const [reasoning, setReasoning] = useState<string>("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  // API hook for fetching alerts
+  // Get organizationId from context for data isolation
+  const { organizationId } = usePersonalizedDashboard();
+
+  // API hook for fetching alerts with organizationId (consistent with monitoring page)
   const { data: alertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ 
-    limit: 100 
+    limit: 100,
+    organizationId: organizationId || 'demo-org-id'
   });
 
   // Transform backend data to frontend format

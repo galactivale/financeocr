@@ -1010,10 +1010,10 @@ export default function TaxManagerDashboard() {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
   // Regular data hooks (used when not in personalized mode) - fetch more data for comprehensive view
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50, organizationId: organizationId || undefined });
-  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50, organizationId: organizationId || undefined });
-  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50, organizationId: organizationId || undefined });
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: organizationId || undefined });
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50, organizationId: organizationId || 'demo-org-id' });
+  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50, organizationId: organizationId || 'demo-org-id' });
+  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50, organizationId: organizationId || 'demo-org-id' });
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: organizationId || 'demo-org-id' });
   const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary(organizationId || 'demo-org-id');
 
   // Use personalized data if available, otherwise use regular data

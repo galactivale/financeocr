@@ -17,6 +17,7 @@ import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { useClients, useNexusAlerts, useNexusActivities, useClientStates, useStateTaxInfo } from "@/hooks/useApi";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
 // Enhanced US Map Component for detailed monitoring
 const DetailedUSMap = ({ 
@@ -328,8 +329,11 @@ const ClientStatesTable = ({
 export default function NexusMonitoringPage() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   
-  const { data: clientsData, loading: clientsLoading } = useClients({ limit: 50 });
-  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ limit: 50 });
+  // Get organizationId from context for data isolation
+  const { organizationId } = usePersonalizedDashboard();
+  
+  const { data: clientsData, loading: clientsLoading } = useClients({ limit: 50, organizationId: organizationId || 'demo-org-id' });
+  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ limit: 50, organizationId: organizationId || 'demo-org-id' });
   const { data: stateTaxInfoData, loading: stateTaxInfoLoading } = useStateTaxInfo();
 
   const clients = clientsData?.clients || [];

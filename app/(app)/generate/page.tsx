@@ -55,6 +55,34 @@ const CLIENT_COUNT_RANGES = [
   "1-10", "11-25", "26-50", "51-100", "101-250", "250+",
 ];
 
+const QUALIFICATION_STRATEGIES = [
+  {
+    key: "conservative",
+    label: "Conservative Approach",
+    description: "Early warning at 60% threshold, alerts at 80%"
+  },
+  {
+    key: "standard",
+    label: "Standard Monitoring", 
+    description: "Alerts at 80% threshold, critical at 100%"
+  },
+  {
+    key: "aggressive",
+    label: "Aggressive Growth",
+    description: "Alerts at 90% threshold, critical at 110%"
+  },
+  {
+    key: "compliance-focused",
+    label: "Compliance-Focused",
+    description: "Strict monitoring with alerts at 70% threshold"
+  },
+  {
+    key: "risk-tolerant",
+    label: "Risk-Tolerant",
+    description: "Minimal alerts, only at 100%+ threshold"
+  }
+];
+
 export default function GeneratePage() {
   const { addDashboard, dashboards, archivedDashboards, refreshDashboards } = useDashboard();
   const { setDashboardSession } = usePersonalizedDashboard();
@@ -474,16 +502,29 @@ export default function GeneratePage() {
                     </div>
                     
                     <div>
-                      <Textarea
+                      <Select
                         label="Qualification Strategy"
-                        placeholder="Describe your qualification strategy..."
-                        value={formData.qualificationStrategy}
-                        onChange={(e) => setFormData(prev => ({ ...prev, qualificationStrategy: e.target.value }))}
-                        classNames={{
-                          input: "text-white",
-                          inputWrapper: "bg-white/10 border-white/20 hover:border-white/30 focus-within:border-blue-500"
+                        placeholder="Select your qualification strategy"
+                        selectedKeys={formData.qualificationStrategy ? [formData.qualificationStrategy] : []}
+                        onSelectionChange={(keys) => {
+                          const selected = Array.from(keys)[0] as string;
+                          setFormData(prev => ({ ...prev, qualificationStrategy: selected }));
                         }}
-                      />
+                        classNames={{
+                          trigger: "bg-white/10 border-white/20 hover:border-white/30",
+                          value: "text-white",
+                          listbox: "bg-black border border-white/20"
+                        }}
+                      >
+                        {QUALIFICATION_STRATEGIES.map((strategy) => (
+                          <SelectItem key={strategy.key} value={strategy.key}>
+                            <div className="flex flex-col">
+                              <span className="text-white font-medium">{strategy.label}</span>
+                              <span className="text-white/60 text-sm">{strategy.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </Select>
                     </div>
                   </div>
                 )}
@@ -515,6 +556,7 @@ export default function GeneratePage() {
                           <p><strong>Pain Points:</strong> {formData.painPoints.join(", ")}</p>
                           <p><strong>Client Count:</strong> {formData.multiStateClientCount}</p>
                           <p><strong>Industry:</strong> {formData.primaryIndustry}</p>
+                          <p><strong>Strategy:</strong> {QUALIFICATION_STRATEGIES.find(s => s.key === formData.qualificationStrategy)?.label || formData.qualificationStrategy}</p>
                         </div>
                       </div>
                     </div>

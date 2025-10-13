@@ -416,16 +416,16 @@ const SystemActivityTable = ({ alerts, tasks }: { alerts: any[], tasks: any[] })
 
 export default function SystemAdminDashboard() {
   // Get personalized dashboard context
-  const { dashboardUrl, isPersonalizedMode, clientName } = usePersonalizedDashboard();
+  const { dashboardUrl, isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
   
   // Personalized data hooks
   const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
-  // Regular data hooks (used when not in personalized mode)
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10 });
-  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20 });
-  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20 });
+  // Regular data hooks (used when not in personalized mode) with organizationId
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10, organizationId: organizationId || 'demo-org-id' });
+  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20, organizationId: organizationId || 'demo-org-id' });
+  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20, organizationId: organizationId || 'demo-org-id' });
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();
 
   // Use personalized data if available, otherwise use regular data
