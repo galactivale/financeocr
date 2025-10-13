@@ -112,6 +112,11 @@ export default function GeneratePage() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const totalSteps = steps.length;
 
+  // Debug formData changes
+  React.useEffect(() => {
+    console.log('FormData changed:', formData);
+  }, [formData]);
+
   // Listen for dashboard selection from sidebar
   React.useEffect(() => {
     const handleDashboardSelected = (event: CustomEvent) => {
@@ -505,10 +510,16 @@ export default function GeneratePage() {
                       <Select
                         label="Qualification Strategy"
                         placeholder="Select your qualification strategy"
-                        selectedKeys={formData.qualificationStrategy ? [formData.qualificationStrategy] : []}
+                        selectedKeys={formData.qualificationStrategy ? new Set([formData.qualificationStrategy]) : new Set()}
                         onSelectionChange={(keys) => {
+                          console.log('Qualification strategy selection changed:', keys);
                           const selected = Array.from(keys)[0] as string;
-                          setFormData(prev => ({ ...prev, qualificationStrategy: selected }));
+                          console.log('Selected strategy:', selected);
+                          setFormData(prev => {
+                            const newData = { ...prev, qualificationStrategy: selected || '' };
+                            console.log('Updated formData.qualificationStrategy to:', newData.qualificationStrategy);
+                            return newData;
+                          });
                         }}
                         classNames={{
                           trigger: "bg-white/10 border-white/20 hover:border-white/30",
@@ -517,7 +528,7 @@ export default function GeneratePage() {
                         }}
                       >
                         {QUALIFICATION_STRATEGIES.map((strategy) => (
-                          <SelectItem key={strategy.key} value={strategy.key}>
+                          <SelectItem key={strategy.key} value={strategy.key} textValue={strategy.label}>
                             <div className="flex flex-col">
                               <span className="text-white font-medium">{strategy.label}</span>
                               <span className="text-white/60 text-sm">{strategy.description}</span>
@@ -525,6 +536,13 @@ export default function GeneratePage() {
                           </SelectItem>
                         ))}
                       </Select>
+                      {formData.qualificationStrategy && (
+                        <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
+                          <p className="text-green-400 text-sm">
+                            Selected: {QUALIFICATION_STRATEGIES.find(s => s.key === formData.qualificationStrategy)?.label}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

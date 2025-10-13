@@ -57,6 +57,9 @@ router.get('/', async (req, res) => {
           name: true,
           legalName: true,
           industry: true,
+          annualRevenue: true,
+          foundedYear: true,
+          employeeCount: true,
           riskLevel: true,
           penaltyExposure: true,
           qualityScore: true,
@@ -132,7 +135,7 @@ router.get('/', async (req, res) => {
         name: client.name,
         avatar: client.name.charAt(0).toUpperCase(),
         industry: client.industry,
-        revenue: client.annualRevenue || 0,
+        revenue: client.annualRevenue ? (typeof client.annualRevenue === 'object' ? client.annualRevenue.toNumber() : parseFloat(client.annualRevenue)) : 0,
         founded: client.foundedYear || 2020,
         employees: client.employeeCount || 10,
         riskLevel,
@@ -159,7 +162,12 @@ router.get('/', async (req, res) => {
           complianceRate: 95,
           penaltyPrevention: Math.round(penaltyExposure * 1.5),
           timeSpent: "15.2 hours"
-        }
+        },
+        // Include original fields for proper formatting
+        foundedYear: client.foundedYear,
+        employeeCount: client.employeeCount,
+        annualRevenue: client.annualRevenue,
+        qualityScore: client.qualityScore
       };
     });
 
@@ -256,6 +264,92 @@ router.get('/:id', async (req, res) => {
       success: false, 
       error: 'Failed to fetch client details',
       details: error.message 
+    });
+  }
+});
+
+// Create a new client
+router.post('/', async (req, res) => {
+  try {
+    const {
+      name,
+      legalName,
+      industry,
+      annualRevenue,
+      foundedYear,
+      employeeCount,
+      primaryContactName,
+      primaryContactEmail,
+      city,
+      state,
+      description,
+      organizationId,
+      slug,
+      riskLevel = 'medium',
+      penaltyExposure,
+      qualityScore = 75,
+      status = 'active',
+      assignedPartner,
+      assignedManager,
+      tags = []
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !legalName || !industry || !organizationId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: name, legalName, industry, organizationId'
+      });
+    }
+
+    // Generate slug if not provided
+    const clientSlug = slug || name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+    // Calculate penalty exposure if not provided
+    const calculatedPenaltyExposure = penaltyExposure || (annualRevenue ? annualRevenue * 0.1 : 50000);
+
+    // Create the client
+    const client = await prisma.client.create({
+      data: {
+        name,
+        legalName,
+        industry,
+        annualRevenue: annualRevenue ? parseFloat(annualRevenue) : null,
+        foundedYear: foundedYear ? parseInt(foundedYear) : null,
+        employeeCount: employeeCount ? parseInt(employeeCount) : null,
+        primaryContactName,
+        primaryContactEmail,
+        city,
+        state,
+        description,
+        organizationId,
+        slug: clientSlug,
+        riskLevel,
+        penaltyExposure: calculatedPenaltyExposure,
+        qualityScore,
+        status,
+        assignedPartner: assignedPartner || 'Managing Partner',
+        assignedManager: assignedManager || 'Sarah Mitchell',
+        tags,
+        lastReview: new Date(),
+        nextReview: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      }
+    });
+
+    // Format the response
+    const formattedClient = formatClient(client);
+
+    res.status(201).json({
+      success: true,
+      data: formattedClient
+    });
+
+  } catch (error) {
+    console.error('Error creating client:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create client',
+      details: error.message
     });
   }
 });

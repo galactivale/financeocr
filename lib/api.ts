@@ -314,6 +314,34 @@ class ApiClient {
     return this.request<Client>(`/api/clients/${id}${query ? `?${query}` : ''}`);
   }
 
+  async createClient(data: {
+    name: string;
+    legalName: string;
+    industry: string;
+    annualRevenue: number;
+    foundedYear: number;
+    employeeCount: number;
+    primaryContactName: string;
+    primaryContactEmail: string;
+    city: string;
+    state: string;
+    description?: string;
+    organizationId: string;
+    slug?: string;
+    riskLevel?: string;
+    penaltyExposure?: number;
+    qualityScore?: number;
+    status?: string;
+    assignedPartner?: string;
+    assignedManager?: string;
+    tags?: string[];
+  }): Promise<ApiResponse<Client>> {
+    return this.request<Client>('/api/clients', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getClientDetail(id: string): Promise<ApiResponse<any>> {
     return this.request<any>(`/api/clients/${id}`);
   }

@@ -48,10 +48,13 @@ router.get('/alerts', async (req, res) => {
     const total = await prisma.nexusAlert.count({ where });
 
     res.json({
-      alerts: formatArray(alerts, formatNexusAlert),
-      total,
-      limit: parseInt(limit),
-      offset: parseInt(offset)
+      success: true,
+      data: {
+        alerts: formatArray(alerts, formatNexusAlert),
+        total,
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      }
     });
   } catch (error) {
     console.error('Error fetching nexus alerts:', error);
@@ -149,10 +152,13 @@ router.get('/client-states', async (req, res) => {
     const total = await prisma.clientState.count({ where });
 
     res.json({
-      clientStates: formatArray(clientStates, formatClientState),
-      total,
-      limit: parseInt(limit),
-      offset: parseInt(offset)
+      success: true,
+      data: {
+        clientStates: formatArray(clientStates, formatClientState),
+        total,
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      }
     });
   } catch (error) {
     console.error('Error fetching client states:', error);
@@ -239,11 +245,14 @@ router.get('/dashboard-summary', async (req, res) => {
     });
 
     res.json({
-      alertCounts,
-      priorityCounts,
-      stateCounts,
-      recentActivities,
-      thresholdAlerts
+      success: true,
+      data: {
+        alertCounts,
+        priorityCounts,
+        stateCounts,
+        recentActivities,
+        thresholdAlerts
+      }
     });
   } catch (error) {
     console.error('Error fetching nexus dashboard summary:', error);

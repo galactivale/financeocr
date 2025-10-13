@@ -6,16 +6,29 @@ const errorHandler = (err, req, res, next) => {
   error.message = err.message;
 
   // Log error
-  logger.error('Error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    userId: req.user?.id,
-    organizationId: req.organizationId,
-  });
+  try {
+    logger.error('Error occurred:', {
+      message: err.message,
+      stack: err.stack,
+      url: req.url,
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      userId: req.user?.id,
+      organizationId: req.organizationId,
+    });
+  } catch (logError) {
+    console.error('Error occurred:', {
+      message: err.message,
+      stack: err.stack,
+      url: req.url,
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      userId: req.user?.id,
+      organizationId: req.organizationId,
+    });
+  }
 
   // Prisma errors
   if (err.code) {

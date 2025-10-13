@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
 interface Client {
   id: string;
@@ -20,6 +21,7 @@ interface StateInfo {
 
 const AddNexusMonitoring = () => {
   const router = useRouter();
+  const { organizationId } = usePersonalizedDashboard();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
@@ -76,7 +78,8 @@ const AddNexusMonitoring = () => {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getClients({ limit: 100 });
+      const finalOrganizationId = organizationId || 'demo-org-id';
+      const response = await apiClient.getClients({ limit: 100, organizationId: finalOrganizationId });
       if (response.success && response.data) {
         setClients(response.data.clients || []);
       }
@@ -142,8 +145,10 @@ const AddNexusMonitoring = () => {
     setLoading(true);
     try {
       // Create client states for each selected state
+      const finalOrganizationId = organizationId || 'demo-org-id';
       const clientStates = selectedStates.map(stateCode => ({
         clientId: selectedClient.id,
+        organizationId: finalOrganizationId,
         stateCode: stateCode,
         stateName: stateInfo.find(s => s.code === stateCode)?.name || stateCode,
         thresholdAmount: monitoringData[stateCode]?.thresholdAmount || stateInfo.find(s => s.code === stateCode)?.threshold || 100000,

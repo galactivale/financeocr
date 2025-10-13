@@ -63,19 +63,39 @@ const ManagingPartnerMonitoring = () => {
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [forceRefresh, setForceRefresh] = useState(0);
+  const [scanningStateIndex, setScanningStateIndex] = useState(0);
+  const [currentNotificationIndex, setCurrentNotificationIndex] = useState(0);
+
+  // State name mapping for full names
+  const stateNameMapping: Record<string, string> = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
+  };
 
   // Check if we're in personalized dashboard mode
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
+
+
 
   // Personalized data hooks
   const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
 
   // API hooks for data fetching with refresh capability - fetch more data (fallback when not in personalized mode)
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || 'demo-org-id');
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || 'demo-org-id' });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || 'demo-org-id' });
+  const finalOrganizationId = organizationId || 'demo-org-id';
+  
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(finalOrganizationId);
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: finalOrganizationId });
+  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: finalOrganizationId });
+
 
   // Fallback data for testing when API is not available
   const fallbackClientStates = [
@@ -171,7 +191,6 @@ const ManagingPartnerMonitoring = () => {
   // Refresh all data
   const refreshAllData = async () => {
     try {
-      setForceRefresh(prev => prev + 1); // Force re-render
       await Promise.all([
         refetchSummary(),
         refetchClientStates(),
@@ -244,12 +263,17 @@ const ManagingPartnerMonitoring = () => {
       }
     }
     
-    // Use personalized data if in personalized mode, otherwise use API data or fallback
+    // Use personalized data if available, otherwise fall back to API data or fallback
     const dataToUse = isPersonalizedMode 
-      ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : [])
+      ? (personalizedClientStates && personalizedClientStates.length > 0 
+          ? personalizedClientStates 
+          : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
+              ? clientStatesData.clientStates 
+              : fallbackClientStates))
       : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-        ? clientStatesData.clientStates 
-        : fallbackClientStates);
+          ? clientStatesData.clientStates 
+          : fallbackClientStates);
+
     
     const stateData: any = {};
     
@@ -316,10 +340,14 @@ const ManagingPartnerMonitoring = () => {
 
     // Process alerts data with enhanced status mapping
     const alertsToUse = isPersonalizedMode
-      ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 ? personalizedNexusAlerts : [])
+      ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 
+          ? personalizedNexusAlerts 
+          : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
+              ? nexusAlertsData.alerts 
+              : fallbackAlerts))
       : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
-        ? nexusAlertsData.alerts 
-        : fallbackAlerts);
+          ? nexusAlertsData.alerts 
+          : fallbackAlerts);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -376,8 +404,7 @@ const ManagingPartnerMonitoring = () => {
     clientStatesData, 
     nexusAlertsData, 
     clientStatesLoading, 
-    alertsLoading, 
-    forceRefresh
+    alertsLoading
   ]);
 
   // Custom states configuration for the map
@@ -489,7 +516,7 @@ const ManagingPartnerMonitoring = () => {
     console.log('🗺️ Managing Partner Monitoring - Map color distribution:', colorStats);
 
     return settings;
-  }, [selectedState, mapFocusState, nexusData]);
+  }, [mapFocusState, nexusData]);
 
   // Process client data from API with better error handling and fallback
   const clients: Client[] = useMemo(() => {
@@ -504,12 +531,16 @@ const ManagingPartnerMonitoring = () => {
       }
     }
     
-    // Use personalized data if in personalized mode, otherwise use API data or fallback
+    // Use personalized data if available, otherwise fall back to API data or fallback
     const dataToUse = isPersonalizedMode
-      ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : [])
+      ? (personalizedClientStates && personalizedClientStates.length > 0 
+          ? personalizedClientStates 
+          : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
+              ? clientStatesData.clientStates 
+              : fallbackClientStates))
       : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-        ? clientStatesData.clientStates 
-        : fallbackClientStates);
+          ? clientStatesData.clientStates 
+          : fallbackClientStates);
     
     if (!dataToUse || dataToUse.length === 0) {
       return [];
@@ -587,10 +618,14 @@ const ManagingPartnerMonitoring = () => {
 
     // Add alert counts
     const alertsToUse = isPersonalizedMode
-      ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 ? personalizedNexusAlerts : [])
+      ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 
+          ? personalizedNexusAlerts 
+          : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
+              ? nexusAlertsData.alerts 
+              : fallbackAlerts))
       : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
-        ? nexusAlertsData.alerts 
-        : fallbackAlerts);
+          ? nexusAlertsData.alerts 
+          : fallbackAlerts);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -628,9 +663,63 @@ const ManagingPartnerMonitoring = () => {
     clientStatesData, 
     nexusAlertsData, 
     clientStatesLoading, 
-    alertsLoading, 
-    forceRefresh
+    alertsLoading
   ]);
+
+  // Generate dynamic notifications based on alerts and scanning data
+  const generateNotifications = useMemo(() => {
+    const notifications: any[] = [];
+    
+    // AI Scanning notification
+    const currentState = Object.keys(nexusData)[scanningStateIndex];
+    notifications.push({
+      id: 'ai-scanning',
+      type: 'scanning',
+      title: 'AI Nexus Scanner',
+      message: `Currently scanning ${currentState ? stateNameMapping[currentState] || currentState : '--'}`,
+      status: 'active',
+      icon: 'scan',
+      priority: 'info',
+      timestamp: new Date().toLocaleTimeString()
+    });
+
+    // Alert notifications based on nexus alerts
+    if (nexusAlertsData?.alerts) {
+      nexusAlertsData.alerts.slice(0, 5).forEach((alert: any, index: number) => {
+        const client = clients.find(c => c.id === alert.clientId);
+        notifications.push({
+          id: `alert-${alert.id}`,
+          type: 'alert',
+          title: `${alert.priority === 'high' ? 'Critical' : 'Warning'} Alert`,
+          message: `${client?.name || 'Client'} - ${alert.stateCode} threshold ${alert.alertType === 'threshold_breach' ? 'exceeded' : 'approaching'}`,
+          status: alert.priority === 'high' ? 'critical' : 'warning',
+          icon: 'alert',
+          priority: alert.priority,
+          timestamp: new Date(alert.createdAt).toLocaleTimeString(),
+          details: {
+            client: client?.name,
+            state: alert.stateCode,
+            threshold: alert.thresholdAmount,
+            current: alert.currentAmount
+          }
+        });
+      });
+    }
+
+    // System status notifications
+    notifications.push({
+      id: 'system-status',
+      type: 'system',
+      title: 'System Status',
+      message: `Monitoring ${Object.keys(nexusData).length} states with ${clients.length} active clients`,
+      status: 'info',
+      icon: 'system',
+      priority: 'info',
+      timestamp: new Date().toLocaleTimeString()
+    });
+
+    return notifications;
+  }, [nexusData, scanningStateIndex, nexusAlertsData, clients, stateNameMapping]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -650,17 +739,31 @@ const ManagingPartnerMonitoring = () => {
     // Fetch data immediately on mount
     initialDataFetch();
     
-    // Auto-refresh data every 30 seconds
-    const refreshInterval = setInterval(() => {
-      refreshAllData();
-    }, 30000);
-    
     // Cleanup: restore scrolling when component unmounts
     return () => {
       document.body.style.overflow = 'unset';
-      clearInterval(refreshInterval);
     };
   }, []);
+
+  // AI Scanning state animation effect
+  useEffect(() => {
+    if (Object.keys(nexusData).length === 0) return;
+    
+    const interval = setInterval(() => {
+      setScanningStateIndex(prev => (prev + 1) % Object.keys(nexusData).length);
+    }, 1200); // Change state every 1200ms for slower, more deliberate scanning
+
+    return () => clearInterval(interval);
+  }, [nexusData]);
+
+  // Auto-scrolling notification center effect
+  useEffect(() => {
+    const notificationInterval = setInterval(() => {
+      setCurrentNotificationIndex(prev => (prev + 1) % generateNotifications.length);
+    }, 5000); // Change notification every 5 seconds
+
+    return () => clearInterval(notificationInterval);
+  }, [generateNotifications.length]);
 
   useEffect(() => {
     let filtered = clients;
@@ -864,10 +967,7 @@ const ManagingPartnerMonitoring = () => {
             </div>
 
             {/* Apple-Style Client Cards */}
-            <div 
-              key={`client-cards-${forceRefresh}`}
-              className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50"
-            >
+            <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-600/30 hover:scrollbar-thumb-gray-500/50">
               {(isPersonalizedMode ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading) : (clientStatesLoading || alertsLoading)) ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
@@ -1082,61 +1182,99 @@ const ManagingPartnerMonitoring = () => {
           </div>
 
           {/* Right Pane - US Nexus Map */}
-          <div className="flex-1 bg-black/95 backdrop-blur-sm p-4">
+          <div className="flex-1 bg-black/95 backdrop-blur-sm p-4 pt-0">
             <div className="h-full flex flex-col">
-              {/* Apple-Style Monitoring Summary - Top Right Corner */}
-              <div className="absolute top-4 right-4 z-30">
-                <div className="bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 p-3 shadow-xl shadow-black/20">
-                  {Object.keys(nexusData).length > 0 ? (
+
+              {/* Dynamic Notification Center */}
+              <div className="absolute top-0 left-0 right-0 z-40">
+                <style jsx>{`
+                  @keyframes slideDown {
+                    0% { transform: translateY(-100%); opacity: 0; }
+                    100% { transform: translateY(0); opacity: 1; }
+                  }
+                  @keyframes slideUp {
+                    0% { transform: translateY(0); opacity: 1; }
+                    100% { transform: translateY(-100%); opacity: 0; }
+                  }
+                `}</style>
+                <div className="bg-black/95 backdrop-blur-2xl border-b border-white/20 px-6 py-4 relative overflow-hidden">
+                  {/* Subtle Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 animate-pulse"></div>
+                  
+                  <div className="flex items-center justify-between relative z-10 w-full">
+                    {/* Left Section - Notification Icon */}
                     <div className="flex items-center space-x-4">
-                      {/* Clients */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          {Object.values(nexusData).reduce((sum: number, state: any) => sum + (state.clients || 0), 0)}
+                      <div className="relative">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center">
+                          {generateNotifications[currentNotificationIndex]?.icon === 'scan' ? (
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          ) : generateNotifications[currentNotificationIndex]?.icon === 'alert' ? (
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
                         </div>
-                        <div className="text-white/50 text-xs">Clients</div>
+                        <div className="absolute inset-0 w-8 h-8 bg-blue-400/30 rounded-xl animate-ping"></div>
                       </div>
                       
-                      {/* Alerts */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          {Object.values(nexusData).reduce((sum: number, state: any) => sum + (state.alerts || 0), 0)}
-                        </div>
-                        <div className="text-white/50 text-xs">Alerts</div>
-                      </div>
-                      
-                      {/* Revenue */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          ${Object.values(nexusData).reduce((sum: number, state: any) => sum + (state.revenue || 0), 0).toLocaleString()}
-                        </div>
-                        <div className="text-white/50 text-xs">Revenue</div>
-                      </div>
-                      
-                      {/* Critical */}
-                      <div>
-                        <div className="text-white text-sm font-medium">
-                          {Object.keys(nexusData).filter(state => nexusData[state]?.status === 'critical').length}
-                        </div>
-                        <div className="text-white/50 text-xs">Critical</div>
+                      <div className="flex flex-col">
+                        <span className="text-white text-sm font-medium">
+                          {generateNotifications[currentNotificationIndex]?.title || 'Notification Center'}
+                        </span>
+                        <span className="text-gray-400 text-xs">
+                          {generateNotifications[currentNotificationIndex]?.timestamp || new Date().toLocaleTimeString()}
+                        </span>
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex items-center space-x-4">
-                      <div className="text-white/60 text-sm font-medium">No data available</div>
-                      <button 
-                        onClick={refreshAllData}
-                        className="bg-white/10 hover:bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-all duration-200 backdrop-blur-sm border border-white/20"
-                      >
-                        Refresh
-                      </button>
+
+                    {/* Center Section - Notification Message */}
+                    <div className="flex-1 mx-6">
+                      <div className="text-white text-sm font-medium text-center">
+                        {generateNotifications[currentNotificationIndex]?.message || 'No notifications'}
+                      </div>
+                      {generateNotifications[currentNotificationIndex]?.details && (
+                        <div className="text-gray-400 text-xs text-center mt-1">
+                          {generateNotifications[currentNotificationIndex].details.client} • 
+                          {generateNotifications[currentNotificationIndex].details.state} • 
+                          ${generateNotifications[currentNotificationIndex].details.current?.toLocaleString()}
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Right Section - Status and Progress */}
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          generateNotifications[currentNotificationIndex]?.status === 'critical' ? 'bg-red-400' :
+                          generateNotifications[currentNotificationIndex]?.status === 'warning' ? 'bg-yellow-400' :
+                          generateNotifications[currentNotificationIndex]?.status === 'active' ? 'bg-green-400' :
+                          'bg-blue-400'
+                        } animate-pulse`}></div>
+                        <span className={`text-xs font-medium ${
+                          generateNotifications[currentNotificationIndex]?.status === 'critical' ? 'text-red-400' :
+                          generateNotifications[currentNotificationIndex]?.status === 'warning' ? 'text-yellow-400' :
+                          generateNotifications[currentNotificationIndex]?.status === 'active' ? 'text-green-400' :
+                          'text-blue-400'
+                        }`}>
+                          {generateNotifications[currentNotificationIndex]?.status?.toUpperCase() || 'INFO'}
+                        </span>
+                      </div>
+                      
+                      <div className="text-gray-400 text-xs font-mono">
+                        {currentNotificationIndex + 1}/{generateNotifications.length}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-
               {/* Interactive US Map */}
-              <div className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out">
+              <div className="flex-1 relative bg-black rounded-lg overflow-hidden transition-all duration-500 ease-in-out mt-16">
                 {/* Cool Background Pattern */}
                 <div className="absolute inset-0 opacity-20">
                   {/* Grid Pattern */}
@@ -1164,7 +1302,7 @@ const ManagingPartnerMonitoring = () => {
                   <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
                 </div>
                 
-                <div key={`usa-map-${forceRefresh}`} className="w-full h-full relative z-10">
+                <div className="w-full h-full relative z-10">
                   <USAMap 
                     customStates={customStates}
                     hiddenStates={['AK', 'HI']}
@@ -1415,6 +1553,142 @@ const ManagingPartnerMonitoring = () => {
                 Generate Report
               </button>
             </div>
+            </div>
+          )}
+
+          {/* State Details Panel */}
+          {selectedState && !isDetailsPanelOpen && (
+            <div className="w-96 bg-black/95 backdrop-blur-xl border-l border-white/10 p-6 overflow-y-auto transition-all duration-300 ease-in-out">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-white text-lg font-semibold">{selectedState}</h2>
+                    <p className="text-gray-400 text-sm">{stateNameMapping[selectedState] || selectedState}</p>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedState(null)} className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* State Data */}
+              {nexusData[selectedState] ? (
+                <>
+                  {/* Status Overview */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-white font-medium">Nexus Status</h3>
+                      <div className={`px-3 py-1 ${
+                        nexusData[selectedState].status === 'critical' ? 'bg-red-500' :
+                        nexusData[selectedState].status === 'warning' ? 'bg-orange-500' :
+                        nexusData[selectedState].status === 'pending' ? 'bg-blue-500' :
+                        nexusData[selectedState].status === 'transit' ? 'bg-cyan-500' :
+                        'bg-green-500'
+                      } rounded-full`}>
+                        <span className="text-white text-sm font-semibold capitalize">
+                          {nexusData[selectedState].status}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      {nexusData[selectedState].status === 'critical' ? 'This state has exceeded threshold limits and requires immediate attention.' :
+                       nexusData[selectedState].status === 'warning' ? 'This state is approaching threshold limits and should be monitored closely.' :
+                       nexusData[selectedState].status === 'pending' ? 'This state is currently under review for compliance requirements.' :
+                       nexusData[selectedState].status === 'transit' ? 'This state is actively being monitored for nexus compliance.' :
+                       'This state is fully compliant with all nexus requirements.'}
+                    </p>
+                  </div>
+
+                  {/* Key Metrics */}
+                  <div className="mb-6">
+                    <h3 className="text-white font-medium mb-3">Key Metrics</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Total Clients</span>
+                        <span className="text-white font-medium">{nexusData[selectedState].clients}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Total Revenue</span>
+                        <span className="text-white font-medium">${nexusData[selectedState].revenue.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Active Alerts</span>
+                        <span className="text-white font-medium">{nexusData[selectedState].alerts}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Threshold Progress</span>
+                        <span className="text-white font-medium">{nexusData[selectedState].thresholdProgress}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clients in this State */}
+                  <div className="mb-6">
+                    <h3 className="text-white font-medium mb-3">Clients in {selectedState}</h3>
+                    <div className="space-y-2">
+                      {filteredClients
+                        .filter(client => client.states.includes(selectedState))
+                        .map((client) => (
+                          <div
+                            key={client.id}
+                            className="bg-white/5 rounded-lg p-3 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setIsDetailsPanelOpen(true);
+                              setSelectedState(null); // Close state panel when client is selected
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-white text-sm font-medium">{client.name}</h4>
+                                <p className="text-gray-400 text-xs">{client.industry}</p>
+                              </div>
+                              <div className={`px-2 py-1 ${
+                                client.nexusStatus === 'critical' ? 'bg-red-500' :
+                                client.nexusStatus === 'warning' ? 'bg-orange-500' :
+                                client.nexusStatus === 'pending' ? 'bg-blue-500' :
+                                client.nexusStatus === 'transit' ? 'bg-cyan-500' :
+                                'bg-green-500'
+                              } rounded-full`}>
+                                <span className="text-white text-xs font-semibold capitalize">
+                                  {client.nexusStatus}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3">
+                    <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                      View Reports
+                    </button>
+                    <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                      Export Data
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="text-gray-400 text-sm font-medium mb-2">No data available</div>
+                  <div className="text-gray-500 text-xs">This state has no client activity</div>
+                </div>
+              )}
             </div>
           )}
         </div>

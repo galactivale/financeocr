@@ -8,11 +8,10 @@ import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/us
 import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useClientStates } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
-import RiskMonitoringDashboard from "@/components/dashboard/risk-monitoring-dashboard";
-import { BarChart3, AlertTriangle, MapPin, User } from "lucide-react";
+import { User } from "lucide-react";
 
 // Enhanced US Map Component for Managing Partner
-const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients: any[] }) => {
+const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: any[], clients: any[], nexusAlerts: any[] }) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
   const handleMapStateClick = (stateCode: string) => {
@@ -25,7 +24,7 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
 
   // Generate firm performance data from real API data
   const firmPerformanceData = useMemo(() => {
-    const stateData: Record<string, { status: string; clients: number; revenue: number; growth: number }> = {};
+    const stateData: Record<string, { status: string; clients: number; revenue: number; alerts: number; nexusStatus: string }> = {};
     
     // Process client states to calculate performance metrics
     (clientStates || []).forEach(clientState => {
@@ -35,7 +34,8 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
           status: 'good',
           clients: 1,
           revenue: clientState.currentAmount || 0,
-          growth: Math.random() * 20 - 5 // Mock growth data
+          alerts: 0,
+          nexusStatus: clientState.status || 'compliant'
         };
       } else {
         stateData[stateCode].clients += 1;
@@ -43,28 +43,60 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
       }
     });
 
-    // Determine status based on performance
+    // Count alerts per state
+    (clients || []).forEach(client => {
+      const clientStatesForClient = (clientStates || []).filter(cs => cs.clientId === client.id);
+      clientStatesForClient.forEach(cs => {
+        const stateCode = cs.stateCode;
+        if (stateData[stateCode]) {
+          // Count nexus alerts for this client in this state
+          const alertsForClient = (nexusAlerts || []).filter(alert => 
+            alert.clientId === client.id && alert.stateCode === stateCode
+          );
+          stateData[stateCode].alerts += alertsForClient.length;
+        }
+      });
+    });
+
+    // Determine status based on nexus compliance and alerts
     Object.keys(stateData).forEach(stateCode => {
       const data = stateData[stateCode];
-      if (data.growth > 10 && data.revenue > 5000000) {
-        data.status = 'excellent';
-      } else if (data.growth > 5 && data.revenue > 2000000) {
-        data.status = 'good';
-      } else if (data.growth < -5 || data.revenue < 500000) {
+      
+      // Count critical/warning states
+      const criticalStates = (clientStates || []).filter(cs => 
+        cs.stateCode === stateCode && (cs.status === 'critical' || cs.status === 'warning')
+      ).length;
+      
+      const totalStatesInState = (clientStates || []).filter(cs => cs.stateCode === stateCode).length;
+      const criticalRatio = totalStatesInState > 0 ? criticalStates / totalStatesInState : 0;
+      
+      if (criticalRatio > 0.5 || data.alerts > 3) {
         data.status = 'poor';
+        data.nexusStatus = 'critical';
+      } else if (criticalRatio > 0.2 || data.alerts > 1) {
+        data.status = 'warning';
+        data.nexusStatus = 'warning';
+      } else if (data.revenue > 1000000) {
+        data.status = 'excellent';
+        data.nexusStatus = 'compliant';
+      } else {
+        data.status = 'good';
+        data.nexusStatus = 'compliant';
       }
     });
 
     return stateData;
-  }, [clientStates]);
+  }, [clientStates, clients, nexusAlerts]);
 
   const customStates: Record<string, any> = {};
   Object.keys(firmPerformanceData).forEach(stateCode => {
     const data = firmPerformanceData[stateCode];
     customStates[stateCode] = {
-      fill: data.status === 'excellent' ? '#10b981' : 
-            data.status === 'good' ? '#3b82f6' : 
-            data.status === 'poor' ? '#ef4444' : '#6b7280',
+      fill: data.nexusStatus === 'critical' ? '#ef4444' : 
+            data.nexusStatus === 'warning' ? '#f59e0b' : 
+            data.nexusStatus === 'pending' ? '#3b82f6' : 
+            data.nexusStatus === 'transit' ? '#8b5cf6' : 
+            data.nexusStatus === 'compliant' ? '#10b981' : '#6b7280',
       stroke: '#ffffff',
       strokeWidth: 1,
       cursor: 'pointer',
@@ -90,18 +122,51 @@ const EnhancedUSMap = ({ clientStates, clients }: { clientStates: any[], clients
         }}
       />
       
+      {/* Legend */}
+      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 text-white border border-white/20">
+        <h4 className="font-semibold text-sm mb-2">Nexus Status</h4>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded"></div>
+            <span>Critical</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+            <span>Warning</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+            <span>Pending</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-purple-500 rounded"></div>
+            <span>Transit</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <span>Compliant</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-gray-500 rounded"></div>
+            <span>No Activity</span>
+          </div>
+        </div>
+      </div>
+      
       {selectedState && (
         <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white border border-white/20">
           <h3 className="font-semibold text-lg mb-2">{selectedState}</h3>
           <div className="space-y-1 text-sm">
             <p>Clients: {firmPerformanceData[selectedState]?.clients || 0}</p>
             <p>Revenue: ${(firmPerformanceData[selectedState]?.revenue || 0).toLocaleString()}</p>
-            <p>Growth: {firmPerformanceData[selectedState]?.growth?.toFixed(1) || 0}%</p>
-            <p>Status: <span className={`font-medium ${
-              firmPerformanceData[selectedState]?.status === 'excellent' ? 'text-green-400' :
-              firmPerformanceData[selectedState]?.status === 'good' ? 'text-blue-400' :
-              firmPerformanceData[selectedState]?.status === 'poor' ? 'text-red-400' : 'text-gray-400'
-            }`}>{firmPerformanceData[selectedState]?.status || 'Unknown'}</span></p>
+            <p>Alerts: {firmPerformanceData[selectedState]?.alerts || 0}</p>
+            <p>Nexus Status: <span className={`font-medium ${
+              firmPerformanceData[selectedState]?.nexusStatus === 'critical' ? 'text-red-400' :
+              firmPerformanceData[selectedState]?.nexusStatus === 'warning' ? 'text-yellow-400' :
+              firmPerformanceData[selectedState]?.nexusStatus === 'pending' ? 'text-blue-400' :
+              firmPerformanceData[selectedState]?.nexusStatus === 'transit' ? 'text-purple-400' :
+              firmPerformanceData[selectedState]?.nexusStatus === 'compliant' ? 'text-green-400' : 'text-gray-400'
+            }`}>{firmPerformanceData[selectedState]?.nexusStatus || 'Unknown'}</span></p>
           </div>
         </div>
       )}
@@ -142,18 +207,28 @@ const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any
   );
 };
 
-const CardActiveClients = ({ clients }: { clients: any[] }) => {
-  const activeClients = (clients || []).filter(client => client.status === 'active').length;
+const CardTotalClients = ({ clients }: { clients: any[] }) => {
+  // Count all clients in the database
+  const totalClients = (clients || []).length;
+  
+  // Calculate new clients this month based on creation date
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const newThisMonth = (clients || []).filter(client => {
+    if (!client.createdAt) return false;
+    const clientDate = new Date(client.createdAt);
+    return clientDate.getMonth() === currentMonth && clientDate.getFullYear() === currentYear;
+  }).length;
 
   return (
     <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold text-white">Active Clients</h4>
+          <h4 className="text-xs font-bold text-white">Total Clients</h4>
         </div>
         
         <div className="flex items-end justify-between">
-          <div className="text-2xl font-bold text-white leading-none">{activeClients}</div>
+          <div className="text-2xl font-bold text-white leading-none">{totalClients}</div>
           <div className="flex items-end space-x-1 h-10">
             {[4, 6, 3, 8, 5, 7, 4].map((height, i) => (
               <div
@@ -166,7 +241,7 @@ const CardActiveClients = ({ clients }: { clients: any[] }) => {
         </div>
         
         <div className="flex items-center space-x-2">
-          <span className="text-green-400 text-xs font-medium">+3</span>
+          <span className="text-green-400 text-xs font-medium">+{newThisMonth}</span>
           <span className="text-white/60 text-xs">new this month</span>
         </div>
       </div>
@@ -308,7 +383,6 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
 
 // Main Component
 export default function ManagingPartnerDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
   
   // Personalized dashboard context
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId, clearDashboardSession } = usePersonalizedDashboard();
@@ -330,12 +404,18 @@ export default function ManagingPartnerDashboard() {
   const clientStates = clientStatesData?.clientStates || [];
 
   // Personalized data hooks
-  const { data: personalizedClientStates } = usePersonalizedClientStates();
-  const { data: personalizedNexusAlerts } = usePersonalizedNexusAlerts();
+  const { data: personalizedClientStates } = usePersonalizedClientStates(dashboardUrl);
+  const { data: personalizedNexusAlerts } = usePersonalizedNexusAlerts(dashboardUrl);
   
-  // Use personalized data if in personalized mode
-  const displayClientStates = isPersonalizedMode && personalizedClientStates ? personalizedClientStates : (clientStates || []);
-  const displayNexusAlerts = isPersonalizedMode && personalizedNexusAlerts ? personalizedNexusAlerts : (nexusAlerts || []);
+  // Use personalized data if in personalized mode AND data exists, otherwise fall back to regular data
+  const effectivePersonalizedMode = isPersonalizedMode && dashboardUrl;
+  const displayClientStates = (effectivePersonalizedMode && personalizedClientStates && personalizedClientStates.length > 0) 
+    ? personalizedClientStates 
+    : (clientStates || []);
+  const displayNexusAlerts = (effectivePersonalizedMode && personalizedNexusAlerts && personalizedNexusAlerts.length > 0) 
+    ? personalizedNexusAlerts 
+    : (nexusAlerts || []);
+  
   
   const isLoading = clientsLoading || alertsLoading || analyticsLoading || tasksLoading || nexusAlertsLoading || clientStatesLoading;
 
@@ -385,49 +465,14 @@ export default function ManagingPartnerDashboard() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex space-x-1 mb-8">
-              <Button
-                color={activeTab === "overview" ? "primary" : "default"}
-                variant={activeTab === "overview" ? "solid" : "flat"}
-                onClick={() => setActiveTab("overview")}
-                startContent={<BarChart3 className="w-4 h-4" />}
-              >
-                Portfolio Overview
-              </Button>
-              <Button
-                color={activeTab === "risk" ? "primary" : "default"}
-                variant={activeTab === "risk" ? "solid" : "flat"}
-                onClick={() => setActiveTab("risk")}
-                startContent={<AlertTriangle className="w-4 h-4" />}
-              >
-                Risk Monitoring
-              </Button>
-              <Button
-                color={activeTab === "nexus" ? "primary" : "default"}
-                variant={activeTab === "nexus" ? "solid" : "flat"}
-                onClick={() => setActiveTab("nexus")}
-                startContent={<MapPin className="w-4 h-4" />}
-              >
-                Nexus Status
-              </Button>
-            </div>
 
-            {/* Tab Content */}
-            {activeTab === "risk" ? (
-              <RiskMonitoringDashboard organizationId="demo-org-id" />
-            ) : activeTab === "nexus" ? (
-              <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">Nexus Status View</h3>
-                <p className="text-gray-400">Nexus monitoring dashboard coming soon...</p>
-              </div>
-            ) : (
-              <>
+            {/* Main Content */}
+            <>
           {/* Card Section Top */}
             <div className="flex flex-col gap-4">
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
                 <CardTotalRevenue analytics={analytics} clients={clients} />
-                <CardActiveClients clients={clients} />
+                <CardTotalClients clients={clients} />
                     <CardComplianceRate alerts={alerts} clientStates={displayClientStates} />
               </div>
           </div>
@@ -454,7 +499,7 @@ export default function ManagingPartnerDashboard() {
               </div>
               
               <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                      <EnhancedUSMap clientStates={displayClientStates} clients={clients} />
+                <EnhancedUSMap clientStates={displayClientStates} clients={clients} nexusAlerts={displayNexusAlerts} />
               </div>
             </div>
 
@@ -466,7 +511,6 @@ export default function ManagingPartnerDashboard() {
               </div>
             </div>
               </>
-            )}
           </div>
         </div>
       </div>

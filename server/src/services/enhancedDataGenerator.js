@@ -56,6 +56,23 @@ class EnhancedDataGenerator {
 
       if (existingOrg) {
         console.log('✅ Organization already exists:', existingOrg.name);
+        
+        // Update organization settings with qualification strategy if not set
+        if (!existingOrg.settings?.qualificationStrategy && formData.qualificationStrategy) {
+          console.log('🔄 Updating organization with qualification strategy:', formData.qualificationStrategy);
+          const updatedSettings = {
+            ...existingOrg.settings,
+            qualificationStrategy: formData.qualificationStrategy
+          };
+          
+          await this.prisma.organization.update({
+            where: { id: organizationId },
+            data: { settings: updatedSettings }
+          });
+          
+          console.log('✅ Organization settings updated with qualification strategy');
+        }
+        
         return existingOrg;
       }
 
@@ -75,7 +92,8 @@ class EnhancedDataGenerator {
           currency: 'USD',
           dateFormat: 'MM/DD/YYYY',
           nexusMonitoring: true,
-          priorityStates: formData.priorityStates || []
+          priorityStates: formData.priorityStates || [],
+          qualificationStrategy: formData.qualificationStrategy || 'standard'
         },
         branding: {
           primaryColor: '#3B82F6',
@@ -120,11 +138,11 @@ class EnhancedDataGenerator {
 
     try {
       // First, ensure the Organization record exists
-      await this.ensureOrganizationExists(organizationId, formData);
+      const organization = await this.ensureOrganizationExists(organizationId, formData);
 
       if (!process.env.GEMINI_API_KEY) {
         console.log('⚠️ GEMINI_API_KEY not found, using fallback data');
-        return await this.generateFallbackCompleteData(formData, organizationId);
+        return await this.generateFallbackCompleteData(formData, organizationId, organization);
       }
 
       console.log('✅ Gemini API key found, generating complete dashboard data...');
@@ -193,7 +211,7 @@ class EnhancedDataGenerator {
           generatedData.clients.push(client);
           
           // Generate related data for this client
-          await this.generateClientRelatedData(client, organizationId, generatedData, formData);
+          await this.generateClientRelatedData(client, organizationId, generatedData, formData, organization);
           
           console.log(`✅ Client ${i + 1} and related data created successfully`);
         } catch (error) {
@@ -697,7 +715,7 @@ IMPORTANT:
     return client;
   }
 
-  async generateClientRelatedData(client, organizationId, generatedData, formData) {
+  async generateClientRelatedData(client, organizationId, generatedData, formData, organization = null) {
     // Create business profile
     if (client.businessProfile) {
       const businessProfile = await this.prisma.businessProfile.create({
@@ -811,7 +829,7 @@ IMPORTANT:
     }
 
     // Generate nexus monitoring data
-    await this.generateNexusMonitoringData(client, organizationId, generatedData, formData);
+    await this.generateNexusMonitoringData(client, organizationId, generatedData, formData, organization);
 
     // Generate alerts and tasks
     await this.generateAlertsAndTasks(client, organizationId, generatedData);
@@ -826,7 +844,7 @@ IMPORTANT:
     await this.generateAuditTrail(client, organizationId, generatedData);
   }
 
-  async generateNexusMonitoringData(client, organizationId, generatedData, formData) {
+  async generateNexusMonitoringData(client, organizationId, generatedData, formData, organization = null) {
     // Use Priority States from the form data instead of random states
     const priorityStates = formData.priorityStates || [];
     
@@ -898,7 +916,7 @@ IMPORTANT:
           clientId: client.id,
           stateCode,
           stateName: this.getStateName(stateCode),
-          status: this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, formData.qualificationStrategy),
+          status: this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard'),
           registrationRequired: currentAmount > thresholdAmount,
           thresholdAmount,
           currentAmount,
@@ -910,7 +928,7 @@ IMPORTANT:
 
       // Create nexus alert based on qualification strategy
       const ratio = currentAmount / thresholdAmount;
-      const strategy = this.qualificationStrategies[formData.qualificationStrategy] || this.qualificationStrategies['standard'];
+      const strategy = this.qualificationStrategies[organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard'] || this.qualificationStrategies['standard'];
       
       if (ratio >= strategy.alertThreshold) {
         const isExceeded = ratio >= strategy.criticalThreshold;
@@ -1156,11 +1174,11 @@ IMPORTANT:
     };
   }
 
-  async generateFallbackCompleteData(formData, organizationId) {
+  async generateFallbackCompleteData(formData, organizationId, organization = null) {
     console.log('🔄 Generating fallback complete data...');
     
     // Ensure organization exists for fallback data too
-    await this.ensureOrganizationExists(organizationId, formData);
+    const org = organization || await this.ensureOrganizationExists(organizationId, formData);
     
     const clientCount = 10;
     const generatedData = {
@@ -1226,7 +1244,7 @@ IMPORTANT:
           const client = await this.createClientWithRelationships(clientData, organizationId);
           
           generatedData.clients.push(client);
-          await this.generateClientRelatedData(client, organizationId, generatedData, formData);
+          await this.generateClientRelatedData(client, organizationId, generatedData, formData, org);
           
           console.log(`✅ Fallback client ${i + 1} and related data created successfully`);
         } catch (error) {
