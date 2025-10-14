@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Input, Select, SelectItem, Textarea, Progress, Card, CardBody } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem, Textarea, Progress, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 import { CheckCircleIcon } from "@/components/icons/profile/check-circle-icon";
 import { UserIcon } from "@/components/icons/profile/user-icon";
 import { MapPinIcon } from "@/components/icons/profile/map-pin-icon";
@@ -10,6 +10,7 @@ import { ClockIcon } from "@/components/icons/profile/clock-icon";
 import { ChartBarIcon } from "@/components/icons/profile/chart-bar-icon";
 import { ExclamationTriangleIcon } from "@/components/icons/profile/exclamation-triangle-icon";
 import { ArrowLeftIcon } from "@/components/icons/profile/arrow-left-icon";
+import { TrashIcon } from "@/components/icons/accounts/trash-icon";
 import { useDashboard } from "@/contexts/DashboardContext";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { DashboardDetails } from "@/components/dashboard/dashboard-details";
@@ -101,6 +102,8 @@ export default function GeneratePage() {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentStepMessage, setCurrentStepMessage] = useState("");
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const steps = [
     { id: 1, title: "Client Information", description: "Basic client details", icon: UserIcon },
@@ -269,6 +272,56 @@ export default function GeneratePage() {
     }
   };
 
+  const handleDeleteAllData = async () => {
+    try {
+      setIsDeleting(true);
+      setCurrentStepMessage("Deleting all data...");
+      
+      console.log('🗑️ Starting complete database wipe...');
+      
+      // Call the delete all API
+      const response = await apiClient.deleteAllClientData();
+      
+      if (response.success) {
+        console.log('✅ Database wiped successfully:', response.data);
+        
+        // Refresh dashboards to reflect the deletion
+        await refreshDashboards();
+        
+        // Show success message
+        setCurrentStepMessage("All data deleted successfully!");
+        
+        // Reset form
+        setFormData({
+          clientName: "",
+          priorityStates: [],
+          painPoints: [],
+          multiStateClientCount: "",
+          primaryIndustry: "",
+          qualificationStrategy: "",
+          additionalNotes: "",
+        });
+        
+        // Hide confirmation dialog
+        setShowDeleteConfirm(false);
+        
+        // Show success message for a few seconds
+        setTimeout(() => {
+          setCurrentStepMessage("");
+        }, 3000);
+        
+      } else {
+        console.error('❌ Database wipe failed:', response.error);
+        throw new Error(response.error || 'Failed to delete all data');
+      }
+    } catch (error) {
+      console.error('❌ Error deleting all data:', error);
+      alert(`Error deleting all data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsDeleting(false);
+      setCurrentStepMessage("");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
@@ -276,9 +329,25 @@ export default function GeneratePage() {
         <div className="flex flex-col gap-6">
           {/* Header Section */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-              <h2 className="text-3xl font-normal text-white tracking-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Dashboard Generator</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
+                <h2 className="text-3xl font-normal text-white tracking-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Dashboard Generator</h2>
+              </div>
+              
+              {/* Delete All Data Button */}
+              <Button
+                color="danger"
+                variant="bordered"
+                onPress={() => setShowDeleteConfirm(true)}
+                isDisabled={isDeleting || isSubmitting}
+                startContent={<TrashIcon className="w-4 h-4" />}
+                className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
+              >
+                <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                  {isDeleting ? "Deleting..." : "Delete All Data"}
+                </span>
+              </Button>
             </div>
             
             {/* Generation Progress - Show when generating */}
@@ -622,6 +691,73 @@ export default function GeneratePage() {
           </div>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <Modal 
+        isOpen={showDeleteConfirm} 
+        onClose={() => setShowDeleteConfirm(false)}
+        size="md"
+        classNames={{
+          base: "bg-black border border-red-500/20",
+          header: "border-b border-red-500/20",
+          body: "py-6",
+          footer: "border-t border-red-500/20"
+        }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
+                <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
+              </div>
+              <h3 className="text-lg font-medium text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                Delete All Data
+              </h3>
+            </div>
+          </ModalHeader>
+          <ModalBody>
+            <div className="space-y-4">
+              <p className="text-white/80 text-sm" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                This action will permanently delete <strong className="text-red-400">ALL</strong> data from the database including:
+              </p>
+              <ul className="text-white/70 text-sm space-y-1 ml-4" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                <li>• All generated dashboards</li>
+                <li>• All clients and client data</li>
+                <li>• All nexus alerts and activities</li>
+                <li>• All business profiles and contacts</li>
+                <li>• All audit trails and documents</li>
+                <li>• All professional decisions and consultations</li>
+              </ul>
+              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                <p className="text-red-400 text-sm font-medium" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                  ⚠️ This action cannot be undone!
+                </p>
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button 
+              color="default" 
+              variant="bordered" 
+              onPress={() => setShowDeleteConfirm(false)}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Cancel</span>
+            </Button>
+            <Button 
+              color="danger" 
+              onPress={handleDeleteAllData}
+              isLoading={isDeleting}
+              startContent={!isDeleting && <TrashIcon className="w-4 h-4" />}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                {isDeleting ? "Deleting..." : "Delete All Data"}
+              </span>
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

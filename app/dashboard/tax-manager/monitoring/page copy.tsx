@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Card, 
   CardBody, 
@@ -47,6 +48,7 @@ interface StateMonitoringData {
 }
 
 const TaxManagerMonitoring = () => {
+  const router = useRouter();
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
@@ -592,8 +594,8 @@ const TaxManagerMonitoring = () => {
                         {/* Status Description */}
                         <div className="flex items-center justify-between">
                           <p className={`text-sm font-medium ${getStatusTextColor(client.nexusStatus)}`}>
-                            {client.nexusStatus === 'critical' ? 'Exceeded $500K threshold' :
-                             client.nexusStatus === 'warning' ? 'Approaching $500K threshold' :
+                            {client.nexusStatus === 'critical' ? `Exceeded nexus threshold` :
+                             client.nexusStatus === 'warning' ? `Approaching nexus threshold` :
                              client.nexusStatus === 'pending' ? 'Under review process' :
                              client.nexusStatus === 'transit' ? 'Active monitoring' :
                              'Fully compliant'}
@@ -810,8 +812,8 @@ const TaxManagerMonitoring = () => {
                 </div>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed">
-                {selectedClient.nexusStatus === 'critical' ? 'This client has exceeded the $500K threshold and requires immediate registration in the affected states.' :
-                 selectedClient.nexusStatus === 'warning' ? 'This client is approaching the $500K threshold and should be monitored closely for potential registration requirements.' :
+                {selectedClient.nexusStatus === 'critical' ? 'This client has exceeded nexus thresholds and requires immediate registration in the affected states.' :
+                 selectedClient.nexusStatus === 'warning' ? 'This client is approaching nexus thresholds and should be monitored closely for potential registration requirements.' :
                  selectedClient.nexusStatus === 'pending' ? 'This client is currently under review for nexus determination and compliance requirements.' :
                  selectedClient.nexusStatus === 'transit' ? 'This client is actively being monitored for nexus compliance across multiple states.' :
                  'This client is fully compliant with all nexus requirements and thresholds.'}
@@ -880,7 +882,19 @@ const TaxManagerMonitoring = () => {
 
             {/* Action Buttons */}
             <div className="flex space-x-3">
-              <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+              <button 
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                onClick={() => {
+                  // Find the first alert for this client
+                  const clientAlert = nexusAlertsData?.alerts?.find((alert: any) => alert.clientId === selectedClient.id);
+                  if (clientAlert) {
+                    router.push(`/dashboard/tax-manager/alerts/${clientAlert.id}`);
+                  } else {
+                    // Fallback to general alerts page if no specific alert found
+                    router.push('/dashboard/tax-manager/alerts');
+                  }
+                }}
+              >
                 View Details
               </button>
               <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg font-medium transition-colors">

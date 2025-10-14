@@ -105,7 +105,7 @@ const fallbackAlerts: Alert[] = [
     id: "1",
     client: "TechCorp SaaS",
     state: "CA",
-    issue: "California sales exceeded $500K limit",
+    issue: "California sales exceeded nexus threshold",
     currentAmount: "$525K",
     threshold: "$500K",
     deadline: "15 days",
@@ -113,13 +113,13 @@ const fallbackAlerts: Alert[] = [
     priority: "high",
     status: "new",
     actions: ["Register for CA sales tax", "Start collecting tax immediately", "Consider voluntary disclosure"],
-    details: "Client exceeded the $500K California threshold. Must register to avoid penalties. Recommend immediate registration and voluntary disclosure discussion."
+    details: "Client exceeded the California nexus threshold. Must register to avoid penalties. Recommend immediate registration and voluntary disclosure discussion."
   },
   {
     id: "2",
     client: "RetailChain LLC",
     state: "NY",
-    issue: "New York approaching $500K + 100 transactions",
+    issue: "New York approaching nexus threshold",
     currentAmount: "$485K",
     threshold: "$500K",
     deadline: "30 days",
@@ -127,13 +127,13 @@ const fallbackAlerts: Alert[] = [
     priority: "high",
     status: "new",
     actions: ["Monitor and prepare registration", "Track transaction count", "Prepare compliance documentation"],
-    details: "Client is approaching both the $500K revenue threshold and 100 transaction threshold in New York. Monitor closely and prepare for registration."
+    details: "Client is approaching both the revenue threshold and 100 transaction threshold in New York. Monitor closely and prepare for registration."
   },
   {
     id: "3",
     client: "ManufacturingCo",
     state: "TX",
-    issue: "Texas sales at $465K of $500K limit",
+    issue: "Texas sales approaching nexus threshold",
     currentAmount: "$465K",
     threshold: "$500K",
     deadline: "45 days",
@@ -173,7 +173,7 @@ const fallbackAlerts: Alert[] = [
   }
 ];
 
-export default function AlertDetailPage() {
+export default function ManagingPartnerAlertDetailPage() {
   const params = useParams();
   const router = useRouter();
   const alertId = params.id as string;
@@ -400,7 +400,7 @@ export default function AlertDetailPage() {
           <Button
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/25"
-            onPress={() => router.push('/dashboard/tax-manager/alerts')}
+            onPress={() => router.push('/dashboard/managing-partner/alerts')}
             startContent={<ArrowLeft className="w-4 h-4" />}
           >
             Back to Alerts
@@ -421,7 +421,7 @@ export default function AlertDetailPage() {
                 isIconOnly
                 variant="ghost"
                 className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
-                onPress={() => router.push('/dashboard/tax-manager/alerts')}
+                onPress={() => router.push('/dashboard/managing-partner/alerts')}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -647,7 +647,7 @@ export default function AlertDetailPage() {
                         priority: selectedAlert?.priority || '',
                         issue: selectedAlert?.issue || ''
                       });
-                      router.push(`/dashboard/tax-manager/liability/decision-builder?${params.toString()}`);
+                      router.push(`/dashboard/managing-partner/liability/decision-builder?${params.toString()}`);
                     }}
                   >
                     Make Decision
@@ -912,3 +912,4 @@ export default function AlertDetailPage() {
     </div>
   );
 }
+

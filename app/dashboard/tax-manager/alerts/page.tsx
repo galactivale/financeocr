@@ -168,7 +168,6 @@ const statusOptions = [
 export default function TaxManagerAlerts() {
   const router = useRouter();
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -286,12 +285,11 @@ export default function TaxManagerAlerts() {
   // Filter alerts based on selected filters
   const filteredAlerts = alerts.filter(alert => {
     const priorityMatch = priorityFilter === "all" || alert.priority === priorityFilter;
-    const statusMatch = statusFilter === "all" || alert.status === statusFilter;
     const searchMatch = searchTerm === "" || 
       alert.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       alert.issue.toLowerCase().includes(searchTerm.toLowerCase()) ||
       alert.state.toLowerCase().includes(searchTerm.toLowerCase());
-    return priorityMatch && statusMatch && searchMatch;
+    return priorityMatch && searchMatch;
   });
 
   const getPriorityColor = (priority: string) => {
@@ -303,14 +301,6 @@ export default function TaxManagerAlerts() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new': return 'primary';
-      case 'in-progress': return 'warning';
-      case 'resolved': return 'success';
-      default: return 'default';
-    }
-  };
 
   const handleAlertSelect = (alert: Alert) => {
     router.push(`/dashboard/tax-manager/alerts/${alert.id}`);
@@ -478,14 +468,6 @@ export default function TaxManagerAlerts() {
                   >
                     High Priority
                   </Button>
-                  <Button
-                    size="sm"
-                    variant={statusFilter === "resolved" ? "solid" : "ghost"}
-                    className={statusFilter === "resolved" ? "bg-green-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
-                    onPress={() => setStatusFilter(statusFilter === "resolved" ? "all" : "resolved")}
-                  >
-                    Resolved
-                  </Button>
                 </div>
               </div>
               
@@ -544,7 +526,7 @@ export default function TaxManagerAlerts() {
               </div>
               <h4 className="text-white text-xl font-semibold mb-2">No Alerts Found</h4>
               <p className="text-gray-400 text-sm">
-                {priorityFilter !== "all" || statusFilter !== "all" || searchTerm !== ""
+                {priorityFilter !== "all" || searchTerm !== ""
                   ? "No alerts match your current filters" 
                   : "No alerts available at the moment"}
               </p>

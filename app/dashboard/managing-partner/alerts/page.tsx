@@ -169,7 +169,6 @@ const statusOptions = [
 export default function ManagingPartnerAlerts() {
   const router = useRouter();
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -287,12 +286,11 @@ export default function ManagingPartnerAlerts() {
   // Filter alerts based on selected filters
   const filteredAlerts = alerts.filter(alert => {
     const priorityMatch = priorityFilter === "all" || alert.priority === priorityFilter;
-    const statusMatch = statusFilter === "all" || alert.status === statusFilter;
     const searchMatch = searchTerm === "" || 
       alert.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       alert.issue.toLowerCase().includes(searchTerm.toLowerCase()) ||
       alert.state.toLowerCase().includes(searchTerm.toLowerCase());
-    return priorityMatch && statusMatch && searchMatch;
+    return priorityMatch && searchMatch;
   });
 
   const getPriorityColor = (priority: string) => {
@@ -304,14 +302,6 @@ export default function ManagingPartnerAlerts() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new': return 'primary';
-      case 'in-progress': return 'warning';
-      case 'resolved': return 'success';
-      default: return 'default';
-    }
-  };
 
   const handleAlertSelect = (alert: Alert) => {
     router.push(`/dashboard/tax-manager/alerts/${alert.id}`);
@@ -479,22 +469,6 @@ export default function ManagingPartnerAlerts() {
                   >
                     High Priority
                   </Button>
-                  <Button
-                    size="sm"
-                    variant={statusFilter === "new" ? "solid" : "ghost"}
-                    className={statusFilter === "new" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
-                    onPress={() => setStatusFilter(statusFilter === "new" ? "all" : "new")}
-                  >
-                    New
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={statusFilter === "resolved" ? "solid" : "ghost"}
-                    className={statusFilter === "resolved" ? "bg-green-600 text-white" : "text-gray-400 hover:text-white hover:bg-white/10"}
-                    onPress={() => setStatusFilter(statusFilter === "resolved" ? "all" : "resolved")}
-                  >
-                    Resolved
-                  </Button>
                 </div>
               </div>
               
@@ -553,7 +527,7 @@ export default function ManagingPartnerAlerts() {
               </div>
               <h4 className="text-white text-xl font-semibold mb-2">No Alerts Found</h4>
               <p className="text-gray-400 text-sm">
-                {priorityFilter !== "all" || statusFilter !== "all" || searchTerm !== ""
+                {priorityFilter !== "all" || searchTerm !== ""
                   ? "No alerts match your current filters" 
                   : "No alerts available at the moment"}
               </p>
@@ -585,13 +559,6 @@ export default function ManagingPartnerAlerts() {
                         <h3 className="text-white font-semibold text-sm">{alert.client}</h3>
                         <p className="text-gray-400 text-xs">{alert.state}</p>
                       </div>
-                    </div>
-                    <div className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                      alert.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                      alert.status === 'in-progress' ? 'bg-orange-500/20 text-orange-400' :
-                      'bg-green-500/20 text-green-400'
-                    }`}>
-                      {alert.status.replace('-', ' ')}
                     </div>
                   </div>
                   
@@ -672,13 +639,6 @@ export default function ManagingPartnerAlerts() {
                       </div>
                       
                       <div className="flex items-center space-x-3">
-                        <div className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                          alert.status === 'new' ? 'bg-blue-500/20 text-blue-400' :
-                          alert.status === 'in-progress' ? 'bg-orange-500/20 text-orange-400' :
-                          'bg-green-500/20 text-green-400'
-                        }`}>
-                          {alert.status.replace('-', ' ')}
-                        </div>
                         
                         <div className="flex items-center space-x-2">
                           <Button

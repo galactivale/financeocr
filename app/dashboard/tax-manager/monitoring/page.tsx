@@ -1036,8 +1036,8 @@ const TaxManagerMonitoring = () => {
                         {/* Status Description */}
                         <div className="flex items-center justify-between">
                           <p className={`text-sm font-medium ${getStatusTextColor(client.nexusStatus)}`}>
-                            {client.nexusStatus === 'critical' ? 'Exceeded $500K threshold' :
-                             client.nexusStatus === 'warning' ? 'Approaching $500K threshold' :
+                            {client.nexusStatus === 'critical' ? `Exceeded nexus threshold` :
+                             client.nexusStatus === 'warning' ? `Approaching nexus threshold` :
                              client.nexusStatus === 'pending' ? 'Under review process' :
                              client.nexusStatus === 'transit' ? 'Active monitoring' :
                              'Fully compliant'}
@@ -1550,8 +1550,8 @@ const TaxManagerMonitoring = () => {
                 </div>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed">
-                {selectedClient.nexusStatus === 'critical' ? 'This client has exceeded the $500K threshold and requires immediate registration in the affected states.' :
-                 selectedClient.nexusStatus === 'warning' ? 'This client is approaching the $500K threshold and should be monitored closely for potential registration requirements.' :
+                {selectedClient.nexusStatus === 'critical' ? 'This client has exceeded nexus thresholds and requires immediate registration in the affected states.' :
+                 selectedClient.nexusStatus === 'warning' ? 'This client is approaching nexus thresholds and should be monitored closely for potential registration requirements.' :
                  selectedClient.nexusStatus === 'pending' ? 'This client is currently under review for nexus determination and compliance requirements.' :
                  selectedClient.nexusStatus === 'transit' ? 'This client is actively being monitored for nexus compliance across multiple states.' :
                  'This client is fully compliant with all nexus requirements and thresholds.'}

@@ -990,6 +990,63 @@ const NexusActivityTable = ({ activities, clients }: { activities: any[], client
   );
 };
 
+// Simplified Nexus Activity Table Component
+const SimplifiedNexusTable = ({ activities, clients }: { activities: any[], clients: any[] }) => {
+  const safeActivities = Array.isArray(activities) ? activities : [];
+  const recentActivities = safeActivities.slice(0, 5); // Show only 5 recent activities
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'critical': return 'bg-red-500/20 text-red-400';
+      case 'warning': return 'bg-yellow-500/20 text-yellow-400';
+      case 'complete': 
+      case 'resolved': return 'bg-green-500/20 text-green-400';
+      case 'pending': return 'bg-blue-500/20 text-blue-400';
+      default: return 'bg-gray-500/20 text-gray-400';
+    }
+  };
+
+  if (recentActivities.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-12 h-12 mx-auto mb-3 bg-gray-800 rounded-full flex items-center justify-center">
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p className="text-gray-400 text-sm">No recent activity</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {recentActivities.map((activity, index) => {
+        const client = clients.find(c => c.id === activity.clientId);
+        return (
+          <div key={activity.id || index} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+            <div className="flex items-center space-x-4">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <div>
+                <p className="text-white text-sm font-medium">{activity.type || 'Nexus Activity'}</p>
+                <p className="text-gray-400 text-xs">{client?.name || 'Unknown Client'} • {activity.stateCode || 'N/A'}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
+                {activity.status || 'Unknown'}
+              </span>
+              <span className="text-gray-400 text-xs">
+                {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : 'N/A'}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function TaxManagerDashboard() {
   // Get personalized dashboard context
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
@@ -1066,143 +1123,137 @@ export default function TaxManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-black">
-    <div className="h-full lg:px-6">
-        <div className="flex justify-center gap-2 xl:gap-[10px] pt-2 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full">
-          <div className="mt-6 gap-8 flex flex-col w-full">
-          {/* Card Section Top */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">
-                  {isPersonalizedMode && clientName ? `${clientName} - Nexus Monitoring Overview` : 'Nexus Monitoring Overview'}
-                </h2>
-                {isPersonalizedMode && (
-                  <div className="ml-4 px-3 py-1 bg-blue-500/20 rounded-full border border-blue-500/30">
-                    <span className="text-blue-400 text-sm font-medium">Personalized View</span>
-                  </div>
-                )}
-              </div>
-              <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
-              <CardActiveAlerts alerts={nexusAlerts} />
-              <CardThresholdMonitoring alerts={nexusAlerts} />
-              <CardResolvedToday activities={nexusActivities} />
+      <div className="p-6 space-y-6">
+        {/* Minimalistic Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">
+              {isPersonalizedMode && clientName ? `${clientName} Dashboard` : 'Tax Manager Dashboard'}
+            </h1>
+            <p className="text-gray-400 text-sm">Nexus monitoring and compliance overview</p>
+          </div>
+          <div className="flex items-center space-x-6">
+            <div className="text-right">
+              <p className="text-gray-400 text-xs">Active Clients</p>
+              <p className="text-white text-lg font-semibold">{clients.length}</p>
             </div>
-            
-            {/* Show message when no data is available */}
-            {nexusAlerts.length === 0 && nexusActivities.length === 0 && clientStates.length === 0 && !isLoading && (
-              <div className="mt-6 p-6 bg-gray-800/50 rounded-xl border border-gray-700">
-                <div className="text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 bg-gray-700 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-white mb-2">No Data Available</h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Generate a dashboard to populate this page with real nexus monitoring data
-                  </p>
-                  <Link
-                    href="/generate"
-                    as={NextLink}
-                    className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Generate Dashboard
-                  </Link>
-                </div>
+            <div className="text-right">
+              <p className="text-gray-400 text-xs">Active Alerts</p>
+              <p className="text-white text-lg font-semibold">{nexusAlerts.length}</p>
+            </div>
+            {isPersonalizedMode && (
+              <div className="px-3 py-1 bg-blue-500/20 rounded-full border border-blue-500/30">
+                <span className="text-blue-400 text-sm font-medium">Personalized</span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* U.S. States Map */}
-            <div className="h-full flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                <h2 className="text-2xl font-semibold text-white tracking-tight">Nexus Client Distribution Map</h2>
-                </div>
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - US Map */}
+          <div className="lg:col-span-2">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-white">Nexus Distribution</h2>
                 <Link
                   href="/dashboard/tax-manager/nexus-monitoring"
                   as={NextLink}
-                  className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+                  className="text-blue-400 hover:text-blue-300 text-sm font-medium"
                 >
-                  <span className="text-sm font-medium">View More</span>
-                  <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  View Details →
                 </Link>
               </div>
-              
-              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                {clientStates.length > 0 ? (
-                  <EnhancedUSMap clientStates={clientStates} nexusAlerts={nexusAlerts} />
-                ) : (
-                  <div className="flex items-center justify-center h-96">
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg font-medium text-white mb-2">No Nexus Data Available</h3>
-                      <p className="text-gray-400 text-sm mb-4">
-                        Generate a dashboard to see nexus monitoring data on the map
-                      </p>
-                      <Link
-                        href="/generate"
-                        as={NextLink}
-                        className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Generate Dashboard
-                      </Link>
+              {clientStates.length > 0 ? (
+                <EnhancedUSMap clientStates={clientStates} nexusAlerts={nexusAlerts} />
+              ) : (
+                <div className="flex items-center justify-center h-80">
+                  <div className="text-center">
+                    <div className="w-12 h-12 mx-auto mb-3 bg-gray-800 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
+                      </svg>
                     </div>
+                    <p className="text-gray-400 text-sm">No nexus data available</p>
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Priority Alerts */}
+          <div className="space-y-6">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Priority Alerts</h2>
+                <div className={`w-2 h-2 rounded-full ${nexusAlerts.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`}></div>
               </div>
+              <CardPriorityAlerts alerts={nexusAlerts} clients={clients} />
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                <p className="text-gray-400 text-xs mb-1">Approaching Threshold</p>
+                <p className="text-white text-xl font-semibold">
+                  {nexusAlerts.filter(alert => alert.currentAmount && alert.thresholdAmount && (alert.currentAmount / alert.thresholdAmount) > 0.8 && (alert.currentAmount / alert.thresholdAmount) < 1.0).length}
+                </p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
+                <p className="text-gray-400 text-xs mb-1">Resolved Today</p>
+                <p className="text-white text-xl font-semibold">
+                  {nexusActivities.filter(activity => {
+                    if (!activity || !activity.createdAt) return false;
+                    const activityDate = new Date(activity.createdAt);
+                    return activity.status === 'completed' && activityDate.toDateString() === new Date().toDateString();
+                  }).length}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Right Section */}
-          <div className="mt-4 xl:mt-0 gap-6 flex flex-col xl:max-w-md w-full">
-            <div className="flex items-center space-x-3 xl:pt-6">
-              <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Alert Management</h2>
-            </div>
-            <div className="flex flex-col justify-center gap-6 flex-wrap md:flex-nowrap md:flex-col">
-            <CardPriorityAlerts alerts={nexusAlerts} clients={clients} />
-            <CardRiskDistribution clients={clients} alerts={nexusAlerts} />
-            
+        {/* Simplified Activity Table */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+            <Link
+              href="/dashboard/tax-manager/alerts"
+              as={NextLink}
+              className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+            >
+              View All →
+            </Link>
           </div>
+          <SimplifiedNexusTable activities={nexusActivities} clients={clients} />
         </div>
-      </div>
 
-      {/* Table Recent Nexus Activity */}
-        <div className="flex flex-col justify-center w-full py-8 px-4 lg:px-0 max-w-[90rem] mx-auto gap-6">
-          <div className="flex flex-wrap justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-1 h-8 bg-purple-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">Recent Nexus Activity</h2>
+        {/* Show message when no data is available */}
+        {nexusAlerts.length === 0 && nexusActivities.length === 0 && clientStates.length === 0 && !isLoading && (
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-white mb-2">No Data Available</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Generate a dashboard to populate this page with real nexus monitoring data
+              </p>
+              <Link
+                href="/generate"
+                as={NextLink}
+                className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Generate Dashboard
+              </Link>
             </div>
-          <Link
-            href="/dashboard/tax-manager/alerts"
-            as={NextLink}
-              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
-          >
-              <span className="text-sm font-medium">View All</span>
-              <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-          </Link>
           </div>
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-            <NexusActivityTable activities={nexusActivities} clients={clients} />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

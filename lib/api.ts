@@ -1020,8 +1020,8 @@ class ApiClient {
   }
 
   // Delete all client data and dashboards
-  async deleteAllClientData(organizationId: string): Promise<ApiResponse<{ deletedCount: number }>> {
-    return this.request(`/api/dashboards/delete-all?organizationId=${organizationId}`, {
+  async deleteAllClientData(): Promise<ApiResponse<{ deletedCount: number }>> {
+    return this.request(`/api/dashboards/delete-all`, {
       method: 'DELETE',
     });
   }
@@ -1029,6 +1029,21 @@ class ApiClient {
   // Delete a specific dashboard
   async deleteDashboard(dashboardId: string): Promise<ApiResponse<{ deleted: boolean }>> {
     return this.request(`/api/dashboards/${dashboardId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Delete a specific dashboard by URL
+  async deleteDashboardByUrl(dashboardUrl: string, organizationId?: string): Promise<ApiResponse<{ 
+    deleted: boolean; 
+    deletedCount: number; 
+    details: any 
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (organizationId) queryParams.append('organizationId', organizationId);
+    
+    const queryString = queryParams.toString();
+    return this.request(`/api/dashboards/url/${dashboardUrl}${queryString ? `?${queryString}` : ''}`, {
       method: 'DELETE',
     });
   }
