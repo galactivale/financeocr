@@ -345,7 +345,7 @@ export default function GeneratePage() {
                 variant="bordered"
                 onPress={() => setShowDeleteConfirm(true)}
                 isDisabled={isDeleting || isSubmitting}
-                startContent={<TrashIcon className="w-4 h-4" />}
+                startContent={<TrashIcon />}
                 className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
               >
                 <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
@@ -387,7 +387,7 @@ export default function GeneratePage() {
               <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
                 <Card className="bg-green-500/90 backdrop-blur-sm border border-green-400/50">
                   <CardBody className="flex flex-row items-center space-x-3 p-4">
-                    <CheckCircleIcon className="w-6 h-6 text-white" />
+                    <CheckCircleIcon />
                     <div>
                       <p className="text-white font-medium" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                         Dashboard Generated Successfully!
@@ -425,9 +425,9 @@ export default function GeneratePage() {
                               : 'bg-transparent border-white/20 text-white/40'
                         }`}>
                           {isCompleted ? (
-                            <CheckCircleIcon className="w-5 h-5" />
+                            <CheckCircleIcon />
                           ) : (
-                            <Icon className="w-5 h-5" />
+                            <Icon />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -712,7 +712,7 @@ export default function GeneratePage() {
           <ModalHeader className="flex flex-col gap-1">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center">
-                <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
+                <ExclamationTriangleIcon />
               </div>
               <h3 className="text-lg font-medium text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                 Delete All Data
@@ -752,7 +752,7 @@ export default function GeneratePage() {
               color="danger" 
               onPress={handleDeleteAllData}
               isLoading={isDeleting}
-              startContent={!isDeleting && <TrashIcon className="w-4 h-4" />}
+              startContent={!isDeleting && <TrashIcon />}
               className="bg-red-600 hover:bg-red-700"
             >
               <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
