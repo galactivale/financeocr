@@ -767,7 +767,9 @@ const ManagingPartnerMonitoring = () => {
     clientStatesData, 
     nexusAlertsData, 
     clientStatesLoading, 
-    alertsLoading
+    alertsLoading,
+    fallbackAlerts,
+    fallbackClientStates
   ]);
 
   // Custom states configuration for the map
@@ -879,7 +881,7 @@ const ManagingPartnerMonitoring = () => {
     console.log('🗺️ Managing Partner Monitoring - Map color distribution:', colorStats);
 
     return settings;
-  }, [mapFocusState, nexusData]);
+  }, [mapFocusState, nexusData, handleMapStateClick, selectedState]);
 
   // Process client data from API with better error handling and fallback
   const clients: Client[] = useMemo(() => {
@@ -1026,7 +1028,9 @@ const ManagingPartnerMonitoring = () => {
     clientStatesData, 
     nexusAlertsData, 
     clientStatesLoading, 
-    alertsLoading
+    alertsLoading,
+    fallbackAlerts,
+    fallbackClientStates
   ]);
 
   // Generate dynamic notifications based on alerts and scanning data
@@ -1121,7 +1125,7 @@ const ManagingPartnerMonitoring = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [refreshAllData]);
 
   // AI Scanning state animation effect
   useEffect(() => {

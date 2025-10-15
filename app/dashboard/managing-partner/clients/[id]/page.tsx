@@ -177,7 +177,7 @@ export default function ClientDetailPage() {
       recentCommunications: [],
       actionItems: []
     };
-  }, [clientData, clientId]);
+  }, [clientData, clientId, finalOrganizationId]);
 
   if (clientLoading) {
     return (
