@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Card, 
   CardBody, 
@@ -178,7 +178,7 @@ const TaxManagerMonitoring = () => {
   ];
 
   // Refresh all data
-  const refreshAllData = async () => {
+  const refreshAllData = useCallback(async () => {
     try {
       await Promise.all([
         refetchSummary(),
@@ -188,7 +188,7 @@ const TaxManagerMonitoring = () => {
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
-  };
+  }, [refetchSummary, refetchClientStates, refetchAlerts]);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -365,7 +365,7 @@ const TaxManagerMonitoring = () => {
     });
 
     return stateData;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading]);
+  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError, fallbackAlerts, fallbackClientStates]);
 
   // Custom states configuration for the map
   const customStates = useMemo(() => {
@@ -477,7 +477,7 @@ const TaxManagerMonitoring = () => {
     console.log('🗺️ Tax Manager Monitoring - Map color distribution:', colorStats);
 
     return settings;
-  }, [mapFocusState, nexusData]);
+  }, [mapFocusState, nexusData, handleMapStateClick, handleMapStateHover]);
 
   // Process client data from API with better error handling and fallback
   const clients: Client[] = useMemo(() => {
@@ -594,7 +594,7 @@ const TaxManagerMonitoring = () => {
     });
 
     return result;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading]);
+  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError, fallbackAlerts, fallbackClientStates]);
 
   // Generate dynamic notifications based on alerts and scanning data
   const generateNotifications = useMemo(() => {
@@ -688,7 +688,7 @@ const TaxManagerMonitoring = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [refreshAllData]);
 
   useEffect(() => {
     let filtered = clients;

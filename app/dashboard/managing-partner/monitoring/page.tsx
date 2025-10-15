@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Card, 
   CardBody, 
@@ -439,7 +439,7 @@ const ManagingPartnerMonitoring = () => {
 
 
   // Fallback data for testing when API is not available
-  const fallbackClientStates = [
+  const fallbackClientStates = useMemo(() => [
     {
       id: "1",
       clientId: "client-1",
@@ -510,9 +510,9 @@ const ManagingPartnerMonitoring = () => {
         industry: "Manufacturing"
       }
     }
-  ];
+  ], []);
 
-  const fallbackAlerts = [
+  const fallbackAlerts = useMemo(() => [
     {
       id: "alert-1",
       clientId: "client-1",
@@ -527,10 +527,10 @@ const ManagingPartnerMonitoring = () => {
       priority: "medium",
       status: "open"
     }
-  ];
+  ], []);
 
   // Refresh all data
-  const refreshAllData = async () => {
+  const refreshAllData = useCallback(async () => {
     try {
       await Promise.all([
         refetchSummary(),
@@ -540,7 +540,7 @@ const ManagingPartnerMonitoring = () => {
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
-  };
+  }, [refetchSummary, refetchClientStates, refetchAlerts]);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -564,7 +564,7 @@ const ManagingPartnerMonitoring = () => {
     setSelectedState(null);
   };
 
-  const handleMapStateClick = (stateCode: string) => {
+  const handleMapStateClick = useCallback((stateCode: string) => {
     if (mapFocusState === stateCode) {
       // If clicking the same state, clear the filter
       setMapFocusState(null);
@@ -574,7 +574,7 @@ const ManagingPartnerMonitoring = () => {
       setMapFocusState(stateCode);
       setSelectedState(stateCode);
     }
-  };
+  }, [mapFocusState]);
 
   const handleMapStateHover = (stateCode: string, event?: any) => {
     // Add hover effects for better interactivity - only for states with data

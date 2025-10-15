@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
@@ -73,9 +73,9 @@ const AddNexusMonitoring = () => {
 
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [fetchClients]);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
       const finalOrganizationId = organizationId || 'demo-org-id';
@@ -88,7 +88,7 @@ const AddNexusMonitoring = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId]);
 
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);
