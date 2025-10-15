@@ -17,7 +17,7 @@ export function PartnerLogos() {
       <div className="container mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="text-center">
           <p className="text-gray-600 text-lg mb-12">
-            Powering compliance protection for today's CPA firms and tomorrow's accounting leaders.
+            Powering compliance protection for today&apos;s CPA firms and tomorrow&apos;s accounting leaders.
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center justify-items-center">

@@ -34,7 +34,7 @@ export function BeforeAfterSection() {
                   <span className="text-gray-500">$500,000</span>
                 </div>
                 <div className="text-xs text-gray-500">Last updated: 3 months ago</div>
-                <div className="text-xs text-gray-500">Source: "I think this is right" - Junior Staff</div>
+                <div className="text-xs text-gray-500">Source: &quot;I think this is right&quot; - Junior Staff</div>
               </div>
             </div>
 
@@ -96,7 +96,7 @@ export function BeforeAfterSection() {
             <div className="bg-white rounded-lg p-4 mb-6 border border-green-200">
               <div className="text-sm font-medium text-gray-900 mb-2">Professional Reasoning</div>
               <p className="text-sm text-gray-600 mb-3">
-                "Based on verified sales data and current CA threshold requirements, client exceeds nexus threshold by $25,847. Registration recommended within 30 days to avoid penalties."
+                &quot;Based on verified sales data and current CA threshold requirements, client exceeds nexus threshold by $25,847. Registration recommended within 30 days to avoid penalties.&quot;
               </p>
               <div className="text-xs text-gray-500">— Sarah Chen, CPA (License #12345)</div>
             </div>

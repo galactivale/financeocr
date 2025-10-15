@@ -29,11 +29,11 @@ export function AuthoritySection() {
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
                     In 2019, a respected CPA firm faced a $2.3 million malpractice claim after missing a single nexus
-                    threshold change in Colorado. Despite 30 years of impeccable service, they couldn't defend their
-                    professional judgment because their decision process wasn't documented.
+                    threshold change in Colorado. Despite 30 years of impeccable service, they couldn&apos;t defend their
+                    professional judgment because their decision process wasn&apos;t documented.
                   </p>
                   <p>
-                    That firm's senior partner, Sarah Chen, CPA, joined our founding team with a single mission:
+                    That firm&apos;s senior partner, Sarah Chen, CPA, joined our founding team with a single mission:
                     <strong className="text-foreground">
                       {" "}
                       ensure no CPA ever faces professional liability due to compliance blind spots again.
@@ -65,12 +65,12 @@ export function AuthoritySection() {
                   Regulatory Analysis
                 </div>
                 <CardTitle className="font-serif text-xl">
-                  Interpreting Colorado's Marketplace Facilitator Rule: What CPAs Need to Know
+                  Interpreting Colorado&apos;s Marketplace Facilitator Rule: What CPAs Need to Know
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Colorado's recent amendments to marketplace facilitator regulations create new compliance obligations
+                  Colorado&apos;s recent amendments to marketplace facilitator regulations create new compliance obligations
                   for sellers. Our analysis of the regulatory changes and their impact on nexus determinations.
                 </p>
                 <div className="flex items-center justify-between">
@@ -89,13 +89,13 @@ export function AuthoritySection() {
                   Malpractice Prevention
                 </div>
                 <CardTitle className="font-serif text-xl">
-                  Documenting Nexus Decisions for Malpractice Audits: A Practitioner's Guide
+                  Documenting Nexus Decisions for Malpractice Audits: A Practitioner&apos;s Guide
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
                   What documentation survives in court? Based on 50+ malpractice cases, we analyze the decision trails
-                  that protect CPAs and those that don't.
+                  that protect CPAs and those that don&apos;t.
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">By Michael Rodriguez, JD</span>
@@ -142,7 +142,7 @@ export function AuthoritySection() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  A mid-size CPA firm's client exceeded Texas thresholds by $50K. Here's how FinanceOCR's early
+                  A mid-size CPA firm&apos;s client exceeded Texas thresholds by $50K. Here&apos;s how FinanceOCR&apos;s early
                   detection and documentation prevented catastrophic penalties.
                 </p>
                 <div className="flex items-center justify-between">

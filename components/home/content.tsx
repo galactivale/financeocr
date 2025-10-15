@@ -29,7 +29,7 @@ export const Content = () => (
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Your comprehensive nexus compliance and tax management platform. 
-            Monitor, analyze, and manage your clients' tax obligations with precision.
+            Monitor, analyze, and manage your clients&apos; tax obligations with precision.
           </p>
         </div>
 

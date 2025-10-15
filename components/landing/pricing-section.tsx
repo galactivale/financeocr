@@ -10,7 +10,7 @@ export function PricingSection() {
             Speak with a Compliance Strategist
           </h2>
           <p className="text-lg text-gray-600 mb-8">
-            An Investment in Your Firm's Future
+            An Investment in Your Firm&apos;s Future
           </p>
           <p className="text-gray-600">
             Professional liability protection for a fraction of the cost of a single malpractice claim or regulatory penalty.

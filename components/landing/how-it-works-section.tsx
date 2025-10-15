@@ -44,7 +44,7 @@ export function HowItWorksSection() {
                   <div className="text-xs text-muted-foreground mt-2">
                     Last updated: 3 months ago
                     <br />
-                    Source: "I think this is right" - Junior Staff
+                    Source: &quot;I think this is right&quot; - Junior Staff
                   </div>
                 </div>
               </div>
@@ -117,8 +117,8 @@ export function HowItWorksSection() {
                   <div className="bg-accent/10 p-3 rounded">
                     <div className="text-xs font-medium text-accent-foreground mb-1">Professional Reasoning</div>
                     <div className="text-xs text-muted-foreground">
-                      "Based on verified sales data and current CA threshold requirements, client exceeds nexus
-                      threshold by $25,847. Registration recommended within 30 days to avoid penalties."
+                      &quot;Based on verified sales data and current CA threshold requirements, client exceeds nexus
+                      threshold by $25,847. Registration recommended within 30 days to avoid penalties.&quot;
                     </div>
                     <div className="text-xs text-muted-foreground mt-2">— Sarah Chen, CPA (License #12345)</div>
                   </div>

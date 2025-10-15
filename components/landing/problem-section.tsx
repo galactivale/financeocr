@@ -9,7 +9,7 @@ export function ProblemSection() {
             The 3 AM Worry Every Partner Knows
           </h2>
           <p className="text-lg text-gray-600 mb-12">
-            The fear that keeps successful CPA partners awake at night isn't about losing clients—it's about the compliance blind spots that could destroy everything they've built.
+            The fear that keeps successful CPA partners awake at night isn&apos;t about losing clients—it&apos;s about the compliance blind spots that could destroy everything they&apos;ve built.
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">

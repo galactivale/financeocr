@@ -34,7 +34,7 @@ export function HeroSection() {
           
           {/* Sub-headline */}
           <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            FinanceOCR provides CPA firms with regulatory intelligence and audit-ready documentation to eliminate blind spots, justify every professional judgment, and secure your firm's future.
+            FinanceOCR provides CPA firms with regulatory intelligence and audit-ready documentation to eliminate blind spots, justify every professional judgment, and secure your firm&apos;s future.
           </p>
 
           {/* CTA Buttons */}
