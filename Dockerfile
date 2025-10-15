@@ -23,7 +23,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Increase Node.js heap size for build and optimize memory usage
-ENV NODE_OPTIONS="--max-old-space-size=8192 --optimize-for-size"
+ENV NODE_OPTIONS="--max-old-space-size=16384 --optimize-for-size"
 RUN npm run build
 
 # Production image, copy all the files and run next

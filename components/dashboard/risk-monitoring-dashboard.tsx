@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
 import { Chip } from "@nextui-org/chip";
@@ -71,11 +71,7 @@ export default function RiskMonitoringDashboard({ organizationId = 'demo-org-id'
   const [error, setError] = useState<string | null>(null);
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('all');
 
-  useEffect(() => {
-    fetchRiskPortfolio();
-  }, [organizationId]);
-
-  const fetchRiskPortfolio = async () => {
+  const fetchRiskPortfolio = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/risk-portfolio?organizationId=${organizationId}`);
@@ -94,7 +90,11 @@ export default function RiskMonitoringDashboard({ organizationId = 'demo-org-id'
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId]);
+
+  useEffect(() => {
+    fetchRiskPortfolio();
+  }, [fetchRiskPortfolio]);
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {

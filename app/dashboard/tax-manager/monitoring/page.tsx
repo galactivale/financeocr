@@ -87,7 +87,7 @@ const TaxManagerMonitoring = () => {
   const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || 'demo-org-id' });
 
   // Fallback data for testing when API is not available
-  const fallbackClientStates = [
+  const fallbackClientStates = useMemo(() => [
     {
       id: "1",
       clientId: "client-1",
@@ -158,9 +158,9 @@ const TaxManagerMonitoring = () => {
         industry: "Manufacturing"
       }
     }
-  ];
+  ], []);
 
-  const fallbackAlerts = [
+  const fallbackAlerts = useMemo(() => [
     {
       id: "alert-1",
       clientId: "client-1",
@@ -175,7 +175,7 @@ const TaxManagerMonitoring = () => {
       priority: "medium",
       status: "open"
     }
-  ];
+  ], []);
 
   // Refresh all data
   const refreshAllData = useCallback(async () => {
@@ -212,7 +212,7 @@ const TaxManagerMonitoring = () => {
     setSelectedState(null);
   };
 
-  const handleMapStateClick = (stateCode: string) => {
+  const handleMapStateClick = useCallback((stateCode: string) => {
     if (mapFocusState === stateCode) {
       // If clicking the same state, clear the filter
       setMapFocusState(null);
@@ -222,9 +222,9 @@ const TaxManagerMonitoring = () => {
       setMapFocusState(stateCode);
       setSelectedState(stateCode);
     }
-  };
+  }, [mapFocusState]);
 
-  const handleMapStateHover = (stateCode: string, event?: any) => {
+  const handleMapStateHover = useCallback((stateCode: string, event?: any) => {
     // Add hover effects for better interactivity - only for states with data
     const stateData = nexusData[stateCode];
     if (stateData && stateData.hasData) {
@@ -233,7 +233,7 @@ const TaxManagerMonitoring = () => {
         setTooltipPosition({ x: event.clientX, y: event.clientY });
       }
     }
-  };
+  }, [nexusData]);
 
   const handleMapStateLeave = () => {
     setHoveredState(null);

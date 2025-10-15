@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { TableWrapper } from "@/components/table/table";
 import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Spinner } from "@nextui-org/react";
 import { Link } from "@nextui-org/react";
@@ -80,13 +80,13 @@ const fallbackAlerts = [
 const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nexusAlerts: any[] }) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
 
-  const handleMapStateClick = (stateCode: string) => {
+  const handleMapStateClick = useCallback((stateCode: string) => {
     if (selectedState === stateCode) {
       setSelectedState(null);
     } else {
       setSelectedState(stateCode);
     }
-  };
+  }, [selectedState]);
 
   // Process nexus data from API - exact same logic as monitoring page
   const nexusData = useMemo(() => {
@@ -271,7 +271,7 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
     });
 
     return settings;
-  }, [selectedState, nexusData]);
+  }, [selectedState, nexusData, handleMapStateClick]);
 
   return (
     <div className="w-full h-full relative">
