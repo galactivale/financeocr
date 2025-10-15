@@ -132,9 +132,7 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
         className="w-full h-full"
         defaultState={{
           fill: '#6b7280',
-          stroke: '#ffffff',
-          strokeWidth: 1,
-          cursor: 'pointer'
+          stroke: '#ffffff'
         }}
       />
       
@@ -358,10 +356,10 @@ const ClientPerformanceTable = ({ clients, alerts, clientStates }: { clients: an
             <span className="text-sm font-medium">View All</span>
             <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+              </svg>
           </Link>
-                  </div>
-                  </div>
+    </div>
+  </div>
 
       <Table aria-label="Client performance table" className="bg-transparent">
         <TableHeader>
@@ -378,11 +376,11 @@ const ClientPerformanceTable = ({ clients, alerts, clientStates }: { clients: an
             // Get the primary state for this client
             const clientStatesForClient = (clientStates || []).filter(cs => cs.clientId === client.id);
             const primaryState = clientStatesForClient.length > 0 ? clientStatesForClient[0].stateCode : 'N/A';
-                  
-                  return (
+            
+            return (
               <TableRow key={client.id || index} className="hover:bg-white/5 transition-colors duration-150">
                 <TableCell>
-                        <div>
+                  <div>
                           <div className="text-sm font-medium text-white">{client.name}</div>
                           <div className="text-xs text-white/60 mt-0.5">
                             State: {primaryState}
@@ -464,8 +462,8 @@ export default function ManagingPartnerDashboard() {
   console.log('Managing Partner Dashboard - Clients count:', clients.length);
 
   // Personalized data hooks
-  const { data: personalizedClientStates } = usePersonalizedClientStates(dashboardUrl);
-  const { data: personalizedNexusAlerts } = usePersonalizedNexusAlerts(dashboardUrl);
+  const { data: personalizedClientStates } = usePersonalizedClientStates(dashboardUrl || undefined);
+  const { data: personalizedNexusAlerts } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
   // Use personalized data if in personalized mode AND data exists, otherwise fall back to regular data
   const effectivePersonalizedMode = isPersonalizedMode && dashboardUrl;
@@ -477,7 +475,7 @@ export default function ManagingPartnerDashboard() {
     : (nexusAlerts || []);
   
   
-  const isLoading = clientsLoading || alertsLoading || analyticsLoading || tasksLoading || nexusAlertsLoading || clientStatesLoading;
+  const isLoading = clientsLoading || alertsLoading || nexusAlertsLoading || clientStatesLoading;
 
   if (isLoading) {
     return (
@@ -494,7 +492,7 @@ export default function ManagingPartnerDashboard() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="h-full lg:px-6">
+    <div className="h-full lg:px-6">
         <div className="flex justify-center gap-2 xl:gap-[10px] pt-2 px-4 lg:px-0 flex-wrap xl:flex-nowrap max-w-[90rem] mx-auto w-full">
           <div className="mt-6 gap-8 flex flex-col w-full">
             {/* Header */}
@@ -531,10 +529,10 @@ export default function ManagingPartnerDashboard() {
           {/* Card Section Top */}
             <div className="flex flex-col gap-4">
               <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-8 justify-center w-full">
-                <CardTotalRevenue analytics={analytics} clients={clients} />
+                <CardTotalRevenue analytics={{}} clients={clients} />
                 <CardTotalClients clients={clients} />
                     <CardComplianceRate alerts={alerts} clientStates={displayClientStates} />
-              </div>
+            </div>
           </div>
 
           {/* Firm Performance Map and Client Performance Table - Two Column Layout */}
@@ -542,8 +540,8 @@ export default function ManagingPartnerDashboard() {
             {/* U.S. States Map - Left Column */}
             <div className="h-full flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-1 h-8 bg-green-500 rounded-full"></div>
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
                   <h2 className="text-xl font-light text-white tracking-tight">Firm Performance Map</h2>
                 </div>
                 <Link
@@ -556,31 +554,31 @@ export default function ManagingPartnerDashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
-              </div>
-              
+        </div>
+
               <div className="w-full bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
                 <EnhancedUSMap clientStates={displayClientStates} clients={clients} nexusAlerts={displayNexusAlerts} />
-              </div>
-            </div>
+        </div>
+      </div>
 
             {/* Client Performance Table - Right Column */}
             <div className="h-full flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3">
                   <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                   <h2 className="text-xl font-light text-white tracking-tight">Client Performance</h2>
-                </div>
-                <Link
+            </div>
+          <Link
                   href="/dashboard/managing-partner/clients"
-                  as={NextLink}
-                  className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
-                >
+            as={NextLink}
+              className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+          >
                   <span className="text-sm font-medium">View More</span>
-                  <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
+              <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+          </Link>
+          </div>
               
               <div className="w-full bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
                 <ClientPerformanceTable clients={clients || []} alerts={alerts || []} clientStates={displayClientStates || []} />
