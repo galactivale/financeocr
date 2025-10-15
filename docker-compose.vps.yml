@@ -1,5 +1,4 @@
 # VPS-optimized Docker Compose Configuration (1GB RAM)
-version: '3.8'
 
 services:
   # Database - Optimized for low memory

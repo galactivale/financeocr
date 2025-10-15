@@ -17,7 +17,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set memory limit for build process - increased for complex app
-ENV NODE_OPTIONS="--max-old-space-size=8192 --optimize-for-size"
+ENV NODE_OPTIONS="--max-old-space-size=8192"
 
 # Next.js collects completely anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED 1
