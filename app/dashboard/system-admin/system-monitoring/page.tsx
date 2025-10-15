@@ -285,7 +285,7 @@ export default function SystemMonitoringPage() {
                     placeholder="Search alerts..."
                     value={searchTerm}
                     onValueChange={setSearchTerm}
-                    startContent={<SearchIcon className="w-4 h-4 text-white/40" />}
+                    startContent={<SearchIcon />}
                     className="max-w-xs"
                     classNames={{
                       input: "text-white",

@@ -218,21 +218,21 @@ const getRiskLevelBg = (level: string) => {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case 'completed': return <CheckCircleIcon className="w-4 h-4 text-green-500" />;
-    case 'in_progress': return <ClockIcon className="w-4 h-4 text-blue-500" />;
-    case 'planning': return <ExclamationCircleIcon className="w-4 h-4 text-yellow-500" />;
-    case 'action_required': return <ExclamationTriangleIcon className="w-4 h-4 text-red-500" />;
-    case 'legal_review': return <DocumentTextIcon className="w-4 h-4 text-purple-500" />;
-    case 'monitoring': return <ChartBarIcon className="w-4 h-4 text-blue-500" />;
-    case 'compliant': return <CheckCircleIcon className="w-4 h-4 text-green-500" />;
-    default: return <ClockIcon className="w-4 h-4 text-gray-500" />;
+    case 'completed': return <CheckCircleIcon />;
+    case 'in_progress': return <ClockIcon />;
+    case 'planning': return <ExclamationCircleIcon />;
+    case 'action_required': return <ExclamationTriangleIcon />;
+    case 'legal_review': return <DocumentTextIcon />;
+    case 'monitoring': return <ChartBarIcon />;
+    case 'compliant': return <CheckCircleIcon />;
+    default: return <ClockIcon />;
   }
 };
 
 const getTrendIcon = (trend: string) => {
   switch (trend) {
-    case 'up': return <ArrowTrendingUpIcon className="w-4 h-4 text-red-500" />;
-    case 'down': return <ArrowTrendingDownIcon className="w-4 h-4 text-green-500" />;
+    case 'up': return <ArrowTrendingUpIcon />;
+    case 'down': return <ArrowTrendingDownIcon />;
     case 'stable': return <div className="w-4 h-4 bg-gray-500 rounded-full" />;
     default: return <div className="w-4 h-4 bg-gray-500 rounded-full" />;
   }
@@ -596,7 +596,7 @@ export default function RiskManagementPage() {
                           <div className="space-y-4">
                             <h4 className="text-white font-medium">Claims History</h4>
                             <div className="flex items-center space-x-3">
-                              <CheckCircleIcon className="w-6 h-6 text-green-500" />
+                              <CheckCircleIcon />
                               <div>
                                 <div className="text-white font-medium">Clean Record</div>
                                 <div className="text-gray-400 text-sm">No claims in 10+ years</div>
@@ -606,7 +606,7 @@ export default function RiskManagementPage() {
                           <div className="space-y-4">
                             <h4 className="text-white font-medium">Risk Assessment</h4>
                             <div className="flex items-center space-x-3">
-                              <ShieldCheckIcon className="w-6 h-6 text-green-500" />
+                              <ShieldCheckIcon />
                               <div>
                                 <div className="text-white font-medium">Low Risk Profile</div>
                                 <div className="text-gray-400 text-sm">Excellent documentation standards</div>

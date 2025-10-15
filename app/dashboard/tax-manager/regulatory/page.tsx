@@ -126,7 +126,7 @@ export default function TaxManagerRegulatoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUpdate, setSelectedUpdate] = useState(null);
   const [filterUrgency, setFilterUrgency] = useState("all");
-  const [showFullText, setShowFullText] = useState({});
+  const [showFullText, setShowFullText] = useState<Record<string, boolean>>({});
 
   // Filter updates based on search and urgency
   const filteredUpdates = useMemo(() => {
@@ -141,7 +141,7 @@ export default function TaxManagerRegulatoryPage() {
     });
   }, [searchQuery, filterUrgency]);
 
-  const getUrgencyColor = (urgency) => {
+  const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case "high": return "danger";
       case "medium": return "warning";
@@ -150,16 +150,16 @@ export default function TaxManagerRegulatoryPage() {
     }
   };
 
-  const getUrgencyIcon = (urgency) => {
+  const getUrgencyIcon = (urgency: string) => {
     switch (urgency) {
-      case "high": return <ExclamationTriangleIcon className="w-4 h-4" />;
-      case "medium": return <ClockIcon className="w-4 h-4" />;
-      case "low": return <CheckCircleIcon className="w-4 h-4" />;
-      default: return <DocumentTextIcon className="w-4 h-4" />;
+      case "high": return <ExclamationTriangleIcon />;
+      case "medium": return <ClockIcon />;
+      case "low": return <CheckCircleIcon />;
+      default: return <DocumentTextIcon />;
     }
   };
 
-  const toggleFullText = (updateId) => {
+  const toggleFullText = (updateId: string) => {
     setShowFullText(prev => ({
       ...prev,
       [updateId]: !prev[updateId]
@@ -182,14 +182,14 @@ export default function TaxManagerRegulatoryPage() {
                 className="bg-white/10 backdrop-blur-xl border border-white/10 text-white hover:bg-white/20"
                 size="sm"
               >
-                <BellIcon className="w-5 h-5" />
+                <BellIcon />
               </Button>
             </Badge>
             <Button
               className="bg-blue-500/20 backdrop-blur-xl border border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
               size="sm"
             >
-              <DocumentTextIcon className="w-4 h-4 mr-2" />
+              <DocumentTextIcon />
               Generate Report
             </Button>
           </div>
@@ -204,7 +204,7 @@ export default function TaxManagerRegulatoryPage() {
                 <p className="text-2xl font-light text-white">6</p>
               </div>
               <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-                <ExclamationTriangleIcon className="w-4 h-4 text-red-400" />
+                <ExclamationTriangleIcon />
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function TaxManagerRegulatoryPage() {
                 <p className="text-2xl font-light text-white">8</p>
               </div>
               <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <UsersIcon className="w-4 h-4 text-blue-400" />
+                <UsersIcon />
               </div>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function TaxManagerRegulatoryPage() {
                 <p className="text-2xl font-light text-white">$45K</p>
               </div>
               <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                <ShieldCheckIcon className="w-4 h-4 text-yellow-400" />
+                <ShieldCheckIcon />
               </div>
             </div>
           </div>
@@ -240,7 +240,7 @@ export default function TaxManagerRegulatoryPage() {
                 <p className="text-2xl font-light text-white">94%</p>
               </div>
               <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <CheckCircleIcon className="w-4 h-4 text-green-400" />
+                <CheckCircleIcon />
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function TaxManagerRegulatoryPage() {
                     placeholder="Search regulatory updates..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    startContent={<SearchIcon className="w-4 h-4 text-gray-400" />}
+                    startContent={<SearchIcon />}
                     className="w-80"
                     classNames={{
                       input: "text-white",
@@ -319,9 +319,9 @@ export default function TaxManagerRegulatoryPage() {
                         isIconOnly
                         size="sm"
                         className="bg-white/10 hover:bg-white/20"
-                        onClick={() => toggleFullText(update.id)}
+                        onClick={() => toggleFullText(update.id.toString())}
                       >
-                        <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                        <ArrowTopRightOnSquareIcon />
                       </Button>
                     </div>
                   </div>
@@ -353,7 +353,7 @@ export default function TaxManagerRegulatoryPage() {
                   </div>
 
                   {/* Full Text Toggle */}
-                  {showFullText[update.id] && (
+                  {showFullText[update.id.toString()] && (
                     <div className="mt-4 p-4 bg-black/20 rounded-lg border border-white/10">
                       <div className="mb-3">
                         <p className="text-xs text-gray-400 mb-1">Statute:</p>
@@ -371,7 +371,7 @@ export default function TaxManagerRegulatoryPage() {
                               size="sm"
                               variant="flat"
                               className="bg-white/10 text-gray-300 hover:bg-white/20 text-xs"
-                              endContent={<ArrowTopRightOnSquareIcon className="w-3 h-3" />}
+                              endContent={<ArrowTopRightOnSquareIcon />}
                             >
                               {link.title}
                             </Button>
@@ -399,7 +399,7 @@ export default function TaxManagerRegulatoryPage() {
                           size="sm"
                           className="bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
                         >
-                          <DocumentDuplicateIcon className="w-3 h-3 mr-2" />
+                          <DocumentDuplicateIcon />
                           Document Decision
                         </Button>
                       </div>
@@ -413,7 +413,7 @@ export default function TaxManagerRegulatoryPage() {
                         size="sm"
                         variant="flat"
                         className="bg-white/10 text-gray-300 hover:bg-white/20"
-                        startContent={<ChatBubbleLeftRightIcon className="w-3 h-3" />}
+                        startContent={<ChatBubbleLeftRightIcon />}
                       >
                         Annotate
                       </Button>
@@ -421,7 +421,7 @@ export default function TaxManagerRegulatoryPage() {
                         size="sm"
                         variant="flat"
                         className="bg-white/10 text-gray-300 hover:bg-white/20"
-                        startContent={<UsersIcon className="w-3 h-3" />}
+                        startContent={<UsersIcon />}
                       >
                         Peer Review
                       </Button>
@@ -429,7 +429,7 @@ export default function TaxManagerRegulatoryPage() {
                     <Button
                       size="sm"
                       className="bg-green-500/20 border-green-500/30 text-green-400 hover:bg-green-500/30"
-                      startContent={<CheckCircleIcon className="w-3 h-3" />}
+                      startContent={<CheckCircleIcon />}
                     >
                       Mark Reviewed
                     </Button>
@@ -450,7 +450,7 @@ export default function TaxManagerRegulatoryPage() {
                 size="sm"
                 className="bg-white/10 hover:bg-white/20"
               >
-                <ChartBarIcon className="w-4 h-4" />
+                <ChartBarIcon />
               </Button>
             </div>
 
@@ -493,7 +493,7 @@ export default function TaxManagerRegulatoryPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Badge content={client.regulatoryAlerts} color="danger" size="sm">
-                        <BellIcon className="w-4 h-4 text-gray-400" />
+                        <BellIcon />
                       </Badge>
                       <span className="text-xs text-gray-400">Alerts</span>
                     </div>
@@ -517,7 +517,7 @@ export default function TaxManagerRegulatoryPage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<BookOpenIcon className="w-4 h-4" />}
+                  startContent={<BookOpenIcon />}
                   onPress={() => window.location.href = '/dashboard/tax-manager/regulatory/statutory-database'}
                 >
                   Statutory Database
@@ -526,7 +526,7 @@ export default function TaxManagerRegulatoryPage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<MagnifyingGlassIcon className="w-4 h-4" />}
+                  startContent={<MagnifyingGlassIcon />}
                 >
                   Case Law Search
                 </Button>
@@ -534,7 +534,7 @@ export default function TaxManagerRegulatoryPage() {
                   fullWidth
                   variant="flat"
                   className="bg-white/10 text-gray-300 hover:bg-white/20 justify-start"
-                  startContent={<DocumentTextIcon className="w-4 h-4" />}
+                  startContent={<DocumentTextIcon />}
                 >
                   Professional Guidance
                 </Button>

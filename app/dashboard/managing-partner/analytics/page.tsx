@@ -162,8 +162,8 @@ const formatCurrency = (amount: number) => {
 
 const getTrendIcon = (trend: string) => {
   switch (trend) {
-    case 'up': return <ArrowTrendingUpIcon className="w-4 h-4 text-green-500" />;
-    case 'down': return <ArrowTrendingDownIcon className="w-4 h-4 text-red-500" />;
+    case 'up': return <ArrowTrendingUpIcon />;
+    case 'down': return <ArrowTrendingDownIcon />;
     case 'stable': return <div className="w-4 h-4 bg-gray-500 rounded-full" />;
     default: return <div className="w-4 h-4 bg-gray-500 rounded-full" />;
   }

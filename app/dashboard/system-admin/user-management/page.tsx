@@ -233,7 +233,7 @@ export default function UserManagementPage() {
                 placeholder="Search users..."
                 value={searchTerm}
                 onValueChange={setSearchTerm}
-                startContent={<SearchIcon className="w-4 h-4 text-gray-400" />}
+                startContent={<SearchIcon />}
                 className="max-w-xs"
               />
               <Select
