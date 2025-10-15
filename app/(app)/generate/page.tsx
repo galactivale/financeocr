@@ -263,8 +263,8 @@ export default function GeneratePage() {
     } catch (error) {
       console.error('❌ Error generating dashboard:', error);
       console.error('📋 Error details:', {
-        message: error.message,
-        stack: error.stack,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
         formData: formData,
         organizationId: organizationId
       });
@@ -333,7 +333,7 @@ export default function GeneratePage() {
         <div className="flex flex-col gap-6">
           {/* Header Section */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
                 <h2 className="text-3xl font-normal text-white tracking-normal" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Dashboard Generator</h2>
@@ -445,7 +445,7 @@ export default function GeneratePage() {
                 </div>
               </div>
             )}
-          </div>
+              </div>
 
           {/* Main Content */}
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
@@ -464,21 +464,21 @@ export default function GeneratePage() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
+                        <Input 
                         label="Client Name"
                         placeholder="Enter client name"
-                        value={formData.clientName}
+                          value={formData.clientName}
                         onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
                         classNames={{
                           input: "text-white",
                           inputWrapper: "bg-white/10 border-white/20 hover:border-white/30 focus-within:border-blue-500"
                         }}
                       />
-                      <Select
+                        <Select 
                         label="Multi-state Client Count"
-                        placeholder="Select range"
-                        selectedKeys={formData.multiStateClientCount ? [formData.multiStateClientCount] : []}
-                        onSelectionChange={(keys) => {
+                          placeholder="Select range" 
+                          selectedKeys={formData.multiStateClientCount ? [formData.multiStateClientCount] : []}
+                          onSelectionChange={(keys) => {
                           const selected = Array.from(keys)[0] as string;
                           setFormData(prev => ({ ...prev, multiStateClientCount: selected }));
                         }}
@@ -491,9 +491,9 @@ export default function GeneratePage() {
                         {CLIENT_COUNT_RANGES.map((range) => (
                           <SelectItem key={range} value={range} className="text-white hover:bg-white/10">
                             {range}
-                          </SelectItem>
-                        ))}
-                      </Select>
+                            </SelectItem>
+                          ))}
+                        </Select>
                     </div>
                   </div>
                 )}
@@ -503,7 +503,7 @@ export default function GeneratePage() {
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                       <h3 className="text-2xl font-normal text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Locations & Pain Points</h3>
-                    </div>
+                      </div>
                     
                     <div className="space-y-6">
                       <div>
@@ -521,11 +521,11 @@ export default function GeneratePage() {
                               style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
                             >
                               {state}
-                            </button>
+                              </button>
                           ))}
-                        </div>
                       </div>
-                      
+                    </div>
+
                       <div>
                         <h4 className="text-lg font-normal text-white mb-4" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Pain Points</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -541,7 +541,7 @@ export default function GeneratePage() {
                               style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
                             >
                               {painPoint}
-                            </button>
+                              </button>
                           ))}
                         </div>
                       </div>
@@ -554,14 +554,14 @@ export default function GeneratePage() {
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                       <h3 className="text-2xl font-normal text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Industry & Strategy</h3>
-                    </div>
+                      </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Select
+                          <Select 
                         label="Primary Industry"
                         placeholder="Select industry"
-                        selectedKeys={formData.primaryIndustry ? [formData.primaryIndustry] : []}
-                        onSelectionChange={(keys) => {
+                            selectedKeys={formData.primaryIndustry ? [formData.primaryIndustry] : []}
+                            onSelectionChange={(keys) => {
                           const selected = Array.from(keys)[0] as string;
                           setFormData(prev => ({ ...prev, primaryIndustry: selected }));
                         }}
@@ -574,12 +574,12 @@ export default function GeneratePage() {
                         {INDUSTRIES.map((industry) => (
                           <SelectItem key={industry} value={industry} className="text-white hover:bg-white/10">
                             {industry}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    </div>
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        </div>
                     
-                    <div>
+                        <div>
                       <Select
                         label="Qualification Strategy"
                         placeholder="Select your qualification strategy"
@@ -605,7 +605,7 @@ export default function GeneratePage() {
                             <div className="flex flex-col">
                               <span className="text-white font-medium">{strategy.label}</span>
                               <span className="text-white/60 text-sm">{strategy.description}</span>
-                            </div>
+                          </div>
                           </SelectItem>
                         ))}
                       </Select>
@@ -616,8 +616,8 @@ export default function GeneratePage() {
                           </p>
                         </div>
                       )}
+                      </div>
                     </div>
-                  </div>
                 )}
 
                 {currentStep === 4 && (
@@ -628,10 +628,10 @@ export default function GeneratePage() {
                     </div>
                     
                     <div className="space-y-6">
-                      <Textarea
+                      <Textarea 
                         label="Additional Notes"
                         placeholder="Any additional notes or requirements..."
-                        value={formData.additionalNotes}
+                        value={formData.additionalNotes} 
                         onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
                         classNames={{
                           input: "text-white",
@@ -654,27 +654,27 @@ export default function GeneratePage() {
                   </div>
                 )}
 
-                {/* Navigation */}
+              {/* Navigation */}
                 <div className="mt-8 flex items-center justify-between">
-                  <Button 
-                    variant="bordered" 
-                    onPress={goPrev} 
-                    isDisabled={currentStep === 1 || isSubmitting} 
-                    startContent={<ArrowLeftIcon />}
+                <Button 
+                  variant="bordered" 
+                  onPress={goPrev} 
+                  isDisabled={currentStep === 1 || isSubmitting} 
+                  startContent={<ArrowLeftIcon />}
                     className="border-white/20 text-white hover:bg-white/10"
-                  >
+                >
                     <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>Back</span>
-                  </Button>
-                  <Button 
+                </Button>
+                <Button 
                     onPress={currentStep === totalSteps ? handleSubmit : goNext} 
-                    isDisabled={!isStepValid(currentStep) || isSubmitting} 
+                  isDisabled={!isStepValid(currentStep) || isSubmitting} 
                     className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-normal text-base"
                     isLoading={isSubmitting}
-                  >
+                >
                     <span style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
                       {currentStep === totalSteps ? (isSubmitting ? "Generating..." : "Generate Dashboard") : "Next"}
                     </span>
-                  </Button>
+                </Button>
                 </div>
               </div>
             ) : (
