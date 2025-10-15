@@ -11,16 +11,7 @@ import {
   TableRow, 
   TableCell, 
   Button, 
-  Chip, 
-  Input,
-  Progress,
-  Badge,
-  Tabs,
-  Tab,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem
+  Progress
 } from "@nextui-org/react";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";

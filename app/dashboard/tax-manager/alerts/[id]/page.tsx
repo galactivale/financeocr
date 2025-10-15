@@ -6,7 +6,6 @@ import {
   CardBody, 
   Button, 
   Chip, 
-  Badge,
   Spinner,
   Modal,
   ModalContent,

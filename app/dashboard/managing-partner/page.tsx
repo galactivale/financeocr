@@ -5,7 +5,7 @@ import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody,
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
-import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useClientStates } from "@/hooks/useApi";
+import { useClients, useAlerts, useNexusAlerts, useClientStates } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 import { User } from "lucide-react";
@@ -441,8 +441,6 @@ export default function ManagingPartnerDashboard() {
   // API hooks for data fetching
   const { data: clientsData, loading: clientsLoading } = useClients({ organizationId: organizationId || 'demo-org-id' });
   const { data: alertsData, loading: alertsLoading } = useAlerts();
-  const { data: analyticsData, loading: analyticsLoading } = useAnalytics();
-  const { data: tasksData, loading: tasksLoading } = useTasks();
   const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts({ organizationId: organizationId || 'demo-org-id' });
   const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ organizationId: organizationId || 'demo-org-id' });
   
@@ -458,8 +456,6 @@ export default function ManagingPartnerDashboard() {
   // Extract data from API responses
   const clients = clientsData?.clients && clientsData.clients.length > 0 ? clientsData.clients : fallbackClients;
   const alerts = alertsData?.alerts || [];
-  const analytics = analyticsData?.metrics || [];
-  const tasks = tasksData?.tasks || [];
   const nexusAlerts = nexusAlertsData?.alerts || [];
   const clientStates = clientStatesData?.clientStates || [];
 

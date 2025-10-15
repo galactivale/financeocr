@@ -13,7 +13,6 @@ import {
   TableCell, 
   Button, 
   Chip, 
-  Badge,
   Spinner
 } from "@nextui-org/react";
 import { useNexusAlerts } from "@/hooks/useApi";
