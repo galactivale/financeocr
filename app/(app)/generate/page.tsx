@@ -228,7 +228,7 @@ export default function GeneratePage() {
         console.log('✅ Dashboard generation successful:', response.data);
         
         // Validate that we have the required data
-        if (!response.data.uniqueUrl || !response.data.dashboardUrl) {
+        if (!response.data?.uniqueUrl || !response.data?.dashboardUrl) {
           throw new Error('Invalid dashboard data received from server');
         }
         
@@ -237,7 +237,7 @@ export default function GeneratePage() {
         
         // Set dashboard session cookie
         setDashboardSession({
-          dashboardUrl: response.data.uniqueUrl,
+          dashboardUrl: response.data.uniqueUrl!,
           clientName: formData.clientName,
           organizationId: organizationId,
           createdAt: Date.now()
@@ -248,8 +248,12 @@ export default function GeneratePage() {
         
         // Wait a moment to show success message, then redirect
         setTimeout(() => {
-          console.log('Redirecting to:', response.data.dashboardUrl);
-          window.location.href = response.data.dashboardUrl;
+          if (response.data?.dashboardUrl) {
+            console.log('Redirecting to:', response.data.dashboardUrl);
+            window.location.href = response.data.dashboardUrl;
+          } else {
+            console.log('Dashboard generated successfully, but no redirect URL available');
+          }
         }, 1500);
         
       } else {
