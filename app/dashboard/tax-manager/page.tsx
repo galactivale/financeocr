@@ -9,13 +9,76 @@ import { useClients, useAlerts, useAnalytics, useTasks, useNexusAlerts, useNexus
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
-// This will be populated with real data from clientStates
+// Fallback alert data for testing when API is not available
+const fallbackAlerts = [
+  {
+    id: "1",
+    clientId: "client-1",
+    stateCode: "CA",
+    alertType: "threshold_breach",
+    priority: "high",
+    title: "California sales exceeded $500K limit",
+    description: "Client exceeded the $500K California threshold. Must register to avoid penalties.",
+    thresholdAmount: 500000,
+    currentAmount: 525000,
+    deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+    penaltyRisk: 25000,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    client: {
+      id: "client-1",
+      name: "TechCorp SaaS",
+      legalName: "TechCorp SaaS Inc.",
+      industry: "Technology"
+    }
+  },
+  {
+    id: "2",
+    clientId: "client-2",
+    stateCode: "NY",
+    alertType: "threshold_breach",
+    priority: "high",
+    title: "New York approaching $500K + 100 transactions",
+    description: "Client is approaching both the $500K revenue threshold and 100 transaction threshold in New York.",
+    thresholdAmount: 500000,
+    currentAmount: 485000,
+    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    penaltyRisk: 15000,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    client: {
+      id: "client-2",
+      name: "RetailChain LLC",
+      legalName: "RetailChain LLC",
+      industry: "Retail"
+    }
+  },
+  {
+    id: "3",
+    clientId: "client-3",
+    stateCode: "WA",
+    alertType: "nexus_registration",
+    priority: "medium",
+    title: "Washington B&O tax obligations",
+    description: "Client has business activities in Washington that may trigger B&O tax obligations.",
+    thresholdAmount: 100000,
+    currentAmount: 75000,
+    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+    penaltyRisk: 5000,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    client: {
+      id: "client-3",
+      name: "Manufacturing Co",
+      legalName: "Manufacturing Company Inc.",
+      industry: "Manufacturing"
+    }
+  }
+];
 
 // Enhanced US Map Component - Matching monitoring page implementation
 const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nexusAlerts: any[] }) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
-  const [hoveredState, setHoveredState] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const handleMapStateClick = (stateCode: string) => {
     if (selectedState === stateCode) {
@@ -23,21 +86,6 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
     } else {
       setSelectedState(stateCode);
     }
-  };
-
-  const handleMapStateHover = (stateCode: string, event?: any) => {
-    // Add hover effects for better interactivity - only for states with data
-    const stateData = nexusData[stateCode];
-    if (stateData && stateData.hasData) {
-      setHoveredState(stateCode);
-      if (event) {
-        setTooltipPosition({ x: event.clientX, y: event.clientY });
-      }
-    }
-  };
-
-  const handleMapStateLeave = () => {
-    setHoveredState(null);
   };
 
   // Process nexus data from API - exact same logic as monitoring page
@@ -197,8 +245,6 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
           stroke: selectedState === state ? '#60a5fa' : '#9ca3af',
           strokeWidth: selectedState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
-          onHover: (event: any) => handleMapStateHover(state, event),
-          onLeave: () => handleMapStateLeave(),
           label: labelConfig,
           // Add data attributes for better integration
           'data-state': state,
@@ -219,8 +265,6 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
           stroke: selectedState === state ? '#60a5fa' : defaultStrokeColor,
           strokeWidth: selectedState === state ? 4 : 1,
           onClick: () => handleMapStateClick(state),
-          onHover: (event: any) => handleMapStateHover(state, event),
-          onLeave: () => handleMapStateLeave(),
           label: labelConfig,
         };
       }
@@ -259,75 +303,6 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
           },
         }}
       />
-      
-      {/* State Tooltip - Only show for states with data */}
-      {hoveredState && nexusData[hoveredState] && nexusData[hoveredState].hasData && (
-        <div 
-          className="absolute bg-gray-900/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-xl border border-white/10 z-20 pointer-events-none"
-          style={{
-            left: `${tooltipPosition.x + 10}px`,
-            top: `${tooltipPosition.y - 10}px`,
-            transform: 'translateY(-100%)'
-          }}
-        >
-          <div className="text-white">
-            <h3 className="font-semibold text-sm mb-2">{hoveredState}</h3>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Status:</span>
-                <span className={`font-medium ${
-                  nexusData[hoveredState].status === 'critical' ? 'text-red-400' :
-                  nexusData[hoveredState].status === 'warning' ? 'text-orange-400' :
-                  nexusData[hoveredState].status === 'pending' ? 'text-blue-400' :
-                  nexusData[hoveredState].status === 'transit' ? 'text-cyan-400' :
-                  'text-green-400'
-                }`}>
-                  {nexusData[hoveredState].status}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Revenue:</span>
-                <span className="text-white">${nexusData[hoveredState].revenue.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Clients:</span>
-                <span className="text-white">{nexusData[hoveredState].clients}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Alerts:</span>
-                <span className="text-white">{nexusData[hoveredState].alerts}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-        <h4 className="text-white font-medium text-sm mb-3">Status Legend</h4>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-white text-xs">Critical</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-white text-xs">Warning</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="text-white text-xs">Pending</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
-            <span className="text-white text-xs">In Transit</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-white text-xs">Compliant</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -471,6 +446,203 @@ const CardResolvedToday = ({ activities }: { activities: any[] }) => {
 );
 };
 
+// Card Components
+const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any[] }) => {
+  const totalRevenue = (clients || []).reduce((sum, client) => sum + (client.annualRevenue || 0), 0);
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-white">Total Revenue</h4>
+        </div>
+        
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-white leading-none">${(totalRevenue / 1000000).toFixed(1)}M</div>
+          <div className="flex items-end space-x-1 h-10">
+            {[5, 7, 4, 9, 6, 8, 7].map((height, i) => (
+              <div
+                key={i}
+                className="bg-blue-500 rounded-sm"
+                style={{ width: '4px', height: `${height * 4}px` }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <span className="text-green-400 text-xs font-medium">+12.5%</span>
+          <span className="text-white/60 text-xs">vs last month</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CardTotalClients = ({ clients }: { clients: any[] }) => {
+  // Count all clients in the database
+  const totalClients = (clients || []).length;
+  
+  // Calculate new clients this month based on creation date
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const newThisMonth = (clients || []).filter(client => {
+    if (!client.createdAt) return false;
+    const clientDate = new Date(client.createdAt);
+    return clientDate.getMonth() === currentMonth && clientDate.getFullYear() === currentYear;
+  }).length;
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-white">Total Clients</h4>
+        </div>
+        
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-white leading-none">{totalClients}</div>
+          <div className="flex items-end space-x-1 h-10">
+            {[4, 6, 3, 8, 5, 7, 4].map((height, i) => (
+              <div
+                key={i}
+                className="bg-green-500 rounded-sm"
+                style={{ width: '4px', height: `${height * 4}px` }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <span className="text-green-400 text-xs font-medium">+{newThisMonth}</span>
+          <span className="text-white/60 text-xs">new this month</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientStates: any[] }) => {
+  const totalStates = (clientStates || []).length;
+  const compliantStates = (clientStates || []).filter(state => state.status === 'compliant' || state.status === 'transit').length;
+  const complianceRate = totalStates > 0 ? Math.round((compliantStates / totalStates) * 100) : 100;
+
+  return (
+    <div className="group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-white">Compliance Rate</h4>
+        </div>
+        
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-white leading-none">{complianceRate}%</div>
+          <div className="flex items-end space-x-1 h-10">
+            {[6, 8, 5, 7, 9, 6, 8].map((height, i) => (
+              <div
+                key={i}
+                className="bg-purple-500 rounded-sm"
+                style={{ width: '4px', height: `${height * 4}px` }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <span className="text-green-400 text-xs font-medium">+5.2%</span>
+          <span className="text-white/60 text-xs">vs last quarter</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ClientPerformanceTable = ({ clients, alerts, clientStates }: { clients: any[], alerts: any[], clientStates: any[] }) => {
+  return (
+    <div className="w-full">
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+            <h3 className="text-white font-semibold text-lg">Client Performance Overview</h3>
+          </div>
+          <Link
+            href="/dashboard/tax-manager/clients"
+            as={NextLink}
+            className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+          >
+            View All →
+          </Link>
+        </div>
+      </div>
+
+      <Table aria-label="Client performance table" className="bg-transparent">
+        <TableHeader>
+          <TableColumn>CLIENT</TableColumn>
+          <TableColumn>REVENUE</TableColumn>
+          <TableColumn>RISK LEVEL</TableColumn>
+          <TableColumn>ACTIONS</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {(clients || []).slice(0, 3).map((client, index) => {
+            const clientAlerts = (alerts || []).filter(alert => alert.clientId === client.id);
+            const hasAlerts = clientAlerts.length > 0;
+            
+            // Get the primary state for this client
+            const clientStatesForClient = (clientStates || []).filter(cs => cs.clientId === client.id);
+            const primaryState = clientStatesForClient.length > 0 ? clientStatesForClient[0].stateCode : 'N/A';
+                  
+                  return (
+              <TableRow key={client.id || index} className="hover:bg-white/5 transition-colors duration-150">
+                <TableCell>
+                        <div>
+                          <div className="text-sm font-medium text-white">{client.name}</div>
+                          <div className="text-xs text-white/60 mt-0.5">
+                            State: {primaryState}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="text-sm font-medium text-white">
+                    ${(client.annualRevenue || 0).toLocaleString()}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    client.riskLevel === 'low' 
+                      ? 'bg-green-100 text-green-800'
+                      : client.riskLevel === 'medium'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : client.riskLevel === 'high'
+                      ? 'bg-orange-100 text-orange-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {client.riskLevel || 'Unknown'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Link
+                      href={`/dashboard/tax-manager/clients/${client.id}`}
+                      as={NextLink}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                    >
+                      View
+                    </Link>
+                    {hasAlerts && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {clientAlerts.length} Alert{clientAlerts.length > 1 ? 's' : ''}
+                          </span>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+  </div>
+);
+};
+
 const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[] }) => {
   // Ensure alerts is always an array
   const safeAlerts = Array.isArray(alerts) ? alerts : [];
@@ -553,9 +725,9 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
   };
 
   return (
-  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+  <div className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
     <div className="flex items-center justify-between mb-6">
-      <h3 className="text-white font-semibold text-lg tracking-tight">Priority Alerts</h3>
+      <h3 className="text-white font-light text-lg tracking-tight">Priority Alerts</h3>
       <div className="flex items-center space-x-2">
         <div className={`w-2 h-2 rounded-full ${finalAlertsToUse.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`}></div>
       </div>
@@ -563,49 +735,38 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
     
     {finalAlertsToUse.length === 0 ? (
       <div className="text-center py-8">
-        <div className="w-12 h-12 mx-auto mb-3 bg-gray-700 rounded-full flex items-center justify-center">
-          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="w-12 h-12 mx-auto mb-3 bg-white/[0.05] rounded-xl flex items-center justify-center">
+          <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h4 className="text-white font-medium mb-2">No Priority Alerts</h4>
-        <p className="text-gray-400 text-sm">All systems are operating normally</p>
+        <h4 className="text-white font-light text-base mb-1">No Priority Alerts</h4>
+        <p className="text-gray-500 text-xs font-light">All systems operating normally</p>
       </div>
     ) : (
       <div className="space-y-3">
         {finalAlertsToUse.map((alert, index) => {
-          const client = clients.find(c => c.id === alert.clientId);
+          // Fix client name issue - use embedded client data if available, otherwise find in clients array
+          const clientName = alert.client?.name || clients.find(c => c.id === alert.clientId)?.name || 'Client';
           const currentAmount = alert.currentAmount ? parseFloat(alert.currentAmount) : 0;
-          const thresholdAmount = alert.thresholdAmount ? parseFloat(alert.thresholdAmount) : 0;
-          const amount = currentAmount > 0 ? `$${(currentAmount / 1000).toFixed(0)}K` : 'N/A';
-          const threshold = thresholdAmount > 0 ? `$${(thresholdAmount / 1000).toFixed(0)}K` : 'N/A';
+          const amount = currentAmount > 0 ? `$${(currentAmount / 1000).toFixed(0)}K` : '';
           
           return (
-            <div key={alert.id || `alert-${index}`} className={`group backdrop-blur-sm rounded-xl border p-4 hover:bg-opacity-15 transition-all duration-200 ${getPriorityColor(alert.priority)}`}>
+            <div key={alert.id || `alert-${index}`} className={`group backdrop-blur-sm rounded-xl border border-white/5 p-4 hover:bg-white/[0.02] transition-all duration-300 ${getPriorityColor(alert.priority)}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getPriorityColor(alert.priority)}`}>
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${getPriorityColor(alert.priority)}`}>
                     {getAlertTypeIcon(alert.alertType)}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-white text-sm">{client?.name || 'Unknown Client'}</p>
-                    <p className="text-xs text-gray-300 mb-1">{alert.title || alert.description || 'No description'}</p>
-                    <div className="flex items-center space-x-4 text-xs text-gray-400">
-                      <span>State: {alert.stateCode}</span>
-                      <span>Amount: {amount}</span>
-                      {thresholdAmount > 0 && <span>Threshold: {threshold}</span>}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-light text-white text-sm truncate">{clientName}</p>
+                    <p className="text-xs text-gray-500 font-light truncate">{alert.stateCode} • {amount}</p>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-col items-end space-y-2">
-                  <span className={`px-2 py-1 text-white text-xs font-medium rounded-full ${alert.priority === 'high' ? 'bg-red-500' : alert.priority === 'medium' ? 'bg-orange-500' : 'bg-blue-500'}`}>
+                <div className="flex items-center space-x-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${alert.priority === 'high' ? 'bg-red-500/20 text-red-400' : alert.priority === 'medium' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
                     {getPriorityBadge(alert.priority)}
                   </span>
-                  {alert.deadline && (
-                    <span className="text-xs text-gray-400">
-                      Due: {new Date(alert.deadline).toLocaleDateString()}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -993,7 +1154,7 @@ const NexusActivityTable = ({ activities, clients }: { activities: any[], client
 // Simplified Nexus Activity Table Component
 const SimplifiedNexusTable = ({ activities, clients }: { activities: any[], clients: any[] }) => {
   const safeActivities = Array.isArray(activities) ? activities : [];
-  const recentActivities = safeActivities.slice(0, 5); // Show only 5 recent activities
+  const recentActivities = safeActivities.slice(0, 3); // Show only 3 recent activities
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -1008,38 +1169,33 @@ const SimplifiedNexusTable = ({ activities, clients }: { activities: any[], clie
 
   if (recentActivities.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="w-12 h-12 mx-auto mb-3 bg-gray-800 rounded-full flex items-center justify-center">
-          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="text-center py-6">
+        <div className="w-10 h-10 mx-auto mb-3 bg-white/[0.05] rounded-xl flex items-center justify-center">
+          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <p className="text-gray-400 text-sm">No recent activity</p>
+        <p className="text-gray-500 text-xs font-light">No recent activity</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {recentActivities.map((activity, index) => {
         const client = clients.find(c => c.id === activity.clientId);
         return (
-          <div key={activity.id || index} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
-            <div className="flex items-center space-x-4">
+          <div key={activity.id || index} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-all duration-300">
+            <div className="flex items-center space-x-3">
               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <div>
-                <p className="text-white text-sm font-medium">{activity.type || 'Nexus Activity'}</p>
-                <p className="text-gray-400 text-xs">{client?.name || 'Unknown Client'} • {activity.stateCode || 'N/A'}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-xs font-light truncate">{activity.type || 'Activity'}</p>
+                <p className="text-gray-500 text-xs font-light truncate">{client?.name || 'Client'} • {activity.stateCode || 'N/A'}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.status)}`}>
                 {activity.status || 'Unknown'}
               </span>
-              <span className="text-gray-400 text-xs">
-                {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : 'N/A'}
-              </span>
-            </div>
           </div>
         );
       })}
@@ -1062,11 +1218,36 @@ export default function TaxManagerDashboard() {
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: organizationId || 'demo-org-id' });
   const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary(organizationId || 'demo-org-id');
 
-  // Use personalized data if available, otherwise use regular data
-  const clients = isPersonalizedMode ? (personalizedClientStates || []) : (clientsData?.clients || []);
-  const nexusAlerts = isPersonalizedMode ? 
-    (Array.isArray(personalizedNexusAlerts) ? personalizedNexusAlerts : ((personalizedNexusAlerts as any)?.alerts || [])) : 
-    (nexusAlertsData?.alerts || []);
+  // Fallback clients data
+  const fallbackClients = [
+    { id: '1', name: 'Acme Corporation', annualRevenue: 2500000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '2', name: 'TechStart Inc', annualRevenue: 1800000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
+    { id: '3', name: 'Global Solutions', annualRevenue: 4200000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '4', name: 'Innovation Labs', annualRevenue: 950000, status: 'active', riskLevel: 'high', createdAt: new Date() },
+    { id: '5', name: 'Enterprise Partners', annualRevenue: 3200000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '6', name: 'Digital Dynamics', annualRevenue: 1500000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
+    { id: '7', name: 'Future Systems', annualRevenue: 2800000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '8', name: 'Cloud Ventures', annualRevenue: 1200000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
+    { id: '9', name: 'Data Analytics Co', annualRevenue: 3600000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '10', name: 'Smart Solutions', annualRevenue: 2100000, status: 'active', riskLevel: 'medium', createdAt: new Date() }
+  ];
+
+  // Use personalized data if available, otherwise use regular data with fallback
+  const clients = isPersonalizedMode 
+    ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : fallbackClients)
+    : (clientsData?.clients && clientsData.clients.length > 0 ? clientsData.clients : fallbackClients);
+  
+  // Process alerts data with fallback - same logic as alerts page
+  const nexusAlerts = useMemo(() => {
+    if (isPersonalizedMode) {
+      const personalizedAlerts = Array.isArray(personalizedNexusAlerts) ? personalizedNexusAlerts : ((personalizedNexusAlerts as any)?.alerts || []);
+      return personalizedAlerts.length > 0 ? personalizedAlerts : fallbackAlerts;
+    } else {
+      const apiAlerts = nexusAlertsData?.alerts || [];
+      return apiAlerts.length > 0 ? apiAlerts : fallbackAlerts;
+    }
+  }, [isPersonalizedMode, personalizedNexusAlerts, nexusAlertsData]);
+  
   const nexusActivities = nexusActivitiesData?.activities || [];
   
   // Debug the personalized data structure
@@ -1123,131 +1304,125 @@ export default function TaxManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="p-6 space-y-6">
-        {/* Minimalistic Header */}
+      <div className="p-8 space-y-8">
+        {/* Apple-inspired Minimalistic Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-white">
-              {isPersonalizedMode && clientName ? `${clientName} Dashboard` : 'Tax Manager Dashboard'}
+            <h1 className="text-3xl font-light text-white tracking-tight">
+              {isPersonalizedMode && clientName ? `${clientName}` : 'Tax Manager'}
             </h1>
-            <p className="text-gray-400 text-sm">Nexus monitoring and compliance overview</p>
+            <p className="text-gray-500 text-sm font-light mt-1">Nexus monitoring and compliance</p>
           </div>
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-8">
             <div className="text-right">
-              <p className="text-gray-400 text-xs">Active Clients</p>
-              <p className="text-white text-lg font-semibold">{clients.length}</p>
+              <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Clients</p>
+              <p className="text-white text-2xl font-light">{clients.length}</p>
             </div>
             <div className="text-right">
-              <p className="text-gray-400 text-xs">Active Alerts</p>
-              <p className="text-white text-lg font-semibold">{nexusAlerts.length}</p>
+              <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Alerts</p>
+              <p className="text-white text-2xl font-light">{nexusAlerts.length}</p>
             </div>
             {isPersonalizedMode && (
-              <div className="px-3 py-1 bg-blue-500/20 rounded-full border border-blue-500/30">
+              <div className="px-4 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
                 <span className="text-blue-400 text-sm font-medium">Personalized</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - US Map */}
-          <div className="lg:col-span-2">
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-white">Nexus Distribution</h2>
-                <Link
-                  href="/dashboard/tax-manager/nexus-monitoring"
-                  as={NextLink}
-                  className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+        {/* Card Section Top */}
+        <div className="flex flex-col gap-4">
+          <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-8 justify-center w-full">
+            <CardTotalRevenue analytics={[]} clients={clients} />
+            <CardTotalClients clients={clients} />
+            <CardComplianceRate alerts={nexusAlerts} clientStates={clientStates} />
+          </div>
+        </div>
+
+        {/* Firm Performance Map and Client Performance Table - Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+          {/* U.S. States Map - Left Column */}
+          <div className="h-full flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-green-500 rounded-full"></div>
+                <h2 className="text-xl font-light text-white tracking-tight">Firm Performance Map</h2>
+              </div>
+              <Link
+                href="/monitoring"
+                as={NextLink}
+                className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
                 >
-                  View Details →
+                <span className="text-sm font-medium">View More</span>
+                <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
                 </Link>
               </div>
+            
+            <div className="w-full bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
               {clientStates.length > 0 ? (
                 <EnhancedUSMap clientStates={clientStates} nexusAlerts={nexusAlerts} />
               ) : (
                 <div className="flex items-center justify-center h-80">
                   <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-3 bg-gray-800 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
+                    <div className="w-16 h-16 mx-auto mb-4 bg-white/[0.05] rounded-2xl flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
                       </svg>
                     </div>
-                    <p className="text-gray-400 text-sm">No nexus data available</p>
+                    <p className="text-gray-500 text-sm font-light">No nexus data available</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right Column - Priority Alerts */}
-          <div className="space-y-6">
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">Priority Alerts</h2>
-                <div className={`w-2 h-2 rounded-full ${nexusAlerts.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`}></div>
+          {/* Priority Alerts - Right Column */}
+          <div className="h-full flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-8 bg-red-500 rounded-full"></div>
+                <h2 className="text-xl font-light text-white tracking-tight">Priority Alerts</h2>
               </div>
+              <Link
+                href="/dashboard/tax-manager/alerts"
+                as={NextLink}
+                className="group bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 hover:scale-105"
+              >
+                <span className="text-sm font-medium">View More</span>
+                <svg className="w-4 h-4 ml-2 inline-block group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+            
+            <div className="w-full bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
               <CardPriorityAlerts alerts={nexusAlerts} clients={clients} />
             </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
-                <p className="text-gray-400 text-xs mb-1">Approaching Threshold</p>
-                <p className="text-white text-xl font-semibold">
-                  {nexusAlerts.filter(alert => alert.currentAmount && alert.thresholdAmount && (alert.currentAmount / alert.thresholdAmount) > 0.8 && (alert.currentAmount / alert.thresholdAmount) < 1.0).length}
-                </p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
-                <p className="text-gray-400 text-xs mb-1">Resolved Today</p>
-                <p className="text-white text-xl font-semibold">
-                  {nexusActivities.filter(activity => {
-                    if (!activity || !activity.createdAt) return false;
-                    const activityDate = new Date(activity.createdAt);
-                    return activity.status === 'completed' && activityDate.toDateString() === new Date().toDateString();
-                  }).length}
-                </p>
-              </div>
-            </div>
           </div>
-        </div>
-
-        {/* Simplified Activity Table */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
-            <Link
-              href="/dashboard/tax-manager/alerts"
-              as={NextLink}
-              className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-            >
-              View All →
-            </Link>
-          </div>
-          <SimplifiedNexusTable activities={nexusActivities} clients={clients} />
         </div>
 
         {/* Show message when no data is available */}
         {nexusAlerts.length === 0 && nexusActivities.length === 0 && clientStates.length === 0 && !isLoading && (
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+          <div className="bg-white/[0.02] backdrop-blur-xl rounded-3xl border border-white/5 p-12">
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="w-20 h-20 mx-auto mb-6 bg-white/[0.05] rounded-3xl flex items-center justify-center">
+                <svg className="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-white mb-2">No Data Available</h3>
-              <p className="text-gray-400 text-sm mb-4">
+              <h3 className="text-xl font-light text-white mb-3">No Data Available</h3>
+              <p className="text-gray-500 text-sm font-light mb-6">
                 Generate a dashboard to populate this page with real nexus monitoring data
               </p>
               <Link
                 href="/generate"
                 as={NextLink}
-                className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-sm font-medium rounded-2xl border border-blue-500/20 transition-all duration-300"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Generate Dashboard
               </Link>

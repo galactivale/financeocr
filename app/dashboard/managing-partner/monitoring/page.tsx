@@ -24,6 +24,348 @@ import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContex
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 import { useRouter } from "next/navigation";
 
+// Enhanced US Map Component for Managing Partner
+const EnhancedUSMap = ({ 
+  clientStates, 
+  clients, 
+  nexusAlerts, 
+  mapFocusState, 
+  setMapFocusState, 
+  selectedState, 
+  setSelectedState,
+  nexusData 
+}: { 
+  clientStates: any[], 
+  clients: any[], 
+  nexusAlerts: any[],
+  mapFocusState: string | null,
+  setMapFocusState: (state: string | null) => void,
+  selectedState: string | null,
+  setSelectedState: (state: string | null) => void,
+  nexusData: any
+}) => {
+  const [hoveredState, setHoveredState] = useState<string | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+  const handleMapStateClick = (stateCode: string) => {
+    if (mapFocusState === stateCode) {
+      // If clicking the same state, clear the filter
+      setMapFocusState(null);
+      setSelectedState(null);
+    } else {
+      // Set new focus state
+      setMapFocusState(stateCode);
+      setSelectedState(stateCode);
+    }
+  };
+
+  const handleMapStateHover = (stateCode: string, event?: any) => {
+    // Add hover effects for better interactivity - only for states with data
+    const stateData = nexusData[stateCode];
+    if (stateData && stateData.hasData) {
+      setHoveredState(stateCode);
+      if (event) {
+        setTooltipPosition({ x: event.clientX, y: event.clientY });
+      }
+    }
+  };
+
+  const handleMapStateLeave = () => {
+    setHoveredState(null);
+  };
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    setTooltipPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleStateHover = (stateCode: string) => {
+    setHoveredState(stateCode);
+  };
+
+  const handleStateLeave = () => {
+    setHoveredState(null);
+  };
+
+  // Generate firm performance data from real API data
+  const firmPerformanceData = useMemo(() => {
+    const stateData: Record<string, { status: string; clients: number; revenue: number; alerts: number; nexusStatus: string }> = {};
+    
+    // Process client states to calculate performance metrics
+    (clientStates || []).forEach(clientState => {
+      const stateCode = clientState.stateCode;
+      if (!stateData[stateCode]) {
+        stateData[stateCode] = {
+          status: 'good',
+          clients: 1,
+          revenue: clientState.currentAmount || 0,
+          alerts: 0,
+          nexusStatus: clientState.status || 'compliant'
+        };
+      } else {
+        stateData[stateCode].clients += 1;
+        stateData[stateCode].revenue += clientState.currentAmount || 0;
+      }
+    });
+
+    // Count alerts per state
+    (clients || []).forEach(client => {
+      const clientStatesForClient = (clientStates || []).filter(cs => cs.clientId === client.id);
+      clientStatesForClient.forEach(cs => {
+        const stateCode = cs.stateCode;
+        if (stateData[stateCode]) {
+          // Count nexus alerts for this client in this state
+          const alertsForClient = (nexusAlerts || []).filter(alert => 
+            alert.clientId === client.id && alert.stateCode === stateCode
+          );
+          stateData[stateCode].alerts += alertsForClient.length;
+        }
+      });
+    });
+
+    // Determine status based on nexus compliance and alerts
+    Object.keys(stateData).forEach(stateCode => {
+      const data = stateData[stateCode];
+      
+      // Count critical/warning states
+      const criticalStates = (clientStates || []).filter(cs => 
+        cs.stateCode === stateCode && (cs.status === 'critical' || cs.status === 'warning')
+      ).length;
+      
+      const totalStatesInState = (clientStates || []).filter(cs => cs.stateCode === stateCode).length;
+      const criticalRatio = totalStatesInState > 0 ? criticalStates / totalStatesInState : 0;
+      
+      if (criticalRatio > 0.5 || data.alerts > 3) {
+        data.status = 'poor';
+        data.nexusStatus = 'critical';
+      } else if (criticalRatio > 0.2 || data.alerts > 1) {
+        data.status = 'warning';
+        data.nexusStatus = 'warning';
+      } else if (data.revenue > 1000000) {
+        data.status = 'excellent';
+        data.nexusStatus = 'compliant';
+      } else {
+        data.status = 'good';
+        data.nexusStatus = 'compliant';
+      }
+    });
+
+    return stateData;
+  }, [clientStates, clients, nexusAlerts]);
+
+  const customStates: Record<string, any> = {};
+  
+  // Use StateAbbreviations to ensure all states are covered
+  const StateAbbreviations = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+  ];
+
+  StateAbbreviations.forEach((state) => {
+    const data = nexusData[state as keyof typeof nexusData];
+    
+    // If a state is focused (from client card click), make other states partially visible
+    const isFocusedState = mapFocusState === state;
+    const isPartiallyVisible = mapFocusState && !isFocusedState;
+    
+    // Always set label configuration for all states
+    const labelConfig = {
+      enabled: true,
+      render: (stateAbbr: USAStateAbbreviation) => (
+        <text 
+          fontSize="14" 
+          fill="white" 
+          fontWeight="bold"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          stroke="black"
+          strokeWidth="0.5"
+          paintOrder="stroke fill"
+        >
+          {stateAbbr}
+        </text>
+      ),
+    };
+    
+    // Apply styling to all states (both with data and compliant states)
+    if (data) {
+      let fillColor = '#374151';
+      let strokeColor = '#6b7280';
+      
+      switch (data.status) {
+        case 'critical':
+          fillColor = '#ef4444';
+          strokeColor = '#dc2626';
+          break;
+        case 'warning':
+          fillColor = '#f59e0b';
+          strokeColor = '#d97706';
+          break;
+        case 'pending':
+          fillColor = '#3b82f6';
+          strokeColor = '#2563eb';
+          break;
+        case 'compliant':
+          fillColor = '#10b981';
+          strokeColor = '#059669';
+          break;
+        case 'transit':
+          fillColor = '#06b6d4';
+          strokeColor = '#0891b2';
+          break;
+      }
+      
+      // Make colors lighter for partially visible states
+      if (isPartiallyVisible) {
+        fillColor = '#4b5563'; // Lighter gray
+        strokeColor = '#6b7280'; // Lighter stroke
+      }
+      
+      customStates[state] = {
+        fill: fillColor,
+        stroke: mapFocusState === state ? '#60a5fa' : (isPartiallyVisible ? '#6b7280' : '#9ca3af'),
+        strokeWidth: mapFocusState === state ? 4 : 2,
+        onClick: () => handleMapStateClick(state),
+        onHover: (event: any) => handleMapStateHover(state, event),
+        onLeave: () => handleMapStateLeave(),
+        label: labelConfig,
+        // Add data attributes for better integration
+        'data-state': state,
+        'data-status': data.status,
+        'data-revenue': data.revenue,
+        'data-clients': data.clients,
+        'data-alerts': data.alerts,
+        'data-threshold-progress': data.thresholdProgress,
+        'data-risk-score': data.riskScore,
+      };
+    } else {
+      // Default styling for states without client data - grey (no activity)
+      const defaultFillColor = '#1f2937'; // Dark grey for no activity
+      const defaultStrokeColor = '#374151';
+      
+      customStates[state] = {
+        fill: defaultFillColor,
+        stroke: mapFocusState === state ? '#60a5fa' : defaultStrokeColor,
+        strokeWidth: mapFocusState === state ? 4 : 1,
+        onClick: () => handleMapStateClick(state),
+        onHover: (event: any) => handleMapStateHover(state, event),
+        onLeave: () => handleMapStateLeave(),
+        label: labelConfig,
+      };
+    }
+  });
+
+  return (
+    <div className="w-full h-full relative" onMouseMove={handleMouseMove}>
+      <USAMap 
+        customStates={customStates}
+        hiddenStates={['AK', 'HI']}
+        mapSettings={{
+          width: '100%',
+          height: '100%'
+        }}
+        className="w-full h-full"
+        defaultState={{
+          fill: '#6b7280',
+          stroke: '#ffffff',
+          label: {
+            enabled: true,
+            render: (stateAbbr: USAStateAbbreviation) => (
+              <text 
+                fontSize="14" 
+                fill="white" 
+                fontWeight="bold"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                stroke="black"
+                strokeWidth="0.5"
+                paintOrder="stroke fill"
+              >
+                {stateAbbr}
+              </text>
+            ),
+          },
+        }}
+      />
+      
+      {/* State Tooltip - Only show for states with data */}
+      {hoveredState && firmPerformanceData[hoveredState] && (
+        <div 
+          className="absolute bg-gray-900/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-xl border border-white/10 z-20 pointer-events-none"
+          style={{
+            left: `${tooltipPosition.x + 15}px`,
+            top: `${tooltipPosition.y - 5}px`
+          }}
+        >
+          <div className="text-white">
+            <h3 className="font-semibold text-sm mb-2">{hoveredState}</h3>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Clients:</span>
+                <span className="text-white">{firmPerformanceData[hoveredState]?.clients || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Revenue:</span>
+                <span className="text-white">${(firmPerformanceData[hoveredState]?.revenue || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Alerts:</span>
+                <span className="text-white">{firmPerformanceData[hoveredState]?.alerts || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Status:</span>
+                <span className={`font-medium ${
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'critical' ? 'text-red-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'warning' ? 'text-yellow-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'pending' ? 'text-blue-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'transit' ? 'text-purple-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'compliant' ? 'text-green-400' : 'text-gray-400'
+                }`}>
+                  {firmPerformanceData[hoveredState]?.nexusStatus || 'Unknown'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Legend */}
+      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 text-white border border-white/20">
+        <h4 className="font-semibold text-sm mb-2">Nexus Status</h4>
+        <div className="space-y-1 text-xs">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded"></div>
+            <span>Critical</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+            <span>Warning</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+            <span>Pending</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-purple-500 rounded"></div>
+            <span>Transit</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <span>Compliant</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-gray-500 rounded"></div>
+            <span>No Activity</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  );
+};
+
 // Client data structure for monitoring
 interface Client {
   id: string;
@@ -63,7 +405,7 @@ const ManagingPartnerMonitoring = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
   const [hoveredState, setHoveredState] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState({ x: -100, y: -300 });
   const [dataLoaded, setDataLoaded] = useState(false);
   const [scanningStateIndex, setScanningStateIndex] = useState(0);
   const [currentNotificationIndex, setCurrentNotificationIndex] = useState(0);
@@ -361,6 +703,7 @@ const ManagingPartnerMonitoring = () => {
           const currentStatus = stateData[stateCode].status;
           const thresholdProgress = stateData[stateCode].thresholdProgress;
           
+          // Priority order: critical > warning > pending > transit > compliant
           if (alert.priority === 'high' || thresholdProgress >= 95) {
             stateData[stateCode].status = 'critical';
           } else if (alert.priority === 'medium' || thresholdProgress >= 70) {
@@ -375,6 +718,27 @@ const ManagingPartnerMonitoring = () => {
         }
       });
     }
+
+    // Final status override: Ensure critical alerts take precedence
+    Object.keys(stateData).forEach(stateCode => {
+      const state = stateData[stateCode];
+      if (state.alerts > 0) {
+        // If there are any alerts, check if they should override the status
+        const criticalAlerts = alertsToUse?.filter((alert: any) => 
+          alert.stateCode?.toUpperCase() === stateCode && 
+          (alert.priority === 'high' || alert.priority === 'critical')
+        ) || [];
+        
+        if (criticalAlerts.length > 0) {
+          state.status = 'critical';
+        } else if (state.alerts >= 3) {
+          // Multiple alerts should be at least warning
+          if (state.status === 'compliant' || state.status === 'transit') {
+            state.status = 'warning';
+          }
+        }
+      }
+    });
 
     // Don't add states without client data - they will show as grey (no activity)
 
@@ -425,13 +789,13 @@ const ManagingPartnerMonitoring = () => {
         enabled: true,
         render: (stateAbbr: USAStateAbbreviation) => (
           <text 
-            fontSize="14" 
+            fontSize="16" 
             fill="white" 
             fontWeight="bold"
             textAnchor="middle"
             dominantBaseline="middle"
             stroke="black"
-            strokeWidth="0.5"
+            strokeWidth="3"
             paintOrder="stroke fill"
           >
             {stateAbbr}
@@ -482,7 +846,7 @@ const ManagingPartnerMonitoring = () => {
           stroke: mapFocusState === state ? '#60a5fa' : (isPartiallyVisible ? '#6b7280' : '#9ca3af'),
           strokeWidth: mapFocusState === state ? 4 : 2,
           onClick: () => handleMapStateClick(state),
-          onHover: (event: any) => handleMapStateHover(state, event),
+          
           onLeave: () => handleMapStateLeave(),
           label: labelConfig,
           // Add data attributes for better integration
@@ -501,7 +865,7 @@ const ManagingPartnerMonitoring = () => {
           stroke: mapFocusState === state ? '#60a5fa' : '#9ca3af',
           strokeWidth: mapFocusState === state ? 4 : 1,
           onClick: () => handleMapStateClick(state),
-          onHover: (event: any) => handleMapStateHover(state, event),
+         
           onLeave: () => handleMapStateLeave(),
           label: labelConfig,
         };
@@ -1304,112 +1668,166 @@ const ManagingPartnerMonitoring = () => {
                   <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-400/30 to-transparent"></div>
                 </div>
                 
-                <div className="w-full h-full relative z-10">
-                  <USAMap 
-                    customStates={customStates}
-                    hiddenStates={['AK', 'HI']}
-                    mapSettings={{
-                      width: '100%',
-                      height: '100%'
-                    }}
-                    className="w-full h-full"
-                    defaultState={{
-                      label: {
-                        enabled: true,
-                        render: (stateAbbr: USAStateAbbreviation) => (
-                          <text 
-                            fontSize="14" 
-                            fill="white" 
-                            fontWeight="bold"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            stroke="black"
-                            strokeWidth="0.5"
-                            paintOrder="stroke fill"
-                          >
-                            {stateAbbr}
-                          </text>
-                        ),
-                      },
-                    }}
-                  />
-                </div>
-
-
-                {/* State Tooltip - Only show for states with data */}
-                {hoveredState && nexusData[hoveredState] && nexusData[hoveredState].hasData && (
-                  <div 
-                    className="absolute bg-gray-900/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-xl border border-white/10 z-20 pointer-events-none"
-                    style={{
-                      left: `${tooltipPosition.x + 10}px`,
-                      top: `${tooltipPosition.y - 10}px`,
-                      transform: 'translateY(-100%)'
-                    }}
-                  >
-                    <div className="text-white">
-                      <h3 className="font-semibold text-sm mb-2">{hoveredState}</h3>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Status:</span>
-                          <span className={`font-medium ${
-                            nexusData[hoveredState].status === 'critical' ? 'text-red-400' :
-                            nexusData[hoveredState].status === 'warning' ? 'text-orange-400' :
-                            nexusData[hoveredState].status === 'pending' ? 'text-blue-400' :
-                            nexusData[hoveredState].status === 'transit' ? 'text-cyan-400' :
-                            'text-green-400'
-                          }`}>
-                            {nexusData[hoveredState].status}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Revenue:</span>
-                          <span className="text-white">${nexusData[hoveredState].revenue.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Clients:</span>
-                          <span className="text-white">{nexusData[hoveredState].clients}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Alerts:</span>
-                          <span className="text-white">{nexusData[hoveredState].alerts}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Progress:</span>
-                          <span className="text-white">{nexusData[hoveredState].thresholdProgress}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Legend */}
-                <div className="absolute bottom-4 left-4 bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-                  <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm"></div>
-                      <span className="text-xs text-gray-300">Critical</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 rounded-full bg-amber-500 shadow-sm"></div>
-                      <span className="text-xs text-gray-300">Warning</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></div>
-                      <span className="text-xs text-gray-300">Pending</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 rounded-full bg-cyan-500 shadow-sm"></div>
-                      <span className="text-xs text-gray-300">Transit</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm"></div>
-                      <span className="text-xs text-gray-300">Compliant</span>
-                    </div>
-                  </div>
-                </div>
+                <EnhancedUSMap 
+                  clientStates={clientStatesData?.clientStates || []} 
+                  clients={clients || []} 
+                  nexusAlerts={nexusAlertsData?.alerts || []}
+                  mapFocusState={mapFocusState}
+                  setMapFocusState={setMapFocusState}
+                  selectedState={selectedState}
+                  setSelectedState={setSelectedState}
+                  nexusData={nexusData}
+                />
               </div>
             </div>
+                </div>
+
+          {/* State Details Panel */}
+          {selectedState && !isDetailsPanelOpen && (
+            <div className="w-96 bg-black/95 backdrop-blur-xl border-l border-white/10 p-6 overflow-y-auto transition-all duration-300 ease-in-out">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-white text-lg font-semibold">{selectedState}</h2>
+                    <p className="text-gray-400 text-sm">State Nexus Details</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedState(null)}
+                  className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* State Data */}
+              {nexusData[selectedState] ? (
+                <>
+                  {/* Status Overview */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-white font-medium">Nexus Status</h3>
+                      <div className={`px-3 py-1 ${
+                        nexusData[selectedState].status === 'critical' ? 'bg-red-500' :
+                        nexusData[selectedState].status === 'warning' ? 'bg-orange-500' :
+                        nexusData[selectedState].status === 'pending' ? 'bg-blue-500' :
+                        nexusData[selectedState].status === 'transit' ? 'bg-cyan-500' :
+                        'bg-green-500'
+                      } rounded-full`}>
+                        <span className="text-white text-sm font-semibold">
+                          {nexusData[selectedState].status === 'critical' ? 'Critical' :
+                           nexusData[selectedState].status === 'warning' ? 'Warning' :
+                           nexusData[selectedState].status === 'pending' ? 'Pending' :
+                           nexusData[selectedState].status === 'transit' ? 'Transit' :
+                           'Compliant'}
+                          </span>
+                        </div>
+                        </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      {nexusData[selectedState].status === 'critical' ? 'This state has clients exceeding the nexus threshold and requires immediate attention.' :
+                       nexusData[selectedState].status === 'warning' ? 'This state has clients approaching the nexus threshold and should be monitored closely.' :
+                       nexusData[selectedState].status === 'pending' ? 'This state is currently under review for nexus compliance.' :
+                       nexusData[selectedState].status === 'transit' ? 'This state is actively being monitored for nexus compliance.' :
+                       'This state is fully compliant with all nexus requirements.'}
+                    </p>
+                        </div>
+
+                  {/* Key Metrics */}
+                  <div className="mb-6">
+                    <h3 className="text-white font-medium mb-3">Key Metrics</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Total Clients</span>
+                        <span className="text-white font-medium">{nexusData[selectedState].clients || 0}</span>
+                        </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Total Revenue</span>
+                        <span className="text-white font-medium">${(nexusData[selectedState].revenue || 0).toLocaleString()}</span>
+                        </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Active Alerts</span>
+                        <span className="text-white font-medium">{nexusData[selectedState].alerts || 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Threshold</span>
+                        <span className="text-white font-medium">${(nexusData[selectedState].threshold || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  </div>
+
+                  {/* Clients in this State */}
+                  <div className="mb-6">
+                    <h3 className="text-white font-medium mb-3">Clients in {selectedState}</h3>
+                    <div className="space-y-2">
+                      {filteredClients
+                        .filter(client => client.states.includes(selectedState))
+                        .map((client) => (
+                          <div 
+                            key={client.id}
+                            className="bg-white/5 rounded-lg p-3 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setIsDetailsPanelOpen(true);
+                              setSelectedState(null);
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-white text-sm font-medium">{client.name}</p>
+                                <p className="text-gray-400 text-xs">{client.industry}</p>
+                    </div>
+                              <div className={`px-2 py-1 ${
+                                client.nexusStatus === 'critical' ? 'bg-red-500' :
+                                client.nexusStatus === 'warning' ? 'bg-orange-500' :
+                                client.nexusStatus === 'pending' ? 'bg-blue-500' :
+                                client.nexusStatus === 'transit' ? 'bg-cyan-500' :
+                                'bg-green-500'
+                              } rounded-full`}>
+                                <span className="text-white text-xs font-semibold">
+                                  {client.nexusStatus === 'critical' ? 'Critical' :
+                                   client.nexusStatus === 'warning' ? 'Warning' :
+                                   client.nexusStatus === 'pending' ? 'Pending' :
+                                   client.nexusStatus === 'transit' ? 'Transit' :
+                                   'Compliant'}
+                                </span>
+                    </div>
+                    </div>
+                    </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3">
+                    <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                      View Reports
+                    </button>
+                    <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                      Export Data
+                    </button>
+                </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+              </div>
+                  <p className="text-gray-400 text-sm">No data available for {selectedState}</p>
+                  <p className="text-gray-500 text-xs mt-1">This state has no client activity</p>
+            </div>
+              )}
           </div>
+          )}
 
           {/* Inline Expandable Details Panel */}
           {isDetailsPanelOpen && selectedClient && (
@@ -1570,141 +1988,6 @@ const ManagingPartnerMonitoring = () => {
             </div>
           )}
 
-          {/* State Details Panel */}
-          {selectedState && !isDetailsPanelOpen && (
-            <div className="w-96 bg-black/95 backdrop-blur-xl border-l border-white/10 p-6 overflow-y-auto transition-all duration-300 ease-in-out">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-white text-lg font-semibold">{selectedState}</h2>
-                    <p className="text-gray-400 text-sm">{stateNameMapping[selectedState] || selectedState}</p>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedState(null)} className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* State Data */}
-              {nexusData[selectedState] ? (
-                <>
-                  {/* Status Overview */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-white font-medium">Nexus Status</h3>
-                      <div className={`px-3 py-1 ${
-                        nexusData[selectedState].status === 'critical' ? 'bg-red-500' :
-                        nexusData[selectedState].status === 'warning' ? 'bg-orange-500' :
-                        nexusData[selectedState].status === 'pending' ? 'bg-blue-500' :
-                        nexusData[selectedState].status === 'transit' ? 'bg-cyan-500' :
-                        'bg-green-500'
-                      } rounded-full`}>
-                        <span className="text-white text-sm font-semibold capitalize">
-                          {nexusData[selectedState].status}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-gray-300 text-sm leading-relaxed">
-                      {nexusData[selectedState].status === 'critical' ? 'This state has exceeded threshold limits and requires immediate attention.' :
-                       nexusData[selectedState].status === 'warning' ? 'This state is approaching threshold limits and should be monitored closely.' :
-                       nexusData[selectedState].status === 'pending' ? 'This state is currently under review for compliance requirements.' :
-                       nexusData[selectedState].status === 'transit' ? 'This state is actively being monitored for nexus compliance.' :
-                       'This state is fully compliant with all nexus requirements.'}
-                    </p>
-                  </div>
-
-                  {/* Key Metrics */}
-                  <div className="mb-6">
-                    <h3 className="text-white font-medium mb-3">Key Metrics</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Total Clients</span>
-                        <span className="text-white font-medium">{nexusData[selectedState].clients}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Total Revenue</span>
-                        <span className="text-white font-medium">${nexusData[selectedState].revenue.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Active Alerts</span>
-                        <span className="text-white font-medium">{nexusData[selectedState].alerts}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400 text-sm">Threshold Progress</span>
-                        <span className="text-white font-medium">{nexusData[selectedState].thresholdProgress}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Clients in this State */}
-                  <div className="mb-6">
-                    <h3 className="text-white font-medium mb-3">Clients in {selectedState}</h3>
-                    <div className="space-y-2">
-                      {filteredClients
-                        .filter(client => client.states.includes(selectedState))
-                        .map((client) => (
-                          <div
-                            key={client.id}
-                            className="bg-white/5 rounded-lg p-3 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
-                            onClick={() => {
-                              setSelectedClient(client);
-                              setIsDetailsPanelOpen(true);
-                              setSelectedState(null); // Close state panel when client is selected
-                            }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="text-white text-sm font-medium">{client.name}</h4>
-                                <p className="text-gray-400 text-xs">{client.industry}</p>
-                              </div>
-                              <div className={`px-2 py-1 ${
-                                client.nexusStatus === 'critical' ? 'bg-red-500' :
-                                client.nexusStatus === 'warning' ? 'bg-orange-500' :
-                                client.nexusStatus === 'pending' ? 'bg-blue-500' :
-                                client.nexusStatus === 'transit' ? 'bg-cyan-500' :
-                                'bg-green-500'
-                              } rounded-full`}>
-                                <span className="text-white text-xs font-semibold capitalize">
-                                  {client.nexusStatus}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-3">
-                    <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
-                      View Reports
-                    </button>
-                    <button className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-lg font-medium transition-colors">
-                      Export Data
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="text-gray-400 text-sm font-medium mb-2">No data available</div>
-                  <div className="text-gray-500 text-xs">This state has no client activity</div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </SidebarContext.Provider>

@@ -13,6 +13,8 @@ import { User } from "lucide-react";
 // Enhanced US Map Component for Managing Partner
 const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: any[], clients: any[], nexusAlerts: any[] }) => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [hoveredState, setHoveredState] = useState<string | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const handleMapStateClick = (stateCode: string) => {
     if (selectedState === stateCode) {
@@ -20,6 +22,18 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
     } else {
       setSelectedState(stateCode);
     }
+  };
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    setTooltipPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleStateHover = (stateCode: string) => {
+    setHoveredState(stateCode);
+  };
+
+  const handleStateLeave = () => {
+    setHoveredState(null);
   };
 
   // Generate firm performance data from real API data
@@ -100,12 +114,14 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
       stroke: '#ffffff',
       strokeWidth: 1,
       cursor: 'pointer',
-      onClick: () => handleMapStateClick(stateCode)
+      onClick: () => handleMapStateClick(stateCode),
+      onMouseEnter: () => handleStateHover(stateCode),
+      onMouseLeave: handleStateLeave
     };
   });
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative" onMouseMove={handleMouseMove}>
       <USAMap 
         customStates={customStates}
         hiddenStates={['AK', 'HI']}
@@ -121,6 +137,47 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
           cursor: 'pointer'
         }}
       />
+      
+      {/* State Tooltip - Only show for states with data */}
+      {hoveredState && firmPerformanceData[hoveredState] && (
+        <div 
+          className="absolute bg-gray-900/95 backdrop-blur-sm rounded-lg px-4 py-3 shadow-xl border border-white/10 z-20 pointer-events-none"
+          style={{
+            left: `${tooltipPosition.x + 15}px`,
+            top: `${tooltipPosition.y - 5}px`
+          }}
+        >
+          <div className="text-white">
+            <h3 className="font-semibold text-sm mb-2">{hoveredState}</h3>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Clients:</span>
+                <span className="text-white">{firmPerformanceData[hoveredState]?.clients || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Revenue:</span>
+                <span className="text-white">${(firmPerformanceData[hoveredState]?.revenue || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Alerts:</span>
+                <span className="text-white">{firmPerformanceData[hoveredState]?.alerts || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Status:</span>
+                <span className={`font-medium ${
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'critical' ? 'text-red-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'warning' ? 'text-yellow-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'pending' ? 'text-blue-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'transit' ? 'text-purple-400' :
+                  firmPerformanceData[hoveredState]?.nexusStatus === 'compliant' ? 'text-green-400' : 'text-gray-400'
+                }`}>
+                  {firmPerformanceData[hoveredState]?.nexusStatus || 'Unknown'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 text-white border border-white/20">
@@ -284,7 +341,7 @@ const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientSta
 };
 
 // Client Performance Table Component
-const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: any[] }) => {
+const ClientPerformanceTable = ({ clients, alerts, clientStates }: { clients: any[], alerts: any[], clientStates: any[] }) => {
   return (
     <div className="w-full">
       <div className="mb-6">
@@ -310,7 +367,6 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
         <TableHeader>
           <TableColumn>CLIENT</TableColumn>
           <TableColumn>REVENUE</TableColumn>
-          <TableColumn>STATUS</TableColumn>
           <TableColumn>RISK LEVEL</TableColumn>
           <TableColumn>ACTIONS</TableColumn>
         </TableHeader>
@@ -318,6 +374,10 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
           {(clients || []).slice(0, 3).map((client, index) => {
             const clientAlerts = (alerts || []).filter(alert => alert.clientId === client.id);
             const hasAlerts = clientAlerts.length > 0;
+            
+            // Get the primary state for this client
+            const clientStatesForClient = (clientStates || []).filter(cs => cs.clientId === client.id);
+            const primaryState = clientStatesForClient.length > 0 ? clientStatesForClient[0].stateCode : 'N/A';
                   
                   return (
               <TableRow key={client.id || index} className="hover:bg-white/5 transition-colors duration-150">
@@ -325,7 +385,7 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
                         <div>
                           <div className="text-sm font-medium text-white">{client.name}</div>
                           <div className="text-xs text-white/60 mt-0.5">
-                            {client.legalName || 'No legal name'}
+                            State: {primaryState}
                     </div>
                   </div>
                 </TableCell>
@@ -333,15 +393,6 @@ const ClientPerformanceTable = ({ clients, alerts }: { clients: any[], alerts: a
                   <div className="text-sm font-medium text-white">
                     ${(client.annualRevenue || 0).toLocaleString()}
                   </div>
-                </TableCell>
-                <TableCell>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    client.status === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {client.status || 'Unknown'}
-                  </span>
                 </TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -395,13 +446,26 @@ export default function ManagingPartnerDashboard() {
   const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts({ organizationId: organizationId || 'demo-org-id' });
   const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ organizationId: organizationId || 'demo-org-id' });
   
+  // Fallback clients data
+  const fallbackClients = [
+    { id: '1', name: 'Acme Corporation', annualRevenue: 2500000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '2', name: 'TechStart Inc', annualRevenue: 1800000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
+    { id: '3', name: 'Global Solutions', annualRevenue: 4200000, status: 'active', riskLevel: 'low', createdAt: new Date() },
+    { id: '4', name: 'Innovation Labs', annualRevenue: 950000, status: 'active', riskLevel: 'high', createdAt: new Date() },
+    { id: '5', name: 'Enterprise Partners', annualRevenue: 3200000, status: 'active', riskLevel: 'low', createdAt: new Date() }
+  ];
+
   // Extract data from API responses
-  const clients = clientsData?.clients || [];
+  const clients = clientsData?.clients && clientsData.clients.length > 0 ? clientsData.clients : fallbackClients;
   const alerts = alertsData?.alerts || [];
   const analytics = analyticsData?.metrics || [];
   const tasks = tasksData?.tasks || [];
   const nexusAlerts = nexusAlertsData?.alerts || [];
   const clientStates = clientStatesData?.clientStates || [];
+
+  // Debug logging
+  console.log('Managing Partner Dashboard - Clients data:', clients);
+  console.log('Managing Partner Dashboard - Clients count:', clients.length);
 
   // Personalized data hooks
   const { data: personalizedClientStates } = usePersonalizedClientStates(dashboardUrl);
@@ -440,7 +504,7 @@ export default function ManagingPartnerDashboard() {
             {/* Header */}
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-              <h2 className="text-2xl font-semibold text-white tracking-tight">
+              <h2 className="text-3xl font-light text-white tracking-tight">
                 {isPersonalizedMode && clientName ? `${clientName} - Firm Performance Overview` : 'Firm Performance Overview'}
               </h2>
               {isPersonalizedMode && (
@@ -470,7 +534,7 @@ export default function ManagingPartnerDashboard() {
             <>
           {/* Card Section Top */}
             <div className="flex flex-col gap-4">
-              <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-6 justify-center w-full">
+              <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-8 justify-center w-full">
                 <CardTotalRevenue analytics={analytics} clients={clients} />
                 <CardTotalClients clients={clients} />
                     <CardComplianceRate alerts={alerts} clientStates={displayClientStates} />
@@ -484,7 +548,7 @@ export default function ManagingPartnerDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white tracking-tight">Firm Performance Map</h2>
+                  <h2 className="text-xl font-light text-white tracking-tight">Firm Performance Map</h2>
                 </div>
                 <Link
                   href="/dashboard/managing-partner/monitoring"
@@ -498,7 +562,7 @@ export default function ManagingPartnerDashboard() {
                 </Link>
               </div>
               
-              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
+              <div className="w-full bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
                 <EnhancedUSMap clientStates={displayClientStates} clients={clients} nexusAlerts={displayNexusAlerts} />
               </div>
             </div>
@@ -508,7 +572,7 @@ export default function ManagingPartnerDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
-                  <h2 className="text-2xl font-semibold text-white tracking-tight">Client Performance Overview</h2>
+                  <h2 className="text-xl font-light text-white tracking-tight">Client Performance</h2>
                 </div>
                 <Link
                   href="/dashboard/managing-partner/clients"
@@ -522,8 +586,8 @@ export default function ManagingPartnerDashboard() {
                 </Link>
               </div>
               
-              <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-                <ClientPerformanceTable clients={clients || []} alerts={alerts || []} />
+              <div className="w-full bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
+                <ClientPerformanceTable clients={clients || []} alerts={alerts || []} clientStates={displayClientStates || []} />
               </div>
             </div>
           </div>
