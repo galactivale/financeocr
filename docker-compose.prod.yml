@@ -1,14 +1,15 @@
+# Production Docker Compose Configuration
 version: '3.8'
 
 services:
   # Database
   postgres:
     image: postgres:15-alpine
-    container_name: vaultcpa-postgres
+    container_name: vaultcpa-postgres-prod
     environment:
       POSTGRES_DB: vaultcpa
       POSTGRES_USER: vaultcpa_user
-      POSTGRES_PASSWORD: vaultcpa_secure_password_2024
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vaultcpa_secure_password_2024}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - "5432:5432"
@@ -30,13 +31,13 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: vaultcpa-backend
+    container_name: vaultcpa-backend-prod
     environment:
       NODE_ENV: production
       PORT: 5000
-      DATABASE_URL: postgresql://vaultcpa_user:vaultcpa_secure_password_2024@postgres:5432/vaultcpa
-      JWT_SECRET: your_jwt_secret_key_here
-      CORS_ORIGIN: http://localhost:3000
+      DATABASE_URL: postgresql://vaultcpa_user:${POSTGRES_PASSWORD:-vaultcpa_secure_password_2024}@postgres:5432/vaultcpa
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
     ports:
       - "5000:5000"
     networks:
@@ -57,11 +58,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: vaultcpa-frontend
+    container_name: vaultcpa-frontend-prod
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:5000
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     ports:
       - "3000:3000"
     networks:
@@ -77,32 +78,10 @@ services:
       retries: 3
       start_period: 40s
 
-  # Database Administration
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: vaultcpa-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@vaultcpa.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - "8080:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - vaultcpa-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-
 volumes:
   postgres_data:
-    driver: local
-  pgadmin_data:
     driver: local
 
 networks:
   vaultcpa-network:
     driver: bridge
-
