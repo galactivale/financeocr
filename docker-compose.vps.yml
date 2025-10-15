@@ -25,13 +25,13 @@ services:
     networks:
       - vaultcpa-network
     restart: unless-stopped
-    # Memory limits for VPS
+    # Memory limits for VPS - increased for complex app
     deploy:
       resources:
         limits:
-          memory: 500M
+          memory: 1G
         reservations:
-          memory: 200M
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vaultcpa_user -d vaultcpa"]
       interval: 30s
@@ -57,29 +57,29 @@ services:
     container_name: vaultcpa-backend-vps
     environment:
       NODE_ENV: production
-      PORT: 5000
+      PORT: 3080
       DATABASE_URL: postgresql://vaultcpa_user:${POSTGRES_PASSWORD:-vaultcpa_secure_password_2024}@postgres:5432/vaultcpa
       JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       # Node.js memory optimizations
-      NODE_OPTIONS: "--max-old-space-size=256"
+      NODE_OPTIONS: "--max-old-space-size=512"
     ports:
-      - "5000:5000"
+      - "3080:3080"
     networks:
       - vaultcpa-network
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
-    # Memory limits for VPS
+    # Memory limits for VPS - increased for complex app
     deploy:
       resources:
         limits:
-          memory: 400M
+          memory: 1G
         reservations:
-          memory: 300M
+          memory: 512M
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -93,10 +93,10 @@ services:
     container_name: vaultcpa-frontend-vps
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3080}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       # Node.js memory optimizations
-      NODE_OPTIONS: "--max-old-space-size=256"
+      NODE_OPTIONS: "--max-old-space-size=1024"
     ports:
       - "3000:3000"
     networks:
@@ -105,13 +105,13 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
-    # Memory limits for VPS
+    # Memory limits for VPS - increased for complex app
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 1G
         reservations:
-          memory: 200M
+          memory: 512M
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s

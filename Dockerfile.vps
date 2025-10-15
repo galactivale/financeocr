@@ -16,8 +16,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set memory limit for build process
-ENV NODE_OPTIONS="--max-old-space-size=512"
+# Set memory limit for build process - increased for complex app
+ENV NODE_OPTIONS="--max-old-space-size=8192 --optimize-for-size"
 
 # Next.js collects completely anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -54,8 +54,8 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Set memory limit for runtime
-ENV NODE_OPTIONS="--max-old-space-size=256"
+# Set memory limit for runtime - increased for complex app
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 
 # server.js is created by next build from the standalone output
 CMD ["node", "server.js"]

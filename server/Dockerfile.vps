@@ -16,8 +16,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set memory limit for build process
-ENV NODE_OPTIONS="--max-old-space-size=512"
+# Set memory limit for build process - increased for Prisma generation
+ENV NODE_OPTIONS="--max-old-space-size=2048 --optimize-for-size"
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -43,13 +43,13 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modul
 
 USER nodejs
 
-EXPOSE 5000
+EXPOSE 3080
 
-# Set memory limit for runtime
-ENV NODE_OPTIONS="--max-old-space-size=256"
+# Set memory limit for runtime - increased for complex app
+ENV NODE_OPTIONS="--max-old-space-size=512"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:3080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 CMD ["npm", "start"]
