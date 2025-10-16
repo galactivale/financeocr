@@ -30,6 +30,9 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# Allow .env files to be committed (uncomment the line below to ignore them)
+# .env
+
 # vercel
 .vercel
 
