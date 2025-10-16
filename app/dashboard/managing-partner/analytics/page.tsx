@@ -428,19 +428,19 @@ export default function AnalyticsPage() {
                     <CardBody>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                          <ChartBarIcon className="w-8 h-8 text-green-500 mx-auto mb-3" />
+                          <ChartBarIcon />
                           <div className="text-2xl font-bold text-green-500 mb-2">+{analyticsData.roiAnalysis.premiumPricing}%</div>
                           <div className="text-gray-400 text-sm">Premium Pricing Capability</div>
                           <div className="text-green-400 text-xs mt-1">Regional Expertise Recognition</div>
                         </div>
                         <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                          <CheckCircleIcon className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+                          <CheckCircleIcon />
                           <div className="text-2xl font-bold text-blue-500 mb-2">+{analyticsData.roiAnalysis.referralGeneration}</div>
                           <div className="text-gray-400 text-sm">Referral Generation</div>
                           <div className="text-blue-400 text-xs mt-1">New Clients from Portfolio</div>
                         </div>
                         <div className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                          <ClockIcon className="w-8 h-8 text-purple-500 mx-auto mb-3" />
+                          <ClockIcon />
                           <div className="text-2xl font-bold text-purple-500 mb-2">{analyticsData.roiAnalysis.regionalLeadership}%</div>
                           <div className="text-gray-400 text-sm">Regional Market Leadership</div>
                           <div className="text-purple-400 text-xs mt-1">Professional Reputation</div>

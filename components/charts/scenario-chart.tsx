@@ -49,7 +49,7 @@ export const ScenarioChart: React.FC<ScenarioChartProps> = ({ scenarios }) => {
   const getChartOptions = (type: 'bar' | 'radar' | 'line') => {
     const baseOptions = {
     chart: {
-        type: type as const,
+        type: type,
         height: 300,
       background: 'transparent',
         toolbar: { show: false }

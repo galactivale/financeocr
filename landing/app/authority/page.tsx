@@ -1,5 +1,5 @@
-import { Navigation } from "@/components/navigation"
-import { AuthoritySection } from "@/components/authority-section"
+import { Navigation } from "../../components/navigation"
+import { AuthoritySection } from "@/components/landing/authority-section"
 
 export default function AuthorityPage() {
   return (

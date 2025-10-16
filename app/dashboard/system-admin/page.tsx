@@ -277,7 +277,7 @@ const SystemActivityTable = ({ alerts, tasks }: { alerts: any[], tasks: any[] })
 
   // Combine alerts and tasks for system activity
   const systemActivities = useMemo(() => {
-    const activities = [];
+    const activities: any[] = [];
     
     // Add alerts as activities
     alerts.slice(0, 5).forEach(alert => {
@@ -424,8 +424,8 @@ export default function SystemAdminDashboard() {
   
   // Regular data hooks (used when not in personalized mode) with organizationId
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10, organizationId: organizationId || 'demo-org-id' });
-  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20, organizationId: organizationId || 'demo-org-id' });
-  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20, organizationId: organizationId || 'demo-org-id' });
+  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20 });
+  const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20 });
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();
 
   // Use personalized data if available, otherwise use regular data

@@ -26,15 +26,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Check if user is already logged in
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
         const token = localStorage.getItem('token');
-        if (token) {
-          const response = await apiClient.getProfile();
-          if (response.success && response.data) {
-            setUser(response.data);
-          } else {
-            // Token is invalid, clear it
+        const storedUser = localStorage.getItem('user');
+        if (token && storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
+          } catch (parseError) {
+            console.error('Failed to parse stored user data:', parseError);
+            // Token or user data is invalid, clear it
             localStorage.removeItem('token');
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('user');

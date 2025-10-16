@@ -35,8 +35,8 @@ export const BenchmarkingChart: React.FC<BenchmarkingChartProps> = ({
         horizontal: false,
         columnWidth: '50%',
         borderRadius: 8,
-        borderRadiusApplication: 'end',
-        borderRadiusWhenStacked: 'last'
+        borderRadiusApplication: 'end' as const,
+        borderRadiusWhenStacked: 'last' as const
       }
     },
     dataLabels: {

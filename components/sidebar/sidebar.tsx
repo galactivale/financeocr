@@ -71,7 +71,11 @@ export const SidebarWrapper = () => {
               />
               <CollapseItems
                 icon={<BalanceIcon />}
-                items={["Banks Accounts", "Credit Cards", "Loans"]}
+                items={[
+                  { name: "Banks Accounts", href: "/banks" },
+                  { name: "Credit Cards", href: "/credit-cards" },
+                  { name: "Loans", href: "/loans" }
+                ]}
                 title="Balances"
               />
               <SidebarItem

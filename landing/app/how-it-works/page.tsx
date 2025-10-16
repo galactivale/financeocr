@@ -1,5 +1,5 @@
-import { Navigation } from "@/components/navigation"
-import { HowItWorksSection } from "@/components/how-it-works-section"
+import { Navigation } from "../../components/navigation"
+import { HowItWorksSection } from "@/components/landing/how-it-works-section"
 
 export default function HowItWorksPage() {
   return (

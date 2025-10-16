@@ -1,5 +1,5 @@
-import { Navigation } from "@/components/navigation"
-import { PricingSection } from "@/components/pricing-section"
+import { Navigation } from "../../components/navigation"
+import { PricingSection } from "@/components/landing/pricing-section"
 
 export default function PricingPage() {
   return (

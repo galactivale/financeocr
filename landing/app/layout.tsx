@@ -2,8 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Playfair_Display } from "next/font/google"
-import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
+import { Roboto_Mono } from "next/font/google"
 import "./globals.css"
 import { Suspense } from "react"
 
@@ -16,6 +15,12 @@ const inter = Inter({
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
+  display: "swap",
+})
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
   display: "swap",
 })
 
@@ -33,10 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} ${playfair.variable} ${GeistMono.variable}`}>
+      <body className={`font-sans ${inter.variable} ${playfair.variable} ${robotoMono.variable}`}>
         <Suspense>
           {children}
-          <Analytics />
         </Suspense>
       </body>
     </html>

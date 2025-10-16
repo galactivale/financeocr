@@ -124,9 +124,10 @@ export function useAnalytics(params?: {
   );
 }
 
-export function useProfile() {
-  return useApi(() => apiClient.getProfile());
-}
+// Disabled - profile is stored in localStorage after login
+// export function useProfile() {
+//   return useApi(() => apiClient.getProfile());
+// }
 
 export function useHealthCheck() {
   return useApi(() => apiClient.healthCheck());

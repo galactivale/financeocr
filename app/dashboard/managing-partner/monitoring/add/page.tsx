@@ -71,10 +71,6 @@ const AddNexusMonitoring = () => {
     { code: 'WI', name: 'Wisconsin', threshold: 100000, description: 'Economic nexus threshold: $100,000 in sales' },
   ];
 
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
-
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
@@ -89,6 +85,10 @@ const AddNexusMonitoring = () => {
       setLoading(false);
     }
   }, [organizationId]);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);

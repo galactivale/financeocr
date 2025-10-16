@@ -286,6 +286,20 @@ class ApiClient {
 
   // Demo mode - no authentication required
 
+  // Auth methods
+  async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
+    return this.request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  }
+
+  async logout(): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return this.request('/api/auth/logout', {
+      method: 'POST',
+    });
+  }
+
   // Client methods
   async getClients(params?: {
     page?: number;

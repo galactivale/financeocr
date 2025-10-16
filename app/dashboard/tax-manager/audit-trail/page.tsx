@@ -244,7 +244,7 @@ const formatDateTime = (dateString: string): string => {
   });
 };
 
-const getRiskColor = (riskLevel: string): string => {
+const getRiskColor = (riskLevel: string): "success" | "default" | "secondary" | "danger" | "primary" | "warning" => {
   switch (riskLevel) {
     case 'critical': return 'danger';
     case 'high': return 'warning';

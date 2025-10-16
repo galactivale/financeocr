@@ -224,17 +224,6 @@ const TaxManagerMonitoring = () => {
     }
   }, [mapFocusState]);
 
-  const handleMapStateHover = useCallback((stateCode: string, event?: any) => {
-    // Add hover effects for better interactivity - only for states with data
-    const stateData = nexusData[stateCode];
-    if (stateData && stateData.hasData) {
-      setHoveredState(stateCode);
-      if (event) {
-        setTooltipPosition({ x: event.clientX, y: event.clientY });
-      }
-    }
-  }, [nexusData]);
-
   const handleMapStateLeave = () => {
     setHoveredState(null);
   };
@@ -366,6 +355,17 @@ const TaxManagerMonitoring = () => {
 
     return stateData;
   }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError, fallbackAlerts, fallbackClientStates]);
+
+  const handleMapStateHover = useCallback((stateCode: string, event?: any) => {
+    // Add hover effects for better interactivity - only for states with data
+    const stateData = nexusData[stateCode];
+    if (stateData && stateData.hasData) {
+      setHoveredState(stateCode);
+      if (event) {
+        setTooltipPosition({ x: event.clientX, y: event.clientY });
+      }
+    }
+  }, [nexusData]);
 
   // Custom states configuration for the map
   const customStates = useMemo(() => {

@@ -1,4 +1,7 @@
-import { IconProps } from "./icon";
+interface IconProps {
+  size?: number;
+  filled?: boolean;
+}
 
 export const CommunicationIcon = ({ size = 24, filled = false }: IconProps) => {
   if (filled) {

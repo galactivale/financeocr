@@ -93,10 +93,14 @@ export default function CommunicationsPage() {
     content: ""
   });
 
+  // Fetch communications data
+  const { data: communicationsData, loading: communicationsLoading, error: communicationsError } = useCommunications();
+  const communications = communicationsData || [];
+
   // Filter communications
   const filteredCommunications = communications.filter(comm =>
-    comm.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    comm.subject.toLowerCase().includes(searchTerm.toLowerCase())
+    comm.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    comm.subject?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Statistics
@@ -137,7 +141,7 @@ export default function CommunicationsPage() {
     setNewCommunication({ type: "email", client: "", subject: "", content: "" });
   };
 
-  const handleViewDetails = (communication: Communication) => {
+  const handleViewDetails = (communication: any) => {
     setSelectedCommunication(communication);
     onOpen();
   };
@@ -364,7 +368,7 @@ export default function CommunicationsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-gray-300">{comm.client}</div>
+                      <div className="text-gray-300">{comm.client?.name}</div>
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs truncate text-white">{comm.subject}</div>
@@ -384,7 +388,7 @@ export default function CommunicationsPage() {
                       </Chip>
                     </TableCell>
                     <TableCell>
-                      <div className="text-gray-300">{comm.date}</div>
+                      <div className="text-gray-300">{comm.sentDate}</div>
                     </TableCell>
                     <TableCell>
                       <Button
@@ -462,11 +466,11 @@ export default function CommunicationsPage() {
                       </div>
                       <div>
                         <label className="text-sm text-gray-400">Client</label>
-                        <div className="text-white mt-1">{selectedCommunication.client}</div>
+                        <div className="text-white mt-1">{selectedCommunication.client?.name}</div>
                       </div>
                       <div>
                         <label className="text-sm text-gray-400">Date</label>
-                        <div className="text-white mt-1">{selectedCommunication.date}</div>
+                        <div className="text-white mt-1">{selectedCommunication.sentDate}</div>
                       </div>
                     </div>
 

@@ -1,5 +1,5 @@
-import { Navigation } from "@/components/navigation"
-import { PlatformSection } from "@/components/platform-section"
+import { Navigation } from "../../components/navigation"
+import { PlatformSection } from "@/components/landing/platform-section"
 
 export default function PlatformPage() {
   return (

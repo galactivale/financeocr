@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Card, 
@@ -222,7 +222,7 @@ const decisionTemplates: DecisionTemplate[] = [
   }
 ];
 
-export default function DecisionBuilder() {
+function DecisionBuilderContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -1807,5 +1807,15 @@ export default function DecisionBuilder() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DecisionBuilder() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-white text-xl">Loading...</div>
+    </div>}>
+      <DecisionBuilderContent />
+    </Suspense>
   );
 }

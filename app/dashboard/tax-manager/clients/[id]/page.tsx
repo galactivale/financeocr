@@ -133,7 +133,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     if (!allAlertsData?.alerts) return [];
     
     // Try to get client ID from client detail data first
-    let actualClientId = clientDetailData?.data?.id;
+    let actualClientId = clientDetailData?.client?.id;
     
     // If client detail data is not available, try to find the client ID from alerts
     if (!actualClientId) {
@@ -291,13 +291,13 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         {/* Dynamic Nexus Alert */}
-        {metrics?.openNexusAlerts > 0 && (
+        {metrics?.openNexusAlerts && metrics.openNexusAlerts > 0 && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="w-4 h-4 text-red-400" />
               <span className="text-red-300 text-sm font-medium">
                 {metrics.openNexusAlerts} Active Nexus Alert{metrics.openNexusAlerts > 1 ? 's' : ''}
-                {metrics.penaltyExposure > 0 && (
+                {metrics.penaltyExposure && metrics.penaltyExposure > 0 && (
                   <span className="ml-2">• Potential Exposure: {formatCurrency(metrics.penaltyExposure)}</span>
                 )}
               </span>
@@ -425,9 +425,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                   <div
                     key={`${state.stateCode}-${index}`}
                         className={`group bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/20 cursor-pointer ${
-                      expandedState === state.code ? 'ring-2 ring-blue-500/50' : ''
+                      expandedState === state.stateCode ? 'ring-2 ring-blue-500/50' : ''
                     }`}
-                    onClick={() => setExpandedState(expandedState === state.code ? null : state.code)}
+                    onClick={() => setExpandedState(expandedState === state.stateCode ? null : state.stateCode)}
                   >
                         <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
@@ -1593,7 +1593,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                 <div className="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-4">
                   <div className="space-y-3">
                     {client.dataProcessing?.length > 0 ? (
-                      client.dataProcessing.map((item, index) => (
+                      client.dataProcessing.map((item: any, index: number) => (
                         <div key={item.id || `processing-${index}`} className="flex items-center justify-between p-2 bg-white/5 rounded-lg">
                         <div>
                             <p className="text-white text-sm font-semibold">{item.fileName || `Processing Item ${index + 1}`}</p>

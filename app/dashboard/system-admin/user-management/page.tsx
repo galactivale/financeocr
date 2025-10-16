@@ -265,11 +265,13 @@ export default function UserManagementPage() {
                 selectedKeys={[firmFilter]}
                 onSelectionChange={(keys) => setFirmFilter(Array.from(keys)[0] as string)}
                 className="max-w-xs"
+                items={[{ key: "all", value: "all", label: "All Firms" }, ...uniqueFirms.map(firm => ({ key: firm, value: firm, label: firm }))]}
               >
-                <SelectItem key="all" value="all">All Firms</SelectItem>
-                {uniqueFirms.map(firm => (
-                  <SelectItem key={firm} value={firm}>{firm}</SelectItem>
-                ))}
+                {(item) => (
+                  <SelectItem key={item.key} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                )}
               </Select>
               <Button
                 color="primary"

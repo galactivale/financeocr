@@ -35,7 +35,7 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-const getRiskColor = (riskLevel: string): string => {
+const getRiskColor = (riskLevel: string): "success" | "default" | "secondary" | "danger" | "primary" | "warning" => {
   switch (riskLevel) {
     case 'critical': return 'danger';
     case 'high': return 'warning';
@@ -45,7 +45,7 @@ const getRiskColor = (riskLevel: string): string => {
   }
 };
 
-const getStatusColor = (status: string): string => {
+const getStatusColor = (status: string): "success" | "default" | "secondary" | "danger" | "primary" | "warning" => {
   switch (status) {
     case 'partner-review-required': return 'warning';
     case 'immediate-action-required': return 'danger';
@@ -92,21 +92,21 @@ export default function ClientDetailPage() {
       clientId,
       organizationId: finalOrganizationId,
       clientData,
-      hasData: !!clientData?.data
+      hasData: !!clientData
     });
     
-    if (!clientData?.data) return null;
+    if (!clientData) return null;
     
-    const foundClient = clientData.data;
+    const foundClient = clientData;
 
     return {
       id: foundClient.id,
-      companyName: foundClient.name || foundClient.companyName || 'Unknown Company',
+      companyName: foundClient.name || 'Unknown Company',
       clientCode: foundClient.slug || `CL-${foundClient.id.slice(-6)}`,
       industryType: foundClient.industry || 'General Business',
       clientSince: foundClient.createdAt || new Date().toISOString(),
       lastUpdated: foundClient.updatedAt || new Date().toISOString(),
-      annualRevenue: foundClient.annualRevenue || 0,
+      annualRevenue: 0, // Default value since annualRevenue is not in Client interface
       riskProfile: {
         overallRiskScore: Math.floor(Math.random() * 40) + 60, // 60-100
         riskLevel: Math.random() > 0.7 ? "critical" : Math.random() > 0.5 ? "high" : Math.random() > 0.3 ? "medium" : "low",
@@ -121,12 +121,12 @@ export default function ClientDetailPage() {
         alertCategories: []
       },
       financialMetrics: {
-        potentialPenaltyExposure: foundClient.annualRevenue ? foundClient.annualRevenue * 0.1 : 50000,
-        preventedPenalties: foundClient.annualRevenue ? foundClient.annualRevenue * 0.05 : 25000,
+        potentialPenaltyExposure: 50000,
+        preventedPenalties: 25000,
         roiPercentage: Math.floor(Math.random() * 100) + 50,
-        annualComplianceFees: foundClient.annualRevenue ? foundClient.annualRevenue * 0.02 : 10000,
-        totalBilledYTD: foundClient.annualRevenue ? foundClient.annualRevenue * 0.015 : 7500,
-        estimatedYearEndBilling: foundClient.annualRevenue ? foundClient.annualRevenue * 0.02 : 10000
+        annualComplianceFees: 10000,
+        totalBilledYTD: 7500,
+        estimatedYearEndBilling: 10000
       },
       jurisdictionalData: {
         operatingStates: ["CA", "NY", "TX"],
@@ -161,7 +161,7 @@ export default function ClientDetailPage() {
       performanceMetrics: {
         clientProfitability: Math.random() > 0.5 ? "high" : "medium",
         serviceUtilization: Math.random() * 0.4 + 0.6,
-        riskAdjustedValue: foundClient.annualRevenue ? foundClient.annualRevenue * 0.15 : 75000,
+        riskAdjustedValue: 75000,
         retentionProbability: Math.random() * 0.2 + 0.8,
         upsellOpportunities: []
       },
@@ -195,7 +195,7 @@ export default function ClientDetailPage() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-400 text-xl mb-4">Error Loading Client</div>
-          <p className="text-gray-400 mb-4">{clientError.message}</p>
+          <p className="text-gray-400 mb-4">{clientError}</p>
           <Button onClick={() => router.back()} color="primary">
             Go Back
           </Button>

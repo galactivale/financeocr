@@ -93,12 +93,12 @@ export default function AddClientPage() {
     description: ''
   });
 
-  const [errors, setErrors] = useState<Partial<ClientFormData>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const finalOrganizationId = organizationId || 'demo-org-id';
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<ClientFormData> = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = 'Company name is required';
     if (!formData.legalName.trim()) newErrors.legalName = 'Legal name is required';
@@ -160,7 +160,11 @@ export default function AddClientPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
@@ -298,8 +302,7 @@ export default function AddClientPage() {
                       errorMessage={errors.industry}
                       classNames={{
                         trigger: "bg-white/10 border-white/20 data-[hover=true]:border-white/30",
-                        value: "text-white",
-                        popover: "bg-black border border-white/20"
+                        value: "text-white"
                       }}
                     >
                       {INDUSTRY_OPTIONS.map((industry) => (
@@ -406,8 +409,7 @@ export default function AddClientPage() {
                       errorMessage={errors.state}
                       classNames={{
                         trigger: "bg-white/10 border-white/20 data-[hover=true]:border-white/30",
-                        value: "text-white",
-                        popover: "bg-black border border-white/20"
+                        value: "text-white"
                       }}
                     >
                       {US_STATES.map((state) => (

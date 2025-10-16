@@ -320,7 +320,7 @@ export default function RiskManagementPage() {
         <div className="text-center">
           <div className="text-red-400 text-xl mb-4">Error Loading Risk Data</div>
           <p className="text-gray-400 mb-4">
-            {clientsError?.message || alertsError?.message || statesError?.message || 'Unknown error occurred'}
+            {clientsError || alertsError || statesError || 'Unknown error occurred'}
           </p>
         </div>
       </div>
@@ -506,28 +506,28 @@ export default function RiskManagementPage() {
                         <CardBody className="p-6">
                           <div className="flex items-center justify-between mb-4">
                             <h4 className="text-white font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                            {getTrendIcon(metric.trend)}
+                            {typeof metric === 'object' && 'trend' in metric ? getTrendIcon(metric.trend) : null}
                           </div>
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                              <span className="text-2xl font-bold text-white">{metric.score}%</span>
+                              <span className="text-2xl font-bold text-white">{typeof metric === 'object' && 'score' in metric ? metric.score : metric}%</span>
                               <Chip 
                                 size="sm" 
                                 className={`${
-                                  metric.score >= 85 ? 'bg-green-500/20 text-green-500' :
-                                  metric.score >= 70 ? 'bg-yellow-500/20 text-yellow-500' :
+                                  (typeof metric === 'object' && 'score' in metric ? metric.score : metric) >= 85 ? 'bg-green-500/20 text-green-500' :
+                                  (typeof metric === 'object' && 'score' in metric ? metric.score : metric) >= 70 ? 'bg-yellow-500/20 text-yellow-500' :
                                   'bg-red-500/20 text-red-500'
                                 } border-0`}
                               >
-                                {metric.status}
+                                {typeof metric === 'object' && 'status' in metric ? metric.status : 'Unknown'}
                               </Chip>
                             </div>
                             <Progress 
-                              value={metric.score} 
+                              value={typeof metric === 'object' && 'score' in metric ? metric.score : metric} 
                               className="w-full"
                               classNames={{
                                 track: "bg-gray-700",
-                                indicator: metric.score >= 85 ? "bg-green-500" : metric.score >= 70 ? "bg-yellow-500" : "bg-red-500"
+                                indicator: (typeof metric === 'object' && 'score' in metric ? metric.score : metric) >= 85 ? "bg-green-500" : (typeof metric === 'object' && 'score' in metric ? metric.score : metric) >= 70 ? "bg-yellow-500" : "bg-red-500"
                               }}
                             />
                           </div>

@@ -104,7 +104,7 @@ export default function TaxManagerProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(profileData.personalInfo);
 
-  const getCredentialStatus = () => {
+  const getCredentialStatus = (): { status: string; color: "success" | "default" | "secondary" | "danger" | "primary" | "warning"; message: string } => {
     const daysUntilExpiry = Math.ceil((new Date(profileData.credentials.cpaLicense.expires).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     if (daysUntilExpiry < 30) return { status: "critical", color: "danger", message: "License expires in " + daysUntilExpiry + " days" };
     if (daysUntilExpiry < 90) return { status: "warning", color: "warning", message: "License expires in " + daysUntilExpiry + " days" };
@@ -117,7 +117,7 @@ export default function TaxManagerProfilePage() {
     return progress;
   };
 
-  const getIntegrationStatusColor = (status) => {
+  const getIntegrationStatusColor = (status: string): "success" | "default" | "secondary" | "danger" | "primary" | "warning" => {
     switch (status) {
       case "connected": return "success";
       case "error": return "danger";
@@ -223,7 +223,7 @@ export default function TaxManagerProfilePage() {
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
             <Tabs
               selectedKey={selectedTab}
-              onSelectionChange={setSelectedTab}
+              onSelectionChange={(key) => setSelectedTab(key as string)}
               className="mb-6"
               classNames={{
                 tabList: "bg-white/5 border border-white/10",
