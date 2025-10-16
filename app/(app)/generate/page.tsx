@@ -208,7 +208,7 @@ export default function GeneratePage() {
     setCurrentStepMessage("");
     
     // Generate a unique organization ID for each dashboard generation
-    // This ensures each firm only sees their own clients
+    // The backend will create a new organization with this ID
     const organizationId = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     
     try {

@@ -152,103 +152,132 @@ async function getFallbackDashboardData(formData, organizationId) {
   console.log('🔄 Generating fallback data with database records...');
   
   try {
-    // Create a basic client record in the database
-    const client = await prisma.client.create({
-      data: {
-        organizationId,
-        name: formData.clientName,
-        slug: generateSlug(formData.clientName),
-        industry: formData.industry || 'Technology',
-        annualRevenue: parseRevenue(formData.annualRevenue),
-        riskLevel: 'medium',
-        qualityScore: 85,
-        status: 'active',
-        tags: ['generated', 'fallback'],
-        primaryContactName: 'John Smith',
-        primaryContactEmail: 'john@company.com',
-        primaryContactPhone: '+1-555-0123',
-        addressLine1: '123 Business St',
-        city: 'San Francisco',
-        state: 'CA',
-        postalCode: '94105',
-        country: 'US',
-        notes: 'Fallback generated client'
-      }
-    });
+    // Create 10 client records in the database
+    const clients = [];
+    const industries = ['Technology', 'Healthcare', 'Manufacturing', 'Retail', 'Financial Services', 'Real Estate', 'Education', 'Automotive', 'Energy', 'Consulting'];
+    const riskLevels = ['low', 'medium', 'high', 'critical'];
+    const cities = ['San Francisco', 'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas'];
+    const states = ['CA', 'NY', 'TX', 'IL', 'FL', 'PA', 'OH', 'GA', 'NC', 'MI'];
 
-    console.log('✅ Fallback client created with ID:', client.id);
+    for (let i = 0; i < 10; i++) {
+      const industry = industries[i % industries.length];
+      const riskLevel = riskLevels[i % riskLevels.length];
+      const city = cities[i % cities.length];
+      const state = states[i % states.length];
+      const clientName = i === 0 ? formData.clientName : `${formData.clientName} Client ${i + 1}`;
+      
+      const client = await prisma.client.create({
+        data: {
+          organizationId,
+          name: clientName,
+          slug: generateSlug(clientName),
+          industry: industry,
+          annualRevenue: Math.floor(Math.random() * 5000000) + 500000, // Random revenue between 500K and 5.5M
+          riskLevel: riskLevel,
+          qualityScore: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
+          status: 'active',
+          tags: ['generated', 'fallback', industry.toLowerCase()],
+          primaryContactName: `Contact ${i + 1}`,
+          primaryContactEmail: `contact${i + 1}@${clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+          primaryContactPhone: `+1-555-${String(i + 1).padStart(4, '0')}`,
+          addressLine1: `${100 + i} Business St`,
+          city: city,
+          state: state,
+          postalCode: `${10000 + i}`,
+          country: 'US',
+          notes: `Fallback generated client ${i + 1}`
+        }
+      });
 
-    // Create basic client states
+      clients.push(client);
+      console.log(`✅ Fallback client ${i + 1} created with ID:`, client.id);
+    }
+
+    // Create basic client states for all clients
     const clientStates = [];
-    for (const state of formData.priorityStates) {
-      const clientState = await prisma.clientState.create({
-        data: {
-          clientId: client.id,
-          organizationId,
-          stateCode: state,
-          stateName: getStateName(state),
-          status: 'monitoring',
-          thresholdAmount: 100000,
-          currentAmount: Math.floor(Math.random() * 100000) + 50000,
-          notes: 'Fallback generated state'
-        }
-      });
-      clientStates.push(clientState);
-    }
-
-    // Create basic nexus alerts
-    const nexusAlerts = [];
-    if (formData.priorityStates.length > 0) {
-      const nexusAlert = await prisma.nexusAlert.create({
-        data: {
-          clientId: client.id,
-          organizationId,
-          stateCode: formData.priorityStates[0],
-          alertType: 'threshold_breach',
-          priority: 'medium',
-          status: 'open',
-          title: 'Threshold Approaching',
-          description: 'Current revenue is approaching the threshold',
-          thresholdAmount: 100000,
-          currentAmount: 85000,
-          penaltyRisk: 15000
-        }
-      });
-      nexusAlerts.push(nexusAlert);
-    }
-
-    // Create basic tasks
-    const tasks = [];
-    const task = await prisma.task.create({
-      data: {
-        organizationId,
-        clientId: client.id,
-        title: 'Review Compliance Status',
-        description: 'Review compliance status for all states',
-        category: 'compliance',
-        type: 'review',
-        priority: 'high',
-        status: 'pending',
-        stateCode: formData.priorityStates[0] || 'CA',
-        estimatedHours: 4,
-        progress: 0
+    for (const client of clients) {
+      for (const state of formData.priorityStates) {
+        const clientState = await prisma.clientState.create({
+          data: {
+            clientId: client.id,
+            organizationId,
+            stateCode: state,
+            stateName: getStateName(state),
+            status: 'monitoring',
+            thresholdAmount: 100000,
+            currentAmount: Math.floor(Math.random() * 100000) + 50000,
+            notes: `Fallback generated state for ${client.name}`
+          }
+        });
+        clientStates.push(clientState);
       }
-    });
-    tasks.push(task);
+    }
+
+    // Create basic nexus alerts for some clients
+    const nexusAlerts = [];
+    for (let i = 0; i < Math.min(5, clients.length); i++) { // Create alerts for first 5 clients
+      const client = clients[i];
+      if (formData.priorityStates.length > 0) {
+        const nexusAlert = await prisma.nexusAlert.create({
+          data: {
+            clientId: client.id,
+            organizationId,
+            stateCode: formData.priorityStates[i % formData.priorityStates.length],
+            alertType: 'threshold_breach',
+            priority: i % 2 === 0 ? 'high' : 'medium',
+            status: 'open',
+            title: `${client.name} Threshold Approaching`,
+            description: `Current revenue is approaching the threshold for ${client.name}`,
+            thresholdAmount: 100000,
+            currentAmount: 85000 + (i * 5000),
+            penaltyRisk: 15000 + (i * 2000)
+          }
+        });
+        nexusAlerts.push(nexusAlert);
+      }
+    }
+
+    // Create basic tasks for some clients
+    const tasks = [];
+    for (let i = 0; i < Math.min(3, clients.length); i++) { // Create tasks for first 3 clients
+      const client = clients[i];
+      const task = await prisma.task.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          title: `Review Compliance Status - ${client.name}`,
+          description: `Review compliance status for all states for ${client.name}`,
+          category: 'compliance',
+          type: 'review',
+          priority: i === 0 ? 'high' : 'medium',
+          status: 'pending',
+          stateCode: formData.priorityStates[i % formData.priorityStates.length] || 'CA',
+          estimatedHours: 4 + i,
+          progress: 0
+        }
+      });
+      tasks.push(task);
+    }
 
     return {
-      client,
-      clientStates,
-      nexusAlerts,
-      tasks,
-      alerts: [],
-      nexusActivities: [],
-      businessProfile: null,
-      contacts: [],
-      businessLocations: [],
-      revenueBreakdowns: [],
-      customerDemographics: null,
-      geographicDistributions: []
+      data: {
+        clients: clients, // Array of 10 clients
+        clientStates,
+        nexusAlerts,
+        tasks,
+        alerts: [],
+        nexusActivities: [],
+        businessProfile: null,
+        contacts: [],
+        businessLocations: [],
+        revenueBreakdowns: [],
+        customerDemographics: null,
+        geographicDistributions: []
+      },
+      summary: {
+        totalClients: clients.length,
+        totalRecords: clientStates.length + nexusAlerts.length + tasks.length
+      }
     };
 
   } catch (error) {
@@ -320,15 +349,54 @@ router.post('/generate', async (req, res) => {
   try {
     const { formData, organizationId } = req.body;
 
-    if (!formData || !organizationId) {
-      console.error('❌ Missing required fields:', { formData: !!formData, organizationId: !!organizationId });
+    if (!formData) {
+      console.error('❌ Missing required fields:', { formData: !!formData });
       return res.status(400).json({ 
-        error: 'Missing required fields: formData and organizationId are required' 
+        error: 'Missing required fields: formData is required' 
       });
     }
 
+    // Create a new organization for this dashboard generation
+    console.log('🏢 Creating new organization for dashboard generation...');
+    const newOrganization = await prisma.organization.create({
+      data: {
+        id: organizationId || `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+        slug: formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now(),
+        name: `${formData.clientName} Dashboard Organization`,
+        legalName: `${formData.clientName} LLC`,
+        subscriptionTier: 'professional',
+        subscriptionStatus: 'active',
+        email: `admin@${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        phone: '+1-555-0123',
+        website: `https://${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        addressLine1: '123 Business Ave',
+        city: 'New York',
+        state: 'NY',
+        postalCode: '10001',
+        country: 'US',
+        settings: {
+          timezone: 'America/New_York',
+          currency: 'USD',
+          dateFormat: 'MM/DD/YYYY'
+        },
+        branding: {
+          primaryColor: '#3B82F6',
+          logo: null
+        },
+        features: {
+          analytics: true,
+          integrations: true,
+          multiUser: true,
+          apiAccess: true
+        }
+      }
+    });
+
+    console.log('✅ Organization created:', { id: newOrganization.id, name: newOrganization.name });
+    const finalOrganizationId = newOrganization.id;
+
     console.log('📊 Generating risk-based dashboard data...');
-    const generatedData = await generateDashboardData(formData, organizationId);
+    const generatedData = await generateDashboardData(formData, finalOrganizationId);
     
     console.log('📊 Generated data structure:', {
       hasClients: !!generatedData.data?.clients || !!generatedData.clients,
@@ -363,7 +431,7 @@ router.post('/generate', async (req, res) => {
     const averageQualityScore = totalClients > 0 ? Math.round(clients.reduce((sum, c) => sum + (c.qualityScore || 0), 0) / totalClients) : 0;
         
         console.log('💾 Creating dashboard with data:', {
-          organizationId,
+          organizationId: finalOrganizationId,
           clientName: formData.clientName,
           totalClients,
           totalRevenue,
@@ -372,7 +440,7 @@ router.post('/generate', async (req, res) => {
 
     const generatedDashboard = await prisma.generatedDashboard.create({
       data: {
-            organizationId,
+            organizationId: finalOrganizationId,
         clientName: formData.clientName,
             uniqueUrl: generateUniqueUrl(formData.clientName),
             clientInfo: {
@@ -471,6 +539,46 @@ router.post('/generate', async (req, res) => {
   }
 });
 
+// GET /api/dashboards/all (list all dashboards from all organizations)
+router.get('/all', async (req, res) => {
+  try {
+    console.log('🔍 Fetching all dashboards from all organizations');
+
+    const dashboards = await prisma.generatedDashboard.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        clientName: true,
+        uniqueUrl: true,
+        clientInfo: true,
+        keyMetrics: true,
+        statesMonitored: true,
+        lastUpdated: true,
+        createdAt: true,
+        isActive: true,
+        organizationId: true
+      }
+    });
+
+    console.log(`📊 Found ${dashboards.length} dashboards across all organizations`);
+
+    res.json({
+      success: true,
+      dashboards: dashboards.map(dashboard => ({
+        ...dashboard,
+        dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/view/${dashboard.uniqueUrl}`
+      }))
+    });
+
+  } catch (error) {
+    console.error('Error fetching all dashboards:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch all dashboards',
+      details: error.message 
+    });
+  }
+});
+
 // GET /api/dashboards/:url
 router.get('/:url', async (req, res) => {
   try {
@@ -479,8 +587,8 @@ router.get('/:url', async (req, res) => {
 
     const dashboard = await prisma.generatedDashboard.findUnique({
       where: { 
-        uniqueUrl: url,
-        isActive: true 
+        uniqueUrl: url
+        // Removed isActive filter to allow both active and archived dashboards
       },
       include: {
         organization: {
@@ -531,8 +639,8 @@ router.get('/', async (req, res) => {
 
     const dashboards = await prisma.generatedDashboard.findMany({
       where: { 
-        organizationId,
-        isActive: true 
+        organizationId
+        // Remove isActive filter to get both active and archived dashboards
       },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -543,7 +651,8 @@ router.get('/', async (req, res) => {
         keyMetrics: true,
         statesMonitored: true,
         lastUpdated: true,
-        createdAt: true
+        createdAt: true,
+        isActive: true
       }
     });
 

@@ -817,6 +817,54 @@ class ApiClient {
     }
   }
 
+  async getAllDashboards(): Promise<{
+    success: boolean;
+    dashboards?: {
+      id: string;
+      clientName: string;
+      uniqueUrl: string;
+      dashboardUrl: string;
+      clientInfo: any;
+      keyMetrics: any;
+      statesMonitored: string[];
+      lastUpdated: string;
+      createdAt: string;
+      isActive: boolean;
+    }[];
+    error?: string;
+  }> {
+    const url = `${this.baseURL}/api/dashboards/all`;
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || 'Request failed',
+        };
+      }
+
+      return {
+        success: true,
+        dashboards: data.dashboards || [],
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error',
+      };
+    }
+  }
+
   // Personalized Dashboard API methods
   async getPersonalizedClients(url: string): Promise<ApiResponse<any[]>> {
     return this.request(`/api/personalized-dashboard/${url}/clients`);

@@ -56,9 +56,8 @@ export const DashboardProvider = ({ children }: DashboardProviderProps) => {
       setLoading(true);
       setError(null);
       
-      // Use demo organization ID for now
-      const organizationId = "demo-org-id";
-      const response = await apiClient.getDashboards(organizationId);
+      // Fetch dashboards from all organizations
+      const response = await apiClient.getAllDashboards();
       
       // Dashboard API response received
       
