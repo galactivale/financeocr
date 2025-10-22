@@ -207,17 +207,13 @@ export default function GeneratePage() {
     setGenerationProgress(0);
     setCurrentStepMessage("");
     
-    // Generate a unique organization ID for each dashboard generation
-    // The backend will create a new organization with this ID
-    const organizationId = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    
     try {
       // Start progress simulation
       const progressPromise = simulateProgress();
       
-      // Call the backend API to generate the dashboard
-      console.log('🚀 Sending dashboard generation request:', { formData, organizationId });
-      const response = await apiClient.generateDashboard(formData, organizationId);
+      // Call the backend API to generate the dashboard (backend will create organization)
+      console.log('🚀 Sending dashboard generation request:', { formData });
+      const response = await apiClient.generateDashboard(formData);
       
       // Wait for progress to complete
       await progressPromise;
@@ -235,11 +231,11 @@ export default function GeneratePage() {
         // Show success toast
         showSuccessMessage();
         
-        // Set dashboard session cookie
+        // Set dashboard session cookie with organizationId from backend
         setDashboardSession({
           dashboardUrl: response.data.uniqueUrl!,
           clientName: formData.clientName,
-          organizationId: organizationId,
+          organizationId: response.data.organizationId,
           createdAt: Date.now()
         });
         
@@ -265,8 +261,7 @@ export default function GeneratePage() {
       console.error('📋 Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
-        formData: formData,
-        organizationId: organizationId
+        formData: formData
       });
       alert(`Error generating dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {

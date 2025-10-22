@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 
 interface Client {
   id: string;
@@ -74,7 +75,7 @@ const AddNexusMonitoring = () => {
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
-      const finalOrganizationId = organizationId || 'demo-org-id';
+      const finalOrganizationId = normalizeOrgId(organizationId);
       const response = await apiClient.getClients({ limit: 100, organizationId: finalOrganizationId });
       if (response.success && response.data) {
         setClients(response.data.clients || []);
@@ -145,10 +146,16 @@ const AddNexusMonitoring = () => {
     setLoading(true);
     try {
       // Create client states for each selected state
-      const finalOrganizationId = organizationId || 'demo-org-id';
+      const finalOrganizationId = normalizeOrgId(organizationId);
+      if (!finalOrganizationId) {
+        alert('Organization context is missing. Please select an organization.');
+        setLoading(false);
+        return;
+      }
+      const ensuredOrgId = finalOrganizationId as string;
       const clientStates = selectedStates.map(stateCode => ({
         clientId: selectedClient.id,
-        organizationId: finalOrganizationId,
+        organizationId: ensuredOrgId,
         stateCode: stateCode,
         stateName: stateInfo.find(s => s.code === stateCode)?.name || stateCode,
         thresholdAmount: monitoringData[stateCode]?.thresholdAmount || stateInfo.find(s => s.code === stateCode)?.threshold || 100000,

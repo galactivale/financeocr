@@ -75,79 +75,7 @@ interface BackendAlert {
   };
 }
 
-// Fallback alert data for testing when API is not available
-const fallbackAlerts: Alert[] = [
-  {
-    id: "1",
-    client: "TechCorp SaaS",
-    state: "CA",
-    issue: "California sales exceeded $500K limit",
-    currentAmount: "$525K",
-    threshold: "$500K",
-    deadline: "15 days",
-    penaltyRisk: "$25K - $45K",
-    priority: "high",
-    status: "new",
-    actions: ["Register for CA sales tax", "Start collecting tax immediately", "Consider voluntary disclosure"],
-    details: "Client exceeded the $500K California threshold. Must register to avoid penalties. Recommend immediate registration and voluntary disclosure discussion."
-  },
-  {
-    id: "2",
-    client: "RetailChain LLC",
-    state: "NY",
-    issue: "New York approaching $500K + 100 transactions",
-    currentAmount: "$485K",
-    threshold: "$500K",
-    deadline: "30 days",
-    penaltyRisk: "$15K - $30K",
-    priority: "high",
-    status: "new",
-    actions: ["Monitor and prepare registration", "Track transaction count", "Prepare compliance documentation"],
-    details: "Client is approaching both the $500K revenue threshold and 100 transaction threshold in New York. Monitor closely and prepare for registration."
-  },
-  {
-    id: "3",
-    client: "ManufacturingCo",
-    state: "TX",
-    issue: "Texas sales at $465K of $500K limit",
-    currentAmount: "$465K",
-    threshold: "$500K",
-    deadline: "45 days",
-    penaltyRisk: "$10K - $25K",
-    priority: "medium",
-    status: "in-progress",
-    actions: ["Track Q1 2025 projections", "Monitor monthly sales", "Prepare registration materials"],
-    details: "Client is at 93% of Texas threshold. Track Q1 2025 projections and prepare for potential registration."
-  },
-  {
-    id: "4",
-    client: "ServicesCorp",
-    state: "WA",
-    issue: "Washington B&O tax implications",
-    currentAmount: "$320K",
-    threshold: "$500K",
-    deadline: "60 days",
-    penaltyRisk: "$5K - $15K",
-    priority: "medium",
-    status: "new",
-    actions: ["Review B&O tax requirements", "Assess business activities", "Prepare compliance plan"],
-    details: "Client has business activities in Washington that may trigger B&O tax obligations. Review specific activities and prepare compliance plan."
-  },
-  {
-    id: "5",
-    client: "StartupInc",
-    state: "FL",
-    issue: "Florida sales tax registration needed",
-    currentAmount: "$180K",
-    threshold: "$500K",
-    deadline: "90 days",
-    penaltyRisk: "$2K - $8K",
-    priority: "low",
-    status: "new",
-    actions: ["Monitor sales growth", "Prepare registration timeline", "Review business structure"],
-    details: "Client is growing in Florida but not yet at threshold. Monitor sales growth and prepare registration timeline."
-  }
-];
+// Removed hardcoded fallback alerts; rely solely on API data
 
 // Priority filter options
 const priorityOptions = [
@@ -176,7 +104,7 @@ export default function TaxManagerAlerts() {
   // API hook for fetching alerts with organizationId (consistent with monitoring page)
   const { data: alertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ 
     limit: 100,
-    organizationId: organizationId || 'demo-org-id'
+    organizationId: organizationId || undefined
   });
 
   // Transform backend data to frontend format
@@ -264,21 +192,10 @@ export default function TaxManagerAlerts() {
       return [];
     }
 
-    // Use API data if available, otherwise use fallback data
-    const dataToUse = alertsData?.alerts && alertsData.alerts.length > 0 
-      ? alertsData.alerts 
-      : fallbackAlerts;
-
-    if (!dataToUse || dataToUse.length === 0) {
-      return fallbackAlerts;
-    }
-
-    // Transform backend data to frontend format
-    if (alertsData?.alerts && alertsData.alerts.length > 0) {
-      return alertsData.alerts.map(transformBackendAlert);
-    }
-
-    return dataToUse;
+    // Use API data only; when empty, return []
+    const apiAlerts = alertsData?.alerts || [];
+    if (apiAlerts.length === 0) return [];
+    return apiAlerts.map(transformBackendAlert);
   }, [alertsData, alertsLoading]);
 
   // Filter alerts based on selected filters

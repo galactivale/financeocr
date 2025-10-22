@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { cookieUtils, DashboardSession } from "@/lib/cookies";
+import { normalizeOrgId, isUuid } from "@/lib/utils";
 
 interface PersonalizedDashboardContextType {
   dashboardUrl: string | null;
@@ -39,7 +40,14 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
     if (session) {
       setDashboardUrl(session.dashboardUrl);
       setClientName(session.clientName);
-      setOrganizationId(session.organizationId);
+      const normalized = normalizeOrgId(session.organizationId);
+      setOrganizationId(normalized || null);
+      if (!isUuid(session.organizationId)) {
+        cookieUtils.setDashboardSession({
+          ...session,
+          organizationId: normalized || session.organizationId,
+        });
+      }
     } else {
       setDashboardUrl(null);
       setClientName(null);

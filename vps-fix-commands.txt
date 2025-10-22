@@ -1,0 +1,74 @@
+# VPS Fix Commands - Copy and paste these commands one by one into your VPS terminal
+
+# 1. Navigate to project directory
+cd ~/financeocr
+
+# 2. Check current container status
+docker ps -a
+
+# 3. Stop all containers
+docker-compose -f docker-compose.vps.yml down
+
+# 4. Fix the UUID generation issue in dashboards.js
+echo "🔧 Fixing UUID generation in dashboards.js..."
+docker run --rm -v $(pwd)/server:/app alpine sh -c "
+  sed -i 's/id: organizationId || \`org-\${Date.now()}-\${Math.random().toString(36).substring(2, 8)}\`,/id: \"550e8400-e29b-41d4-a716-446655440000\",/' /app/src/routes/dashboards.js
+"
+
+# 5. Verify the fix was applied
+echo "✅ Verifying the fix..."
+docker run --rm -v $(pwd)/server:/app alpine sh -c "
+  if grep -q 'id: \"550e8400-e29b-41d4-a716-446655440000\"' /app/src/routes/dashboards.js; then
+    echo '✅ UUID fix applied successfully'
+  else
+    echo '❌ UUID fix failed'
+  fi
+"
+
+# 6. Check for syntax errors
+echo "🔍 Checking for syntax errors..."
+docker run --rm -v $(pwd)/server:/app node:18-alpine sh -c "
+  cd /app && node -c src/routes/dashboards.js && echo '✅ No syntax errors found'
+"
+
+# 7. Rebuild and start containers
+echo "🚀 Rebuilding and starting containers..."
+docker-compose -f docker-compose.vps.yml up -d --build
+
+# 8. Wait for services to start
+echo "⏳ Waiting for services to start..."
+sleep 30
+
+# 9. Check container status
+echo "📋 Checking container status after restart..."
+docker ps -a
+
+# 10. Check backend logs
+echo "📋 Checking backend logs..."
+docker logs vaultcpa-backend-vps --tail 20
+
+# 11. Test backend health
+echo "🏥 Testing backend health..."
+curl -f http://localhost:3080/health && echo "✅ Backend is healthy" || echo "❌ Backend health check failed"
+
+# 12. Test frontend health
+echo "🏥 Testing frontend health..."
+curl -f http://localhost:3000/api/health && echo "✅ Frontend is healthy" || echo "❌ Frontend health check failed"
+
+# 13. Test the dashboard generation endpoint
+echo "🧪 Testing dashboard generation endpoint..."
+curl -X POST http://localhost:3080/api/dashboards/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientName": "Test Client",
+    "priorityStates": ["NY", "CA"],
+    "painPoints": ["Tax Compliance"],
+    "multiStateClientCount": "1-10",
+    "primaryIndustry": "Financial Services",
+    "qualificationStrategy": "standard"
+  }' && echo "✅ Dashboard generation test completed"
+
+echo "🎉 All fixes applied! Your application should now be working at:"
+echo "   - Frontend: https://www.financeocr.com"
+echo "   - Backend API: https://www.financeocr.com/api"
+

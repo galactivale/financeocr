@@ -3,7 +3,11 @@ const { PrismaClient } = require('@prisma/client');
 
 class EnhancedDataGenerator {
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const token = process.env.GEMINI_API_KEY;
+    if (!token) {
+      throw new Error('GEMINI_API_KEY not found in environment variables');
+    }
+    this.genAI = new GoogleGenerativeAI(token);
     this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
     this.prisma = new PrismaClient();
     this.usedCompanyNames = new Set();
@@ -47,6 +51,8 @@ class EnhancedDataGenerator {
 
   async ensureOrganizationExists(organizationId, formData) {
     console.log('🏢 Ensuring Organization record exists:', organizationId);
+    console.log('🔍 OrganizationId type:', typeof organizationId);
+    console.log('🔍 OrganizationId value:', JSON.stringify(organizationId));
     
     try {
       // Check if organization already exists
@@ -76,46 +82,10 @@ class EnhancedDataGenerator {
         return existingOrg;
       }
 
-      // Create new organization
+      // Create new organization - only required fields
       const organizationData = {
-        id: organizationId,
         slug: `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-        name: formData.clientName ? `${formData.clientName} CPA Firm` : 'Demo CPA Firm',
-        legalName: formData.clientName ? `${formData.clientName} CPA Firm LLC` : 'Demo CPA Firm LLC',
-        taxId: `XX-${Math.floor(Math.random() * 10000000).toString().padStart(7, '0')}`,
-        subscriptionTier: 'demo',
-        subscriptionStatus: 'active',
-        subscriptionStartedAt: new Date(),
-        subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        settings: {
-          timezone: 'America/New_York',
-          currency: 'USD',
-          dateFormat: 'MM/DD/YYYY',
-          nexusMonitoring: true,
-          priorityStates: formData.priorityStates || [],
-          qualificationStrategy: formData.qualificationStrategy || 'standard'
-        },
-        branding: {
-          primaryColor: '#3B82F6',
-          secondaryColor: '#1E40AF',
-          logo: null
-        },
-        features: {
-          nexusMonitoring: true,
-          clientManagement: true,
-          reporting: true,
-          alerts: true
-        },
-        email: `contact@${formData.clientName ? formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '') : 'demo'}-cpa.com`,
-        phone: `+1-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-        website: `https://${formData.clientName ? formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '') : 'demo'}-cpa.com`,
-        addressLine1: '123 Business Plaza',
-        addressLine2: 'Suite 100',
-        city: 'Business City',
-        state: 'CA',
-        postalCode: '90210',
-        country: 'US',
-        createdBy: 'system'
+        name: formData.clientName ? `${formData.clientName} CPA Firm` : 'Demo CPA Firm'
       };
 
       const organization = await this.prisma.organization.create({
@@ -139,11 +109,6 @@ class EnhancedDataGenerator {
     try {
       // First, ensure the Organization record exists
       const organization = await this.ensureOrganizationExists(organizationId, formData);
-
-      if (!process.env.GEMINI_API_KEY) {
-        console.log('⚠️ GEMINI_API_KEY not found, using fallback data');
-        return await this.generateFallbackCompleteData(formData, organizationId, organization);
-      }
 
       console.log('✅ Gemini API key found, generating complete dashboard data...');
 
@@ -216,7 +181,11 @@ class EnhancedDataGenerator {
           console.log(`✅ Client ${i + 1} and related data created successfully`);
         } catch (error) {
           console.error(`❌ Error generating client ${i + 1}:`, error);
-          // Continue with next client instead of failing completely
+          // Fail fast on Prisma errors to avoid wasting AI credits
+          if (error && (error.code?.startsWith('P') || (error.name && error.name.toLowerCase().includes('prisma')))) {
+            throw error;
+          }
+          // Otherwise, continue with next client
           continue;
         }
       }
@@ -262,7 +231,7 @@ class EnhancedDataGenerator {
 
     } catch (error) {
       console.error('❌ Error generating complete dashboard data:', error);
-      return await this.generateFallbackCompleteData(formData, organizationId);
+      throw error;
     }
   }
 
@@ -317,7 +286,7 @@ Return JSON with ALL required fields for a complete client profile:
   "legalName": "Unique Legal Name LLC",
   "taxId": "XX-XXXXXXX",
   "industry": "${industry}",
-  "foundedYear": 2015-2023,
+  
   "employeeCount": 10-100,
     "annualRevenue": 50000-600000 (must be a clean integer, no decimals),
   "fiscalYearEnd": "2024-12-31",
@@ -504,7 +473,18 @@ IMPORTANT:
 `;
 
     try {
-      const result = await this.model.generateContent(prompt);
+      // Retry Gemini once on 503 overloads
+      let result;
+      try {
+        result = await this.model.generateContent(prompt);
+      } catch (e) {
+        if (e && e.status === 503) {
+          await new Promise(r => setTimeout(r, 750));
+          result = await this.model.generateContent(prompt);
+        } else {
+          throw e;
+        }
+      }
       const response = await result.response;
       const text = response.text();
       
@@ -670,7 +650,6 @@ IMPORTANT:
     // Ensure all numeric fields are clean integers
     const cleanClientData = {
       ...clientData,
-      foundedYear: parseInt(clientData.foundedYear),
       employeeCount: parseInt(clientData.employeeCount),
       annualRevenue: this.cleanRevenueValue(clientData.annualRevenue),
       penaltyExposure: parseFloat(clientData.penaltyExposure),
@@ -686,7 +665,6 @@ IMPORTANT:
         legalName: cleanClientData.legalName,
         taxId: cleanClientData.taxId,
         industry: cleanClientData.industry,
-        foundedYear: cleanClientData.foundedYear,
         employeeCount: cleanClientData.employeeCount,
         annualRevenue: cleanClientData.annualRevenue,
         fiscalYearEnd: new Date(cleanClientData.fiscalYearEnd),
@@ -1074,8 +1052,9 @@ IMPORTANT:
 
     for (let i = 0; i < numDecisions; i++) {
       const decisionType = decisionTypes[Math.floor(Math.random() * decisionTypes.length)];
-      const decisionTable = await this.prisma.decisionTable.create({
-        data: {
+      try {
+        const decisionTable = await this.prisma.decisionTable.create({
+          data: {
           organizationId,
           clientId: client.id,
           decisionId: `DEC-${client.id.slice(0, 8)}-${Date.now()}`,
@@ -1090,6 +1069,9 @@ IMPORTANT:
           decisionRationale: `Based on client's risk profile (${client.riskLevel}), revenue levels, and multi-state operations, this decision ensures compliance while minimizing exposure`,
           supportingEvidence: ['Revenue analysis', 'State threshold review', 'Client consultation notes'],
           alternativesConsidered: ['Alternative approach 1', 'Alternative approach 2'],
+          relatedAlerts: [],
+          relatedTasks: [],
+          relatedDocuments: [],
           status: 'finalized',
           implementationDate: new Date(),
           followUpRequired: Math.random() > 0.5,
@@ -1100,9 +1082,12 @@ IMPORTANT:
             annualRevenue: client.annualRevenue,
             multiStateOperations: true
           },
-        },
-      });
-      generatedData.decisionTables.push(decisionTable);
+          },
+        });
+        generatedData.decisionTables.push(decisionTable);
+      } catch (e) {
+        if (!(e && e.code === 'P2021')) throw e; // skip if table missing
+      }
     }
   }
 
@@ -1140,7 +1125,7 @@ IMPORTANT:
   }
 
   getFallbackClientData(index, riskLevel, companyName, industry) {
-    const foundedYear = 2015 + Math.floor(Math.random() * 8);
+    
     const employeeCount = Math.floor(Math.random() * 50) + 10;
     const annualRevenue = Math.floor(Math.random() * 550000) + 50000; // $50K-$600K
     
@@ -1152,7 +1137,6 @@ IMPORTANT:
       legalName: `${companyName}, LLC`,
       taxId: this.generateUniqueTaxId(),
       industry: industry,
-      foundedYear: foundedYear,
       employeeCount: employeeCount,
       annualRevenue: cappedRevenue,
       fiscalYearEnd: '2024-12-31',

@@ -191,7 +191,7 @@ export default function ManagingPartnerAlertDetailPage() {
   // API hook for fetching alerts with organizationId (consistent with monitoring page)
   const { data: alertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ 
     limit: 100,
-    organizationId: organizationId || 'demo-org-id'
+    organizationId: organizationId || undefined
   });
 
   // Transform backend data to frontend format

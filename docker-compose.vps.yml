@@ -61,7 +61,7 @@ services:
       DATABASE_URL: postgresql://vaultcpa_user:${POSTGRES_PASSWORD:-vaultcpa_secure_password_2024}@postgres:5432/vaultcpa
       JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyBlYVRdzP2W6PB-Cu-3mGF1tmyD3LgB2Ro}
       # Node.js memory optimizations
       NODE_OPTIONS: "--max-old-space-size=512"
     ports:
@@ -119,6 +119,39 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Nginx Reverse Proxy - Memory optimized
+  nginx:
+    image: nginx:alpine
+    container_name: vaultcpa-nginx-vps
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/ssl/certs/financeocr.com.crt:/etc/ssl/certs/financeocr.com.crt:ro
+      - /etc/ssl/private/financeocr.com.key:/etc/ssl/private/financeocr.com.key:ro
+    networks:
+      - vaultcpa-network
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    # Memory limits for VPS
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--no-check-certificate", "https://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
   postgres_data:

@@ -16,6 +16,7 @@ import {
 } from '@nextui-org/react';
 import { usePersonalizedDashboard } from '@/contexts/PersonalizedDashboardContext';
 import { apiClient } from '@/lib/api';
+import { normalizeOrgId } from '@/lib/utils';
 
 interface ClientFormData {
   name: string;
@@ -23,7 +24,6 @@ interface ClientFormData {
   ein: string;
   industry: string;
   annualRevenue: string;
-  foundedYear: string;
   employeeCount: string;
   primaryContactName: string;
   primaryContactEmail: string;
@@ -79,7 +79,6 @@ export default function AddClientPage() {
     ein: '',
     industry: '',
     annualRevenue: '',
-    foundedYear: '',
     employeeCount: '',
     primaryContactName: '',
     primaryContactEmail: '',
@@ -95,7 +94,7 @@ export default function AddClientPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const finalOrganizationId = organizationId || 'demo-org-id';
+  const effectiveOrgId = normalizeOrgId(organizationId);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -106,7 +105,6 @@ export default function AddClientPage() {
     if (!formData.industry) newErrors.industry = 'Industry is required';
     if (!formData.businessType) newErrors.businessType = 'Business type is required';
     if (!formData.annualRevenue.trim()) newErrors.annualRevenue = 'Annual revenue is required';
-    if (!formData.foundedYear.trim()) newErrors.foundedYear = 'Founded year is required';
     if (!formData.employeeCount.trim()) newErrors.employeeCount = 'Employee count is required';
     if (!formData.primaryContactName.trim()) newErrors.primaryContactName = 'Primary contact name is required';
     if (!formData.primaryContactEmail.trim()) newErrors.primaryContactEmail = 'Primary contact email is required';
@@ -145,9 +143,6 @@ export default function AddClientPage() {
     if (formData.annualRevenue && isNaN(Number(formData.annualRevenue))) {
       newErrors.annualRevenue = 'Please enter a valid number';
     }
-    if (formData.foundedYear && (isNaN(Number(formData.foundedYear)) || Number(formData.foundedYear) < 1800 || Number(formData.foundedYear) > new Date().getFullYear())) {
-      newErrors.foundedYear = 'Please enter a valid year';
-    }
     if (formData.employeeCount && isNaN(Number(formData.employeeCount))) {
       newErrors.employeeCount = 'Please enter a valid number';
     }
@@ -183,6 +178,10 @@ export default function AddClientPage() {
     setIsSubmitting(true);
 
     try {
+      if (!effectiveOrgId) {
+        setErrors(prev => ({ ...prev, organizationId: 'Organization is required' }));
+        return;
+      }
       const clientData = {
         name: formData.name.trim(),
         legalName: formData.legalName.trim(),
@@ -190,7 +189,6 @@ export default function AddClientPage() {
         industry: formData.industry,
         businessType: formData.businessType,
         annualRevenue: parseFloat(formData.annualRevenue),
-        foundedYear: parseInt(formData.foundedYear),
         employeeCount: parseInt(formData.employeeCount),
         primaryContactName: formData.primaryContactName.trim(),
         primaryContactEmail: formData.primaryContactEmail.trim(),
@@ -201,7 +199,7 @@ export default function AddClientPage() {
         zipCode: formData.zipCode.trim(),
         operatingStates: formData.operatingStates,
         description: formData.description.trim(),
-        organizationId: finalOrganizationId,
+        organizationId: effectiveOrgId,
         // Default values
         slug: formData.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
         riskLevel: 'medium',
@@ -325,19 +323,7 @@ export default function AddClientPage() {
                         inputWrapper: "bg-white/10 border-white/20 data-[hover=true]:border-white/30 group-data-[focus=true]:border-white/40"
                       }}
                     />
-                    <Input
-                      label="Founded Year"
-                      placeholder="Enter founded year"
-                      type="number"
-                      value={formData.foundedYear}
-                      onChange={(e) => handleInputChange('foundedYear', e.target.value)}
-                      isInvalid={!!errors.foundedYear}
-                      errorMessage={errors.foundedYear}
-                      classNames={{
-                        input: "text-white",
-                        inputWrapper: "bg-white/10 border-white/20 data-[hover=true]:border-white/30 group-data-[focus=true]:border-white/40"
-                      }}
-                    />
+                    {/* Founded Year removed */}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

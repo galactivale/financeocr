@@ -89,7 +89,6 @@ function formatClient(client) {
   
   return {
     ...client,
-    foundedYear: formatInt(client.foundedYear),
     employeeCount: formatInt(client.employeeCount),
     annualRevenue: formatDecimal(client.annualRevenue),
     penaltyExposure: formatDecimal(client.penaltyExposure),

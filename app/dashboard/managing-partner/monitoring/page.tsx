@@ -18,6 +18,7 @@ import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";
 import { SidebarContext } from "@/components/layout/layout-context";
 import { useNexusDashboardSummary, useClientStates, useNexusAlerts } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 import { useRouter } from "next/navigation";
 
@@ -431,103 +432,15 @@ const ManagingPartnerMonitoring = () => {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
 
   // API hooks for data fetching with refresh capability - fetch more data (fallback when not in personalized mode)
-  const finalOrganizationId = organizationId || 'demo-org-id';
-  
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(finalOrganizationId);
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: finalOrganizationId });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: finalOrganizationId });
+  const effectiveOrgId = normalizeOrgId(organizationId);
+
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(effectiveOrgId);
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: effectiveOrgId });
+  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: effectiveOrgId });
 
 
   // Fallback data for testing when API is not available
-  const fallbackClientStates = useMemo(() => [
-    {
-      id: "1",
-      clientId: "client-1",
-      stateCode: "CA",
-      status: "critical",
-      revenue: 525000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-1",
-        name: "TechCorp SaaS",
-        legalName: "TechCorp SaaS Inc.",
-        industry: "Technology"
-      }
-    },
-    {
-      id: "2",
-      clientId: "client-2", 
-      stateCode: "TX",
-      status: "warning",
-      revenue: 485000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-2",
-        name: "RetailChain LLC",
-        legalName: "RetailChain LLC",
-        industry: "Retail"
-      }
-    },
-    {
-      id: "3",
-      clientId: "client-3",
-      stateCode: "FL", 
-      status: "pending",
-      revenue: 280000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-3",
-        name: "GlobalFin Solutions",
-        legalName: "GlobalFin Solutions Inc.",
-        industry: "Finance"
-      }
-    },
-    {
-      id: "4",
-      clientId: "client-4",
-      stateCode: "IL",
-      status: "compliant", 
-      revenue: 180000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-4",
-        name: "HealthCare Inc.",
-        legalName: "HealthCare Inc.",
-        industry: "Healthcare"
-      }
-    },
-    {
-      id: "5",
-      clientId: "client-5",
-      stateCode: "WA",
-      status: "transit",
-      revenue: 160000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-5",
-        name: "Manufacturing Co.",
-        legalName: "Manufacturing Co.",
-        industry: "Manufacturing"
-      }
-    }
-  ], []);
-
-  const fallbackAlerts = useMemo(() => [
-    {
-      id: "alert-1",
-      clientId: "client-1",
-      stateCode: "CA",
-      priority: "high",
-      status: "open"
-    },
-    {
-      id: "alert-2", 
-      clientId: "client-2",
-      stateCode: "TX",
-      priority: "medium",
-      status: "open"
-    }
-  ], []);
+  // Removed fallback demo data; rely solely on API/personalized data
 
   // Refresh all data
   const refreshAllData = useCallback(async () => {
@@ -610,10 +523,10 @@ const ManagingPartnerMonitoring = () => {
           ? personalizedClientStates 
           : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
               ? clientStatesData.clientStates 
-              : fallbackClientStates))
+              : []))
       : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
           ? clientStatesData.clientStates 
-          : fallbackClientStates);
+          : []);
 
     
     const stateData: any = {};
@@ -685,10 +598,10 @@ const ManagingPartnerMonitoring = () => {
           ? personalizedNexusAlerts 
           : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
               ? nexusAlertsData.alerts 
-              : fallbackAlerts))
+              : []))
       : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
           ? nexusAlertsData.alerts 
-          : fallbackAlerts);
+          : []);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -767,9 +680,7 @@ const ManagingPartnerMonitoring = () => {
     clientStatesData, 
     nexusAlertsData, 
     clientStatesLoading, 
-    alertsLoading,
-    fallbackAlerts,
-    fallbackClientStates
+    alertsLoading
   ]);
 
   // Custom states configuration for the map
@@ -896,16 +807,16 @@ const ManagingPartnerMonitoring = () => {
       }
     }
     
-    // Use personalized data if available, otherwise fall back to API data or fallback
-    const dataToUse = isPersonalizedMode
+    // Use personalized data if available, otherwise fall back to API data
+    const dataToUse = isPersonalizedMode 
       ? (personalizedClientStates && personalizedClientStates.length > 0 
           ? personalizedClientStates 
           : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
               ? clientStatesData.clientStates 
-              : fallbackClientStates))
+              : []))
       : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
           ? clientStatesData.clientStates 
-          : fallbackClientStates);
+          : []);
     
     if (!dataToUse || dataToUse.length === 0) {
       return [];
@@ -987,10 +898,10 @@ const ManagingPartnerMonitoring = () => {
           ? personalizedNexusAlerts 
           : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
               ? nexusAlertsData.alerts 
-              : fallbackAlerts))
+              : []))
       : (nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
           ? nexusAlertsData.alerts 
-          : fallbackAlerts);
+          : []);
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -1028,9 +939,7 @@ const ManagingPartnerMonitoring = () => {
     clientStatesData, 
     nexusAlertsData, 
     clientStatesLoading, 
-    alertsLoading,
-    fallbackAlerts,
-    fallbackClientStates
+    alertsLoading
   ]);
 
   // Generate dynamic notifications based on alerts and scanning data

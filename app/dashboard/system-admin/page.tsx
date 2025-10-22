@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useClients, useAlerts, useTasks, useAnalytics } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
 const ActivityLogChart = dynamic(
@@ -423,7 +424,8 @@ export default function SystemAdminDashboard() {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
   // Regular data hooks (used when not in personalized mode) with organizationId
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10, organizationId: organizationId || 'demo-org-id' });
+  const effectiveOrgId = normalizeOrgId(organizationId);
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 10, organizationId: effectiveOrgId });
   const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts({ limit: 20 });
   const { data: tasksData, loading: tasksLoading, error: tasksError } = useTasks({ limit: 20 });
   const { data: analyticsData, loading: analyticsLoading, error: analyticsError } = useAnalytics();

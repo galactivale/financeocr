@@ -16,6 +16,7 @@ import { CheckCircleIcon } from '@/components/icons/profile/check-circle-icon';
 import { ExclamationCircleIcon } from '@/components/icons/profile/exclamation-circle-icon';
 import { usePersonalizedDashboard } from '@/contexts/PersonalizedDashboardContext';
 import { useClients, useNexusAlerts, useClientStates } from '@/hooks/useApi';
+import { normalizeOrgId } from '@/lib/utils';
 
 // Risk management data processing
 const processRiskData = (clients: any[], clientStates: any[], nexusAlerts: any[]) => {
@@ -243,7 +244,7 @@ export default function RiskManagementPage() {
   const { organizationId } = usePersonalizedDashboard();
 
   // Fetch data from backend
-  const finalOrganizationId = organizationId || 'demo-org-id';
+  const finalOrganizationId = normalizeOrgId(organizationId);
   
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({
     organizationId: finalOrganizationId,

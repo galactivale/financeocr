@@ -24,6 +24,7 @@ import {
 import { SearchIcon } from "@/components/icons/searchicon";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { useClients } from "@/hooks/useApi";
+import { normalizeOrgId } from "@/lib/utils";
 
 // Client data structure based on the comprehensive framework
 interface Client {
@@ -192,9 +193,9 @@ export default function ManagingPartnerClientsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Fetch clients from database
-  const finalOrganizationId = organizationId || 'demo-org-id';
+  const effectiveOrgId = normalizeOrgId(organizationId);
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({
-    organizationId: finalOrganizationId,
+    organizationId: effectiveOrgId,
     limit: 100
   });
 

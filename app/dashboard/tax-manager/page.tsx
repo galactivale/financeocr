@@ -7,74 +7,10 @@ import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { useClients, useAlerts, useNexusAlerts, useNexusActivities, useClientStates, useNexusDashboardSummary } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 
-// Fallback alert data for testing when API is not available
-const fallbackAlerts = [
-  {
-    id: "1",
-    clientId: "client-1",
-    stateCode: "CA",
-    alertType: "threshold_breach",
-    priority: "high",
-    title: "California sales exceeded $500K limit",
-    description: "Client exceeded the $500K California threshold. Must register to avoid penalties.",
-    thresholdAmount: 500000,
-    currentAmount: 525000,
-    deadline: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-    penaltyRisk: 25000,
-    status: "open",
-    createdAt: new Date().toISOString(),
-    client: {
-      id: "client-1",
-      name: "TechCorp SaaS",
-      legalName: "TechCorp SaaS Inc.",
-      industry: "Technology"
-    }
-  },
-  {
-    id: "2",
-    clientId: "client-2",
-    stateCode: "NY",
-    alertType: "threshold_breach",
-    priority: "high",
-    title: "New York approaching $500K + 100 transactions",
-    description: "Client is approaching both the $500K revenue threshold and 100 transaction threshold in New York.",
-    thresholdAmount: 500000,
-    currentAmount: 485000,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    penaltyRisk: 15000,
-    status: "open",
-    createdAt: new Date().toISOString(),
-    client: {
-      id: "client-2",
-      name: "RetailChain LLC",
-      legalName: "RetailChain LLC",
-      industry: "Retail"
-    }
-  },
-  {
-    id: "3",
-    clientId: "client-3",
-    stateCode: "WA",
-    alertType: "nexus_registration",
-    priority: "medium",
-    title: "Washington B&O tax obligations",
-    description: "Client has business activities in Washington that may trigger B&O tax obligations.",
-    thresholdAmount: 100000,
-    currentAmount: 75000,
-    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-    penaltyRisk: 5000,
-    status: "open",
-    createdAt: new Date().toISOString(),
-    client: {
-      id: "client-3",
-      name: "Manufacturing Co",
-      legalName: "Manufacturing Company Inc.",
-      industry: "Manufacturing"
-    }
-  }
-];
+// Removed hardcoded fallback alert data; rely solely on API data
 
 // Enhanced US Map Component - Matching monitoring page implementation
 const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nexusAlerts: any[] }) => {
@@ -1212,39 +1148,29 @@ export default function TaxManagerDashboard() {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
   // Regular data hooks (used when not in personalized mode) - fetch more data for comprehensive view
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50, organizationId: organizationId || 'demo-org-id' });
-  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50, organizationId: organizationId || 'demo-org-id' });
-  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50, organizationId: organizationId || 'demo-org-id' });
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: organizationId || 'demo-org-id' });
-  const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary(organizationId || 'demo-org-id');
+  const effectiveOrgId = normalizeOrgId(organizationId);
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50, organizationId: effectiveOrgId });
+  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50, organizationId: effectiveOrgId });
+  const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50, organizationId: effectiveOrgId });
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: effectiveOrgId });
+  const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary(effectiveOrgId);
 
   // Fallback clients data
-  const fallbackClients = [
-    { id: '1', name: 'Acme Corporation', annualRevenue: 2500000, status: 'active', riskLevel: 'low', createdAt: new Date() },
-    { id: '2', name: 'TechStart Inc', annualRevenue: 1800000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
-    { id: '3', name: 'Global Solutions', annualRevenue: 4200000, status: 'active', riskLevel: 'low', createdAt: new Date() },
-    { id: '4', name: 'Innovation Labs', annualRevenue: 950000, status: 'active', riskLevel: 'high', createdAt: new Date() },
-    { id: '5', name: 'Enterprise Partners', annualRevenue: 3200000, status: 'active', riskLevel: 'low', createdAt: new Date() },
-    { id: '6', name: 'Digital Dynamics', annualRevenue: 1500000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
-    { id: '7', name: 'Future Systems', annualRevenue: 2800000, status: 'active', riskLevel: 'low', createdAt: new Date() },
-    { id: '8', name: 'Cloud Ventures', annualRevenue: 1200000, status: 'active', riskLevel: 'medium', createdAt: new Date() },
-    { id: '9', name: 'Data Analytics Co', annualRevenue: 3600000, status: 'active', riskLevel: 'low', createdAt: new Date() },
-    { id: '10', name: 'Smart Solutions', annualRevenue: 2100000, status: 'active', riskLevel: 'medium', createdAt: new Date() }
-  ];
+  const fallbackClients: never[] = [];
 
   // Use personalized data if available, otherwise use regular data with fallback
   const clients = isPersonalizedMode 
-    ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : fallbackClients)
-    : (clientsData?.clients && clientsData.clients.length > 0 ? clientsData.clients : fallbackClients);
+    ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : [])
+    : (clientsData?.clients && clientsData.clients.length > 0 ? clientsData.clients : []);
   
   // Process alerts data with fallback - same logic as alerts page
   const nexusAlerts = useMemo(() => {
     if (isPersonalizedMode) {
       const personalizedAlerts = Array.isArray(personalizedNexusAlerts) ? personalizedNexusAlerts : ((personalizedNexusAlerts as any)?.alerts || []);
-      return personalizedAlerts.length > 0 ? personalizedAlerts : fallbackAlerts;
+      return personalizedAlerts.length > 0 ? personalizedAlerts : [];
     } else {
       const apiAlerts = nexusAlertsData?.alerts || [];
-      return apiAlerts.length > 0 ? apiAlerts : fallbackAlerts;
+      return apiAlerts.length > 0 ? apiAlerts : [];
     }
   }, [isPersonalizedMode, personalizedNexusAlerts, nexusAlertsData]);
   

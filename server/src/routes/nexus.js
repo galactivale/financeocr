@@ -8,6 +8,8 @@ const {
 const router = express.Router();
 const prisma = new PrismaClient();
 
+const isUuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
 // Get all nexus alerts
 router.get('/alerts', async (req, res) => {
   try {
@@ -15,14 +17,10 @@ router.get('/alerts', async (req, res) => {
     
     const where = {};
     
-    // CRITICAL: Filter by organization ID to ensure data isolation
-    if (organizationId) {
-      where.organizationId = organizationId;
-    } else {
-      return res.status(400).json({ 
-        error: 'Organization ID is required for data isolation' 
-      });
+    if (!isUuid(organizationId)) {
+      return res.status(400).json({ error: 'organizationId is required and must be a UUID' });
     }
+    where.organizationId = organizationId;
     
     if (status) where.status = status;
     if (priority) where.priority = priority;
@@ -69,14 +67,10 @@ router.get('/activities', async (req, res) => {
     
     const where = {};
     
-    // CRITICAL: Filter by organization ID to ensure data isolation
-    if (organizationId) {
-      where.organizationId = organizationId;
-    } else {
-      return res.status(400).json({ 
-        error: 'Organization ID is required for data isolation' 
-      });
+    if (!isUuid(organizationId)) {
+      return res.status(400).json({ error: 'organizationId is required and must be a UUID' });
     }
+    where.organizationId = organizationId;
     
     if (clientId) where.clientId = clientId;
     if (stateCode) where.stateCode = stateCode;
@@ -119,14 +113,10 @@ router.get('/client-states', async (req, res) => {
     
     const where = {};
     
-    // CRITICAL: Filter by organization ID to ensure data isolation
-    if (organizationId) {
-      where.organizationId = organizationId;
-    } else {
-      return res.status(400).json({ 
-        error: 'Organization ID is required for data isolation' 
-      });
+    if (!isUuid(organizationId)) {
+      return res.status(400).json({ error: 'organizationId is required and must be a UUID' });
     }
+    where.organizationId = organizationId;
     
     if (clientId) where.clientId = clientId;
     if (stateCode) where.stateCode = stateCode;
@@ -189,7 +179,10 @@ router.get('/state-tax-info', async (req, res) => {
 // Get nexus dashboard summary
 router.get('/dashboard-summary', async (req, res) => {
   try {
-    const organizationId = req.query.organizationId || 'default-org';
+    const organizationId = isUuid(req.query.organizationId) ? req.query.organizationId : null;
+    if (!organizationId) {
+      return res.status(400).json({ error: 'organizationId is required and must be a UUID' });
+    }
 
     // Get counts by status
     const alertCounts = await prisma.nexusAlert.groupBy({

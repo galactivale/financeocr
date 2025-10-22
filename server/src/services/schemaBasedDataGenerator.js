@@ -3,7 +3,11 @@ const { PrismaClient } = require('@prisma/client');
 
 class SchemaBasedDataGenerator {
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const token = process.env.GEMINI_API_KEY;
+    if (!token) {
+      throw new Error('GEMINI_API_KEY not found in environment variables');
+    }
+    this.genAI = new GoogleGenerativeAI(token);
     this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
     this.prisma = new PrismaClient();
   }
@@ -13,12 +17,6 @@ class SchemaBasedDataGenerator {
     console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
 
     try {
-      // Check if API key is available
-      if (!process.env.GEMINI_API_KEY) {
-        console.log('⚠️ GEMINI_API_KEY not found, using fallback data');
-        return await this.generateFallbackData(formData, organizationId);
-      }
-
       console.log('✅ Gemini API key found, generating comprehensive data...');
 
       // Generate data sequentially to avoid API rate limits and errors
@@ -59,7 +57,6 @@ class SchemaBasedDataGenerator {
           legalName: clientData.legalName,
           taxId: clientData.taxId,
           industry: clientData.industry,
-          foundedYear: clientData.foundedYear,
           employeeCount: clientData.employeeCount,
           annualRevenue: clientData.annualRevenue,
           fiscalYearEnd: clientData.fiscalYearEnd,

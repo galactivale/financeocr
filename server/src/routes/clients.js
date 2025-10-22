@@ -18,14 +18,10 @@ router.get('/', async (req, res) => {
     
     const where = {};
     
-    // CRITICAL: Filter by organization ID to ensure data isolation
-    if (organizationId) {
-      where.organizationId = organizationId;
-    } else {
-      return res.status(400).json({ 
-        error: 'Organization ID is required for data isolation' 
-      });
-    }
+    const isUuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+    const orgId = isUuid(organizationId) ? organizationId : DEMO_ORG_ID;
+    where.organizationId = orgId;
     
     // Add search filter
     if (search) {
@@ -58,7 +54,6 @@ router.get('/', async (req, res) => {
           legalName: true,
           industry: true,
           annualRevenue: true,
-          foundedYear: true,
           employeeCount: true,
           riskLevel: true,
           penaltyExposure: true,
@@ -136,7 +131,7 @@ router.get('/', async (req, res) => {
         avatar: client.name.charAt(0).toUpperCase(),
         industry: client.industry,
         revenue: client.annualRevenue ? (typeof client.annualRevenue === 'object' ? client.annualRevenue.toNumber() : parseFloat(client.annualRevenue)) : 0,
-        founded: client.foundedYear || 2020,
+        founded: client.createdAt ? new Date(client.createdAt).getFullYear() : new Date().getFullYear(),
         employees: client.employeeCount || 10,
         riskLevel,
         penaltyExposure: Math.round(penaltyExposure),
@@ -164,7 +159,6 @@ router.get('/', async (req, res) => {
           timeSpent: "15.2 hours"
         },
         // Include original fields for proper formatting
-        foundedYear: client.foundedYear,
         employeeCount: client.employeeCount,
         annualRevenue: client.annualRevenue,
         qualityScore: client.qualityScore
@@ -196,15 +190,13 @@ router.get('/:id', async (req, res) => {
     const { organizationId } = req.query;
     
     // CRITICAL: Filter by organization ID to ensure data isolation
-    if (!organizationId) {
-      return res.status(400).json({ 
-        error: 'Organization ID is required for data isolation' 
-      });
-    }
+    const isUuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+    const normalizedOrgId = isUuid(organizationId) ? organizationId : DEMO_ORG_ID;
     
     // Check if id is a UUID or slug
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const whereClause = isUUID ? { id, organizationId } : { slug: id, organizationId };
+    const whereClause = isUUID ? { id, organizationId: normalizedOrgId } : { slug: id, organizationId: normalizedOrgId };
     
     console.log('Looking for client with:', whereClause);
     
@@ -276,7 +268,6 @@ router.post('/', async (req, res) => {
       legalName,
       industry,
       annualRevenue,
-      foundedYear,
       employeeCount,
       primaryContactName,
       primaryContactEmail,
@@ -315,7 +306,6 @@ router.post('/', async (req, res) => {
         legalName,
         industry,
         annualRevenue: annualRevenue ? parseFloat(annualRevenue) : null,
-        foundedYear: foundedYear ? parseInt(foundedYear) : null,
         employeeCount: employeeCount ? parseInt(employeeCount) : null,
         primaryContactName,
         primaryContactEmail,

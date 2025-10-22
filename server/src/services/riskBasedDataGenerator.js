@@ -41,7 +41,6 @@ class RiskBasedDataGenerator {
             legalName: clientData.legalName,
             taxId: clientData.taxId,
             industry: clientData.industry,
-            foundedYear: clientData.foundedYear,
             employeeCount: clientData.employeeCount,
             annualRevenue: clientData.annualRevenue,
             fiscalYearEnd: new Date(clientData.fiscalYearEnd),
@@ -307,7 +306,7 @@ Return JSON with ALL required fields for a complete client profile:
   "legalName": "Unique Legal Business Name, LLC/Corp/Inc",
   "taxId": "XX-XXXXXXX",
   "industry": "Specific Industry",
-  "foundedYear": 2015,
+  
   "employeeCount": 25,
   "annualRevenue": 2500000,
   "fiscalYearEnd": "2024-12-31",
@@ -604,7 +603,7 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
     
     const companyName = companyNameVariations[index % companyNameVariations.length];
     const industry = industryVariations[index % industryVariations.length];
-    const foundedYear = 2015 + Math.floor(Math.random() * 8);
+    
     const employeeCount = Math.floor(Math.random() * 50) + 10;
     const annualRevenue = Math.floor(Math.random() * 5000000) + 500000;
     
@@ -613,7 +612,6 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
       legalName: `${companyName}, LLC`,
       taxId: `${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 9000000) + 1000000}`,
       industry: industry,
-      foundedYear: foundedYear,
       employeeCount: employeeCount,
       annualRevenue: annualRevenue,
       fiscalYearEnd: new Date('2024-12-31'),
@@ -636,7 +634,7 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
         legalName: `${companyName}, LLC`,
         dbaName: companyName,
         entityType: 'LLC',
-        formationDate: `${foundedYear}-03-15`,
+        formationDate: `2018-03-15`,
         federalEin: `${Math.floor(Math.random() * 90) + 10}-${Math.floor(Math.random() * 9000000) + 1000000}`,
         primaryIndustry: industry,
         naicsCode: `${Math.floor(Math.random() * 900000) + 100000}`,

@@ -7,6 +7,7 @@ import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
 import { useClients, useAlerts, useNexusAlerts, useClientStates } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
 import { User } from "lucide-react";
 
@@ -437,10 +438,11 @@ export default function ManagingPartnerDashboard() {
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId, clearDashboardSession } = usePersonalizedDashboard();
   
   // API hooks for data fetching
-  const { data: clientsData, loading: clientsLoading } = useClients({ organizationId: organizationId || 'demo-org-id' });
+  const effectiveOrgId = normalizeOrgId(organizationId);
+  const { data: clientsData, loading: clientsLoading } = useClients({ organizationId: effectiveOrgId });
   const { data: alertsData, loading: alertsLoading } = useAlerts();
-  const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts({ organizationId: organizationId || 'demo-org-id' });
-  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ organizationId: organizationId || 'demo-org-id' });
+  const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts({ organizationId: effectiveOrgId });
+  const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ organizationId: effectiveOrgId });
   
   // Fallback clients data
   const fallbackClients = [

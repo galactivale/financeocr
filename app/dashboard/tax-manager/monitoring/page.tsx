@@ -82,100 +82,12 @@ const TaxManagerMonitoring = () => {
   const { organizationId } = usePersonalizedDashboard();
 
   // API hooks for data fetching with refresh capability - fetch more data
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || 'demo-org-id');
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || 'demo-org-id' });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || 'demo-org-id' });
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || '550e8400-e29b-41d4-a716-446655440000');
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || '550e8400-e29b-41d4-a716-446655440000' });
+  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || '550e8400-e29b-41d4-a716-446655440000' });
 
-  // Fallback data for testing when API is not available
-  const fallbackClientStates = useMemo(() => [
-    {
-      id: "1",
-      clientId: "client-1",
-      stateCode: "CA",
-      status: "critical",
-      revenue: 525000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-1",
-        name: "TechCorp SaaS",
-        legalName: "TechCorp SaaS Inc.",
-        industry: "Technology"
-      }
-    },
-    {
-      id: "2",
-      clientId: "client-2", 
-      stateCode: "TX",
-      status: "warning",
-      revenue: 485000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-2",
-        name: "RetailChain LLC",
-        legalName: "RetailChain LLC",
-        industry: "Retail"
-      }
-    },
-    {
-      id: "3",
-      clientId: "client-3",
-      stateCode: "FL", 
-      status: "pending",
-      revenue: 280000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-3",
-        name: "GlobalFin Solutions",
-        legalName: "GlobalFin Solutions Inc.",
-        industry: "Finance"
-      }
-    },
-    {
-      id: "4",
-      clientId: "client-4",
-      stateCode: "IL",
-      status: "compliant", 
-      revenue: 180000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-4",
-        name: "HealthCare Inc.",
-        legalName: "HealthCare Inc.",
-        industry: "Healthcare"
-      }
-    },
-    {
-      id: "5",
-      clientId: "client-5",
-      stateCode: "WA",
-      status: "transit",
-      revenue: 160000,
-      lastUpdated: new Date().toISOString(),
-      client: {
-        id: "client-5",
-        name: "Manufacturing Co.",
-        legalName: "Manufacturing Co.",
-        industry: "Manufacturing"
-      }
-    }
-  ], []);
+  // Removed fallback demo data; rely solely on API data
 
-  const fallbackAlerts = useMemo(() => [
-    {
-      id: "alert-1",
-      clientId: "client-1",
-      stateCode: "CA",
-      priority: "high",
-      status: "open"
-    },
-    {
-      id: "alert-2", 
-      clientId: "client-2",
-      stateCode: "TX",
-      priority: "medium",
-      status: "open"
-    }
-  ], []);
 
   // Refresh all data
   const refreshAllData = useCallback(async () => {
@@ -238,7 +150,7 @@ const TaxManagerMonitoring = () => {
     // Use real API data, fallback to static data only if API fails
     const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
       ? clientStatesData.clientStates 
-      : (clientStatesError ? fallbackClientStates : []);
+      : [];
     
     const stateData: any = {};
     
@@ -306,7 +218,7 @@ const TaxManagerMonitoring = () => {
     // Process alerts data with enhanced status mapping
     const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
       ? nexusAlertsData.alerts 
-      : (alertsError ? fallbackAlerts : []);
+      : [];
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -354,7 +266,7 @@ const TaxManagerMonitoring = () => {
     });
 
     return stateData;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError, fallbackAlerts, fallbackClientStates]);
+  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError]);
 
   const handleMapStateHover = useCallback((stateCode: string, event?: any) => {
     // Add hover effects for better interactivity - only for states with data
@@ -489,7 +401,7 @@ const TaxManagerMonitoring = () => {
     // Use real API data, fallback to static data only if API fails
     const dataToUse = clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
       ? clientStatesData.clientStates 
-      : (clientStatesError ? fallbackClientStates : []);
+      : [];
     
     if (!dataToUse || dataToUse.length === 0) {
       return [];
@@ -565,7 +477,7 @@ const TaxManagerMonitoring = () => {
     // Add alert counts
     const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
       ? nexusAlertsData.alerts 
-      : (alertsError ? fallbackAlerts : []);
+      : [];
     
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
@@ -594,7 +506,7 @@ const TaxManagerMonitoring = () => {
     });
 
     return result;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError, fallbackAlerts, fallbackClientStates]);
+  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError]);
 
   // Generate dynamic notifications based on alerts and scanning data
   const generateNotifications = useMemo(() => {

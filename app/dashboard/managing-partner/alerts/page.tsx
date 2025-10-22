@@ -17,6 +17,7 @@ import {
 } from "@nextui-org/react";
 import { useNexusAlerts } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
 import { 
   AlertTriangle, 
@@ -75,79 +76,7 @@ interface BackendAlert {
   };
 }
 
-// Fallback alert data for testing when API is not available
-const fallbackAlerts: Alert[] = [
-  {
-    id: "1",
-    client: "TechCorp SaaS",
-    state: "CA",
-    issue: "California sales exceeded $500K limit",
-    currentAmount: "$525K",
-    threshold: "$500K",
-    deadline: "15 days",
-    penaltyRisk: "$25K - $45K",
-    priority: "high",
-    status: "new",
-    actions: ["Register for CA sales tax", "Start collecting tax immediately", "Consider voluntary disclosure"],
-    details: "Client exceeded the $500K California threshold. Must register to avoid penalties. Recommend immediate registration and voluntary disclosure discussion."
-  },
-  {
-    id: "2",
-    client: "RetailChain LLC",
-    state: "NY",
-    issue: "New York approaching $500K + 100 transactions",
-    currentAmount: "$485K",
-    threshold: "$500K",
-    deadline: "30 days",
-    penaltyRisk: "$15K - $30K",
-    priority: "high",
-    status: "new",
-    actions: ["Monitor and prepare registration", "Track transaction count", "Prepare compliance documentation"],
-    details: "Client is approaching both the $500K revenue threshold and 100 transaction threshold in New York. Monitor closely and prepare for registration."
-  },
-  {
-    id: "3",
-    client: "ManufacturingCo",
-    state: "TX",
-    issue: "Texas sales at $465K of $500K limit",
-    currentAmount: "$465K",
-    threshold: "$500K",
-    deadline: "45 days",
-    penaltyRisk: "$10K - $25K",
-    priority: "medium",
-    status: "in-progress",
-    actions: ["Track Q1 2025 projections", "Monitor monthly sales", "Prepare registration materials"],
-    details: "Client is at 93% of Texas threshold. Track Q1 2025 projections and prepare for potential registration."
-  },
-  {
-    id: "4",
-    client: "ServicesCorp",
-    state: "WA",
-    issue: "Washington B&O tax implications",
-    currentAmount: "$320K",
-    threshold: "$500K",
-    deadline: "60 days",
-    penaltyRisk: "$5K - $15K",
-    priority: "medium",
-    status: "new",
-    actions: ["Review B&O tax requirements", "Assess business activities", "Prepare compliance plan"],
-    details: "Client has business activities in Washington that may trigger B&O tax obligations. Review specific activities and prepare compliance plan."
-  },
-  {
-    id: "5",
-    client: "StartupInc",
-    state: "FL",
-    issue: "Florida sales tax registration needed",
-    currentAmount: "$180K",
-    threshold: "$500K",
-    deadline: "90 days",
-    penaltyRisk: "$2K - $8K",
-    priority: "low",
-    status: "new",
-    actions: ["Monitor sales growth", "Prepare registration timeline", "Review business structure"],
-    details: "Client is growing in Florida but not yet at threshold. Monitor sales growth and prepare registration timeline."
-  }
-];
+// Removed hardcoded fallback alerts; rely solely on API data
 
 // Priority filter options
 const priorityOptions = [
@@ -175,9 +104,10 @@ export default function ManagingPartnerAlerts() {
   const { organizationId } = usePersonalizedDashboard();
 
   // API hook for fetching alerts with organizationId (consistent with monitoring page)
+  const effectiveOrgId = normalizeOrgId(organizationId);
   const { data: alertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ 
     limit: 100,
-    organizationId: organizationId || 'demo-org-id'
+    organizationId: effectiveOrgId
   });
 
   // Transform backend data to frontend format
@@ -265,21 +195,10 @@ export default function ManagingPartnerAlerts() {
       return [];
     }
 
-    // Use API data if available, otherwise use fallback data
-    const dataToUse = alertsData?.alerts && alertsData.alerts.length > 0 
-      ? alertsData.alerts 
-      : fallbackAlerts;
-
-    if (!dataToUse || dataToUse.length === 0) {
-      return fallbackAlerts;
-    }
-
-    // Transform backend data to frontend format
-    if (alertsData?.alerts && alertsData.alerts.length > 0) {
-      return alertsData.alerts.map(transformBackendAlert);
-    }
-
-    return dataToUse;
+    // API-only: transform if available else []
+    const apiAlerts = alertsData?.alerts || [];
+    if (apiAlerts.length === 0) return [];
+    return apiAlerts.map(transformBackendAlert);
   }, [alertsData, alertsLoading]);
 
   // Filter alerts based on selected filters
@@ -308,16 +227,20 @@ export default function ManagingPartnerAlerts() {
 
   const handleSendToClient = async (alert: Alert) => {
     try {
+      if (!effectiveOrgId) {
+        window.alert('Missing organization context. Please select an organization.');
+        return;
+      }
       // Create a communication for this nexus alert
       const communicationData = {
-        organizationId: "94e72054-a98e-41bd-bdb1-e2797623e891", // Demo org ID
-        clientId: "688ba252-0613-4e4b-baee-5e2d4caec12e", // Use actual client ID
+        organizationId: effectiveOrgId,
+        clientId: undefined as unknown as string, // TODO: fetch from selected alert detail if needed
         alertId: alert.id, // Required for nexus alerts
         type: "email" as const,
         subject: `Nexus Alert: ${alert.issue} - ${alert.state}`,
         content: `Dear Client,\n\nWe have detected a potential nexus threshold issue in ${alert.state}.\n\nDetails:\n- Current Amount: ${alert.currentAmount}\n- Threshold: ${alert.threshold}\n- Deadline: ${alert.deadline}\n- Penalty Risk: ${alert.penaltyRisk}\n\nPlease review this alert and contact us if you have any questions.\n\nBest regards,\nTax Team`,
         professionalReasoning: `Based on our analysis, this alert was triggered because the client's current revenue in ${alert.state} has exceeded the state's nexus threshold. This creates a tax obligation that requires immediate attention to avoid penalties and ensure compliance.`,
-        recipientEmail: "client@example.com", // You'll need to get this from client data
+        recipientEmail: undefined, // Populate from client data in detail page
       };
 
       const response = await apiClient.createCommunication(communicationData);

@@ -470,7 +470,7 @@ export default function TaxManagerClients() {
     limit: 50,
     search: searchQuery || undefined,
     riskLevel: riskFilter !== 'all' ? riskFilter : undefined,
-    organizationId: organizationId || 'demo-org-id'
+    organizationId: organizationId || undefined
   });
 
   // Process clients data with fallback

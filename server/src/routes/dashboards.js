@@ -6,6 +6,22 @@ const EnhancedDataGenerator = require('../services/enhancedDataGenerator');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Generic safe deleteMany wrapper: skips if table is missing (P2021)
+async function safeDeleteMany(modelDeleteMany, criteria) {
+  try {
+    const args = criteria
+      ? (Object.prototype.hasOwnProperty.call(criteria, 'where') ? criteria : { where: criteria })
+      : {};
+    return await modelDeleteMany(args);
+  } catch (error) {
+    if (error && error.code === 'P2021') {
+      console.warn('⚠️ Skipping deletion: table missing (P2021)');
+      return { count: 0 };
+    }
+    throw error;
+  }
+}
+
 // Initialize Gemini AI with configuration
 const geminiConfig = {
   token: process.env.GEMINI_API_KEY,
@@ -141,9 +157,7 @@ async function generateDashboardData(formData, organizationId) {
     
   } catch (error) {
     console.error('❌ Error generating schema-based data:', error);
-    console.log('🔄 Using fallback data...');
-    console.log('💡 To enable AI data generation, set GEMINI_API_KEY in your .env file');
-    return getFallbackDashboardData(formData, organizationId);
+    throw error;
   }
 }
 
@@ -311,6 +325,65 @@ function getStateName(stateCode) {
   return stateNames[stateCode] || stateCode;
 }
 
+// Validate critical DB schema before running costly AI generation
+async function validateDatabaseSchema() {
+  const issues = [];
+  try {
+    // Basic connectivity
+    await prisma.$queryRaw`SELECT 1`;
+
+    const requirements = [
+      { table: 'clients', columns: ['slug'] },
+      { table: 'client_states', columns: ['state_code', 'state_name', 'status', 'registration_required', 'threshold_amount', 'current_amount', 'last_updated', 'notes'] },
+      { table: 'nexus_alerts', columns: ['client_id', 'organization_id', 'state_code', 'alert_type', 'priority', 'severity', 'status', 'title', 'threshold_amount', 'current_amount', 'acknowledged_at', 'acknowledged_by', 'resolved_at', 'resolved_by'] },
+      { table: 'nexus_activities', columns: ['client_id', 'organization_id', 'state_code', 'activity_type', 'title', 'amount', 'threshold_amount', 'status'] },
+      { table: 'alerts' },
+      { table: 'tasks' },
+      { table: 'business_profiles' },
+      { table: 'contacts' },
+      { table: 'business_locations' },
+      { table: 'revenue_breakdowns' },
+      { table: 'customer_demographics' },
+      { table: 'geographic_distributions' },
+      { table: 'professional_decisions' },
+      { table: 'consultations' },
+      { table: 'communications' },
+      { table: 'documents' },
+      { table: 'audit_trails' },
+      { table: 'data_processing' },
+      { table: 'generated_dashboards' }
+    ];
+
+    for (const req of requirements) {
+      const [tbl] = await prisma.$queryRawUnsafe(
+        `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='${req.table}') AS exists`
+      );
+      if (!tbl?.exists) {
+        issues.push(`Missing table ${req.table}`);
+        continue;
+      }
+      if (req.columns && req.columns.length) {
+        for (const col of req.columns) {
+          const [colExists] = await prisma.$queryRawUnsafe(
+            `SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='${req.table}' AND column_name='${col}') AS exists`
+          );
+          if (!colExists?.exists) issues.push(`Missing column ${req.table}.${col}`);
+        }
+      }
+    }
+
+    // Decision table is optional (code skips on P2021) – warn only
+    const [decisionTable] = await prisma.$queryRawUnsafe(
+      "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='decision_tables') AS exists"
+    );
+    if (!decisionTable?.exists) issues.push('Optional: missing table decision_tables (entries will be skipped)');
+  } catch (e) {
+    issues.push(`Database connectivity error: ${e?.message || e}`);
+  }
+  const onlyOptional = issues.length === 1 && issues[0].startsWith('Optional:');
+  return { ok: issues.length === 0 || onlyOptional, issues };
+}
+
 // Test endpoint to check Gemini API
 router.get('/test-gemini', async (req, res) => {
   try {
@@ -347,7 +420,16 @@ router.post('/generate', async (req, res) => {
   console.log('📥 Request body:', JSON.stringify(req.body, null, 2));
   
   try {
-    const { formData, organizationId } = req.body;
+    const schema = await validateDatabaseSchema();
+    if (!schema.ok) {
+      console.error('❌ Database schema validation failed. Aborting generation to save API credits.', schema.issues);
+      return res.status(500).json({ 
+        error: 'Database schema not ready',
+        issues: schema.issues
+      });
+    }
+
+    const { formData } = req.body;
 
     if (!formData) {
       console.error('❌ Missing required fields:', { formData: !!formData });
@@ -356,47 +438,107 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // Create a new organization for this dashboard generation
+    // Create a new organization for this dashboard
     console.log('🏢 Creating new organization for dashboard generation...');
-    const newOrganization = await prisma.organization.create({
-      data: {
-        id: organizationId || `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
-        slug: formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now(),
-        name: `${formData.clientName} Dashboard Organization`,
-        legalName: `${formData.clientName} LLC`,
-        subscriptionTier: 'professional',
-        subscriptionStatus: 'active',
-        email: `admin@${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-        phone: '+1-555-0123',
-        website: `https://${formData.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-        addressLine1: '123 Business Ave',
-        city: 'New York',
-        state: 'NY',
-        postalCode: '10001',
-        country: 'US',
-        settings: {
-          timezone: 'America/New_York',
-          currency: 'USD',
-          dateFormat: 'MM/DD/YYYY'
-        },
-        branding: {
-          primaryColor: '#3B82F6',
-          logo: null
-        },
-        features: {
-          analytics: true,
-          integrations: true,
-          multiUser: true,
-          apiAccess: true
-        }
-      }
+    
+    // Check if there are any existing organizations that might cause conflicts
+    const existingOrgs = await prisma.organization.findMany({
+      select: { id: true, slug: true, name: true },
+      take: 5
     });
+    console.log('🔍 Existing organizations:', existingOrgs);
+    
+    // Test UUID generation
+    console.log('🧪 Testing UUID generation...');
+    try {
+      const testResult = await prisma.$queryRaw`SELECT gen_random_uuid() as test_uuid`;
+      console.log('✅ Database UUID generation test:', testResult);
+    } catch (uuidTestError) {
+      console.error('❌ Database UUID generation test failed:', uuidTestError);
+    }
+    
+    const orgSlug = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    console.log('📝 Organization data:', {
+      slug: orgSlug,
+      name: `${formData.clientName} Dashboard Organization`,
+      legalName: `${formData.clientName} Dashboard Organization LLC`
+    });
+    
+    // Prepare organization data - only include absolutely required fields
+    const orgData = {
+      slug: orgSlug,
+      name: `${formData.clientName} Dashboard Organization`
+    };
+    
+    console.log('🔍 Full organization data being sent:', JSON.stringify(orgData, null, 2));
+    
+    // Try creating a minimal organization first to isolate the issue
+    console.log('🧪 Testing minimal organization creation...');
+    let testOrg;
+    try {
+      testOrg = await prisma.organization.create({
+        data: {
+          slug: `test-${Date.now()}`,
+          name: 'Test Organization',
+          subscriptionTier: 'trial',
+          subscriptionStatus: 'active',
+          country: 'US'
+        }
+      });
+      console.log('✅ Minimal organization created successfully:', testOrg.id);
+      
+      // Delete the test organization
+      await prisma.organization.delete({ where: { id: testOrg.id } });
+      console.log('🗑️ Test organization deleted');
+    } catch (testError) {
+      console.error('❌ Minimal organization creation failed:', testError);
+      return res.status(500).json({
+        error: 'Database schema issue detected',
+        details: testError.message
+      });
+    }
+    
+    // Debug the data before creating organization
+    console.log('🔍 About to create organization with data:', JSON.stringify(orgData, null, 2));
+    console.log('🔍 Data types check:');
+    Object.entries(orgData).forEach(([key, value]) => {
+      console.log(`  ${key}: ${typeof value} = ${value}`);
+    });
+    
+    let newOrganization;
+    try {
+      newOrganization = await prisma.organization.create({
+        data: orgData
+      });
 
-    console.log('✅ Organization created:', { id: newOrganization.id, name: newOrganization.name });
+      console.log('✅ Organization created:', { id: newOrganization.id, name: newOrganization.name });
+      const finalOrganizationId = newOrganization.id;
+    } catch (orgError) {
+      console.error('❌ Error creating organization:', orgError);
+      return res.status(500).json({
+        error: 'Failed to create organization',
+        details: orgError.message
+      });
+    }
+
+    // Get the organization ID from the created organization
     const finalOrganizationId = newOrganization.id;
-
+    
     console.log('📊 Generating risk-based dashboard data...');
-    const generatedData = await generateDashboardData(formData, finalOrganizationId);
+    let generatedData;
+    try {
+      generatedData = await generateDashboardData(formData, finalOrganizationId);
+    } catch (err) {
+      if (err && (err.code?.startsWith('P') || (err.name && err.name.toLowerCase().includes('prisma')))) {
+        console.error('❌ Prisma error during generation. Aborting to save API credits:', err);
+        return res.status(500).json({
+          error: 'Database error during generation',
+          details: err.message,
+          code: err.code
+        });
+      }
+      throw err;
+    }
     
     console.log('📊 Generated data structure:', {
       hasClients: !!generatedData.data?.clients || !!generatedData.clients,
@@ -508,7 +650,8 @@ router.post('/generate', async (req, res) => {
         keyMetrics: generatedDashboard.keyMetrics,
         statesMonitored: generatedDashboard.statesMonitored,
         personalizedData: generatedDashboard.personalizedData,
-        lastUpdated: generatedDashboard.lastUpdated
+        lastUpdated: generatedDashboard.lastUpdated,
+        organizationId: finalOrganizationId // Include the created organization ID
       }
     };
 
@@ -523,14 +666,6 @@ router.post('/generate', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error generating dashboard:', error);
-    console.error('📋 Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      formData: req.body.formData,
-      organizationId: req.body.organizationId
-    });
-    
     res.status(500).json({ 
       success: false,
       error: 'Failed to generate dashboard',
@@ -704,97 +839,97 @@ router.delete('/delete-all', async (req, res) => {
     };
 
     // Delete generated dashboards first
-    const deletedDashboards = await prisma.generatedDashboard.deleteMany({});
+    const deletedDashboards = await safeDeleteMany(prisma.generatedDashboard.deleteMany.bind(prisma.generatedDashboard));
     deleteResults.generatedDashboards = deletedDashboards.count;
     console.log('✅ Deleted generated dashboards:', deletedDashboards.count);
 
     // Delete all client-related data
-    const deletedClients = await prisma.client.deleteMany({});
+    const deletedClients = await safeDeleteMany(prisma.client.deleteMany.bind(prisma.client));
     deleteResults.clients = deletedClients.count;
     console.log('✅ Deleted clients:', deletedClients.count);
 
     // Delete client states
-    const deletedClientStates = await prisma.clientState.deleteMany({});
+    const deletedClientStates = await safeDeleteMany(prisma.clientState.deleteMany.bind(prisma.clientState));
     deleteResults.clientStates = deletedClientStates.count;
     console.log('✅ Deleted client states:', deletedClientStates.count);
 
     // Delete nexus alerts
-    const deletedNexusAlerts = await prisma.nexusAlert.deleteMany({});
+    const deletedNexusAlerts = await safeDeleteMany(prisma.nexusAlert.deleteMany.bind(prisma.nexusAlert));
     deleteResults.nexusAlerts = deletedNexusAlerts.count;
     console.log('✅ Deleted nexus alerts:', deletedNexusAlerts.count);
 
     // Delete nexus activities
-    const deletedNexusActivities = await prisma.nexusActivity.deleteMany({});
+    const deletedNexusActivities = await safeDeleteMany(prisma.nexusActivity.deleteMany.bind(prisma.nexusActivity));
     deleteResults.nexusActivities = deletedNexusActivities.count;
     console.log('✅ Deleted nexus activities:', deletedNexusActivities.count);
 
     // Delete alerts
-    const deletedAlerts = await prisma.alert.deleteMany({});
+    const deletedAlerts = await safeDeleteMany(prisma.alert.deleteMany.bind(prisma.alert));
     deleteResults.alerts = deletedAlerts.count;
     console.log('✅ Deleted alerts:', deletedAlerts.count);
 
     // Delete tasks
-    const deletedTasks = await prisma.task.deleteMany({});
+    const deletedTasks = await safeDeleteMany(prisma.task.deleteMany.bind(prisma.task));
     deleteResults.tasks = deletedTasks.count;
     console.log('✅ Deleted tasks:', deletedTasks.count);
 
     // Delete business profiles
-    const deletedBusinessProfiles = await prisma.businessProfile.deleteMany({});
+    const deletedBusinessProfiles = await safeDeleteMany(prisma.businessProfile.deleteMany.bind(prisma.businessProfile));
     deleteResults.businessProfiles = deletedBusinessProfiles.count;
     console.log('✅ Deleted business profiles:', deletedBusinessProfiles.count);
 
     // Delete contacts
-    const deletedContacts = await prisma.contact.deleteMany({});
+    const deletedContacts = await safeDeleteMany(prisma.contact.deleteMany.bind(prisma.contact));
     deleteResults.contacts = deletedContacts.count;
     console.log('✅ Deleted contacts:', deletedContacts.count);
 
     // Delete business locations
-    const deletedBusinessLocations = await prisma.businessLocation.deleteMany({});
+    const deletedBusinessLocations = await safeDeleteMany(prisma.businessLocation.deleteMany.bind(prisma.businessLocation));
     deleteResults.businessLocations = deletedBusinessLocations.count;
     console.log('✅ Deleted business locations:', deletedBusinessLocations.count);
 
     // Delete revenue breakdowns
-    const deletedRevenueBreakdowns = await prisma.revenueBreakdown.deleteMany({});
+    const deletedRevenueBreakdowns = await safeDeleteMany(prisma.revenueBreakdown.deleteMany.bind(prisma.revenueBreakdown));
     deleteResults.revenueBreakdowns = deletedRevenueBreakdowns.count;
     console.log('✅ Deleted revenue breakdowns:', deletedRevenueBreakdowns.count);
 
     // Delete customer demographics
-    const deletedCustomerDemographics = await prisma.customerDemographics.deleteMany({});
+    const deletedCustomerDemographics = await safeDeleteMany(prisma.customerDemographics.deleteMany.bind(prisma.customerDemographics));
     deleteResults.customerDemographics = deletedCustomerDemographics.count;
     console.log('✅ Deleted customer demographics:', deletedCustomerDemographics.count);
 
     // Delete geographic distributions
-    const deletedGeographicDistributions = await prisma.geographicDistribution.deleteMany({});
+    const deletedGeographicDistributions = await safeDeleteMany(prisma.geographicDistribution.deleteMany.bind(prisma.geographicDistribution));
     deleteResults.geographicDistributions = deletedGeographicDistributions.count;
     console.log('✅ Deleted geographic distributions:', deletedGeographicDistributions.count);
 
     // Delete professional decisions
-    const deletedProfessionalDecisions = await prisma.professionalDecision.deleteMany({});
+    const deletedProfessionalDecisions = await safeDeleteMany(prisma.professionalDecision.deleteMany.bind(prisma.professionalDecision));
     deleteResults.professionalDecisions = deletedProfessionalDecisions.count;
     console.log('✅ Deleted professional decisions:', deletedProfessionalDecisions.count);
 
     // Delete consultations
-    const deletedConsultations = await prisma.consultation.deleteMany({});
+    const deletedConsultations = await safeDeleteMany(prisma.consultation.deleteMany.bind(prisma.consultation));
     deleteResults.consultations = deletedConsultations.count;
     console.log('✅ Deleted consultations:', deletedConsultations.count);
 
     // Delete communications
-    const deletedCommunications = await prisma.communication.deleteMany({});
+    const deletedCommunications = await safeDeleteMany(prisma.communication.deleteMany.bind(prisma.communication));
     deleteResults.communications = deletedCommunications.count;
     console.log('✅ Deleted communications:', deletedCommunications.count);
 
     // Delete documents
-    const deletedDocuments = await prisma.document.deleteMany({});
+    const deletedDocuments = await safeDeleteMany(prisma.document.deleteMany.bind(prisma.document));
     deleteResults.documents = deletedDocuments.count;
     console.log('✅ Deleted documents:', deletedDocuments.count);
 
     // Delete audit trails
-    const deletedAuditTrails = await prisma.auditTrail.deleteMany({});
+    const deletedAuditTrails = await safeDeleteMany(prisma.auditTrail.deleteMany.bind(prisma.auditTrail));
     deleteResults.auditTrails = deletedAuditTrails.count;
     console.log('✅ Deleted audit trails:', deletedAuditTrails.count);
 
     // Delete data processing records
-    const deletedDataProcessing = await prisma.dataProcessing.deleteMany({});
+    const deletedDataProcessing = await safeDeleteMany(prisma.dataProcessing.deleteMany.bind(prisma.dataProcessing));
     deleteResults.dataProcessing = deletedDataProcessing.count;
     console.log('✅ Deleted data processing records:', deletedDataProcessing.count);
 
@@ -894,7 +1029,7 @@ router.delete('/:id', async (req, res) => {
       
       // Delete client states
       console.log('🗑️ Deleting client states...');
-      const deletedClientStates = await prisma.clientState.deleteMany({
+      const deletedClientStates = await safeDeleteMany(prisma.clientState.deleteMany.bind(prisma.clientState), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -904,7 +1039,7 @@ router.delete('/:id', async (req, res) => {
       console.log('✅ Deleted client states:', deletedClientStates.count);
 
       // Delete nexus alerts
-      const deletedNexusAlerts = await prisma.nexusAlert.deleteMany({
+      const deletedNexusAlerts = await safeDeleteMany(prisma.nexusAlert.deleteMany.bind(prisma.nexusAlert), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -913,7 +1048,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.nexusAlerts = deletedNexusAlerts.count;
 
       // Delete nexus activities
-      const deletedNexusActivities = await prisma.nexusActivity.deleteMany({
+      const deletedNexusActivities = await safeDeleteMany(prisma.nexusActivity.deleteMany.bind(prisma.nexusActivity), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -922,7 +1057,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.nexusActivities = deletedNexusActivities.count;
 
       // Delete alerts
-      const deletedAlerts = await prisma.alert.deleteMany({
+      const deletedAlerts = await safeDeleteMany(prisma.alert.deleteMany.bind(prisma.alert), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -931,7 +1066,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.alerts = deletedAlerts.count;
 
       // Delete tasks
-      const deletedTasks = await prisma.task.deleteMany({
+      const deletedTasks = await safeDeleteMany(prisma.task.deleteMany.bind(prisma.task), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -940,16 +1075,14 @@ router.delete('/:id', async (req, res) => {
       deleteResults.tasks = deletedTasks.count;
 
       // Delete business profiles
-      const deletedBusinessProfiles = await prisma.businessProfile.deleteMany({
-        where: { 
-          clientId: { in: clientIds },
-          organizationId 
-        }
+      const deletedBusinessProfiles = await safeDeleteMany(prisma.businessProfile.deleteMany.bind(prisma.businessProfile), { 
+        clientId: { in: clientIds },
+        organizationId 
       });
       deleteResults.businessProfiles = deletedBusinessProfiles.count;
 
       // Delete contacts
-      const deletedContacts = await prisma.contact.deleteMany({
+      const deletedContacts = await safeDeleteMany(prisma.contact.deleteMany.bind(prisma.contact), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -958,7 +1091,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.contacts = deletedContacts.count;
 
       // Delete business locations
-      const deletedBusinessLocations = await prisma.businessLocation.deleteMany({
+      const deletedBusinessLocations = await safeDeleteMany(prisma.businessLocation.deleteMany.bind(prisma.businessLocation), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -967,7 +1100,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.businessLocations = deletedBusinessLocations.count;
 
       // Delete revenue breakdowns
-      const deletedRevenueBreakdowns = await prisma.revenueBreakdown.deleteMany({
+      const deletedRevenueBreakdowns = await safeDeleteMany(prisma.revenueBreakdown.deleteMany.bind(prisma.revenueBreakdown), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -976,7 +1109,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.revenueBreakdowns = deletedRevenueBreakdowns.count;
 
       // Delete customer demographics
-      const deletedCustomerDemographics = await prisma.customerDemographics.deleteMany({
+      const deletedCustomerDemographics = await safeDeleteMany(prisma.customerDemographics.deleteMany.bind(prisma.customerDemographics), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -985,7 +1118,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.customerDemographics = deletedCustomerDemographics.count;
 
       // Delete geographic distributions
-      const deletedGeographicDistributions = await prisma.geographicDistribution.deleteMany({
+      const deletedGeographicDistributions = await safeDeleteMany(prisma.geographicDistribution.deleteMany.bind(prisma.geographicDistribution), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -994,7 +1127,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.geographicDistributions = deletedGeographicDistributions.count;
 
       // Delete professional decisions
-      const deletedProfessionalDecisions = await prisma.professionalDecision.deleteMany({
+      const deletedProfessionalDecisions = await safeDeleteMany(prisma.professionalDecision.deleteMany.bind(prisma.professionalDecision), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1003,7 +1136,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.professionalDecisions = deletedProfessionalDecisions.count;
 
       // Delete consultations
-      const deletedConsultations = await prisma.consultation.deleteMany({
+      const deletedConsultations = await safeDeleteMany(prisma.consultation.deleteMany.bind(prisma.consultation), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1012,7 +1145,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.consultations = deletedConsultations.count;
 
       // Delete communications
-      const deletedCommunications = await prisma.communication.deleteMany({
+      const deletedCommunications = await safeDeleteMany(prisma.communication.deleteMany.bind(prisma.communication), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1021,7 +1154,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.communications = deletedCommunications.count;
 
       // Delete documents
-      const deletedDocuments = await prisma.document.deleteMany({
+      const deletedDocuments = await safeDeleteMany(prisma.document.deleteMany.bind(prisma.document), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1030,7 +1163,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.documents = deletedDocuments.count;
 
       // Delete audit trails
-      const deletedAuditTrails = await prisma.auditTrail.deleteMany({
+      const deletedAuditTrails = await safeDeleteMany(prisma.auditTrail.deleteMany.bind(prisma.auditTrail), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1039,7 +1172,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.auditTrails = deletedAuditTrails.count;
 
       // Delete data processing records
-      const deletedDataProcessing = await prisma.dataProcessing.deleteMany({
+      const deletedDataProcessing = await safeDeleteMany(prisma.dataProcessing.deleteMany.bind(prisma.dataProcessing), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1048,7 +1181,7 @@ router.delete('/:id', async (req, res) => {
       deleteResults.dataProcessing = deletedDataProcessing.count;
 
       // Finally, delete the clients
-      const deletedClients = await prisma.client.deleteMany({
+      const deletedClients = await safeDeleteMany(prisma.client.deleteMany.bind(prisma.client), {
         where: { 
           id: { in: clientIds },
           organizationId 
@@ -1180,7 +1313,7 @@ router.delete('/url/:url', async (req, res) => {
       
       // Delete client states
       console.log('🗑️ Deleting client states...');
-      const deletedClientStates = await prisma.clientState.deleteMany({
+      const deletedClientStates = await safeDeleteMany(prisma.clientState.deleteMany.bind(prisma.clientState), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1190,7 +1323,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted client states:', deletedClientStates.count);
 
       // Delete nexus alerts
-      const deletedNexusAlerts = await prisma.nexusAlert.deleteMany({
+      const deletedNexusAlerts = await safeDeleteMany(prisma.nexusAlert.deleteMany.bind(prisma.nexusAlert), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1200,7 +1333,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted nexus alerts:', deletedNexusAlerts.count);
 
       // Delete nexus activities
-      const deletedNexusActivities = await prisma.nexusActivity.deleteMany({
+      const deletedNexusActivities = await safeDeleteMany(prisma.nexusActivity.deleteMany.bind(prisma.nexusActivity), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1210,7 +1343,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted nexus activities:', deletedNexusActivities.count);
 
       // Delete alerts
-      const deletedAlerts = await prisma.alert.deleteMany({
+      const deletedAlerts = await safeDeleteMany(prisma.alert.deleteMany.bind(prisma.alert), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1220,7 +1353,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted alerts:', deletedAlerts.count);
 
       // Delete tasks
-      const deletedTasks = await prisma.task.deleteMany({
+      const deletedTasks = await safeDeleteMany(prisma.task.deleteMany.bind(prisma.task), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1230,17 +1363,15 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted tasks:', deletedTasks.count);
 
       // Delete business profiles
-      const deletedBusinessProfiles = await prisma.businessProfile.deleteMany({
-        where: { 
-          clientId: { in: clientIds },
-          organizationId 
-        }
+      const deletedBusinessProfiles = await safeDeleteMany(prisma.businessProfile.deleteMany.bind(prisma.businessProfile), { 
+        clientId: { in: clientIds },
+        organizationId 
       });
       deleteResults.businessProfiles = deletedBusinessProfiles.count;
       console.log('✅ Deleted business profiles:', deletedBusinessProfiles.count);
 
       // Delete contacts
-      const deletedContacts = await prisma.contact.deleteMany({
+      const deletedContacts = await safeDeleteMany(prisma.contact.deleteMany.bind(prisma.contact), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1250,7 +1381,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted contacts:', deletedContacts.count);
 
       // Delete business locations
-      const deletedBusinessLocations = await prisma.businessLocation.deleteMany({
+      const deletedBusinessLocations = await safeDeleteMany(prisma.businessLocation.deleteMany.bind(prisma.businessLocation), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1260,7 +1391,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted business locations:', deletedBusinessLocations.count);
 
       // Delete revenue breakdowns
-      const deletedRevenueBreakdowns = await prisma.revenueBreakdown.deleteMany({
+      const deletedRevenueBreakdowns = await safeDeleteMany(prisma.revenueBreakdown.deleteMany.bind(prisma.revenueBreakdown), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1270,7 +1401,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted revenue breakdowns:', deletedRevenueBreakdowns.count);
 
       // Delete customer demographics
-      const deletedCustomerDemographics = await prisma.customerDemographic.deleteMany({
+      const deletedCustomerDemographics = await safeDeleteMany(prisma.customerDemographic.deleteMany.bind(prisma.customerDemographic), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1280,7 +1411,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted customer demographics:', deletedCustomerDemographics.count);
 
       // Delete geographic distributions
-      const deletedGeographicDistributions = await prisma.geographicDistribution.deleteMany({
+      const deletedGeographicDistributions = await safeDeleteMany(prisma.geographicDistribution.deleteMany.bind(prisma.geographicDistribution), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1290,7 +1421,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted geographic distributions:', deletedGeographicDistributions.count);
 
       // Delete professional decisions
-      const deletedProfessionalDecisions = await prisma.professionalDecision.deleteMany({
+      const deletedProfessionalDecisions = await safeDeleteMany(prisma.professionalDecision.deleteMany.bind(prisma.professionalDecision), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1300,7 +1431,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted professional decisions:', deletedProfessionalDecisions.count);
 
       // Delete consultations
-      const deletedConsultations = await prisma.consultation.deleteMany({
+      const deletedConsultations = await safeDeleteMany(prisma.consultation.deleteMany.bind(prisma.consultation), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1310,7 +1441,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted consultations:', deletedConsultations.count);
 
       // Delete communications
-      const deletedCommunications = await prisma.communication.deleteMany({
+      const deletedCommunications = await safeDeleteMany(prisma.communication.deleteMany.bind(prisma.communication), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1320,7 +1451,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted communications:', deletedCommunications.count);
 
       // Delete documents
-      const deletedDocuments = await prisma.document.deleteMany({
+      const deletedDocuments = await safeDeleteMany(prisma.document.deleteMany.bind(prisma.document), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1330,7 +1461,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted documents:', deletedDocuments.count);
 
       // Delete audit trails
-      const deletedAuditTrails = await prisma.auditTrail.deleteMany({
+      const deletedAuditTrails = await safeDeleteMany(prisma.auditTrail.deleteMany.bind(prisma.auditTrail), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1340,7 +1471,7 @@ router.delete('/url/:url', async (req, res) => {
       console.log('✅ Deleted audit trails:', deletedAuditTrails.count);
 
       // Delete data processing records
-      const deletedDataProcessing = await prisma.dataProcessing.deleteMany({
+      const deletedDataProcessing = await safeDeleteMany(prisma.dataProcessing.deleteMany.bind(prisma.dataProcessing), {
         where: { 
           clientId: { in: clientIds },
           organizationId 
@@ -1351,7 +1482,7 @@ router.delete('/url/:url', async (req, res) => {
 
       // Finally, delete the clients themselves
       console.log('🗑️ Deleting clients...');
-      const deletedClients = await prisma.client.deleteMany({
+      const deletedClients = await safeDeleteMany(prisma.client.deleteMany.bind(prisma.client), {
         where: { 
           id: { in: clientIds },
           organizationId 

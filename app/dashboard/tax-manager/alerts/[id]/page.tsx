@@ -98,7 +98,7 @@ interface BackendAlert {
   };
 }
 
-// Fallback alert data for testing when API is not available
+// Removed hardcoded fallback alerts; rely solely on API data
 const fallbackAlerts: Alert[] = [
   {
     id: "1",
@@ -191,7 +191,7 @@ export default function AlertDetailPage() {
   // API hook for fetching alerts with organizationId (consistent with monitoring page)
   const { data: alertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ 
     limit: 100,
-    organizationId: organizationId || 'demo-org-id'
+    organizationId: organizationId || undefined
   });
 
   // Transform backend data to frontend format
@@ -279,21 +279,8 @@ export default function AlertDetailPage() {
       return [];
     }
 
-    // Use API data if available, otherwise use fallback data
-    const dataToUse = alertsData?.alerts && alertsData.alerts.length > 0 
-      ? alertsData.alerts 
-      : fallbackAlerts;
-
-    if (!dataToUse || dataToUse.length === 0) {
-      return fallbackAlerts;
-    }
-
-    // Transform backend data to frontend format
-    if (alertsData?.alerts && alertsData.alerts.length > 0) {
-      return alertsData.alerts.map(transformBackendAlert);
-    }
-
-    return dataToUse;
+    const apiAlerts = alertsData?.alerts || [];
+    return apiAlerts.map(transformBackendAlert);
   }, [alertsData, alertsLoading]);
 
   // Find the specific alert

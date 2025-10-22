@@ -45,6 +45,7 @@ import { useRouter } from "next/navigation";
 import { useClientDetail, useClientNexusStatus, useClientCommunications, useClientDocuments } from "@/hooks/useClientDetail";
 import { useNexusAlerts } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 
 // Helper functions for data formatting
 const formatCurrency = (amount: number) => {
@@ -95,7 +96,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   // Get personalized dashboard context
   const { isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
   
-  const finalOrganizationId = organizationId || 'org-1760376582926-5cfsef';
+  const finalOrganizationId = normalizeOrgId(organizationId);
 
   // Fetch comprehensive client data
   const { 
@@ -519,7 +520,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                     <div>
                       <h2 className="text-2xl font-semibold text-white tracking-tight">{client.name}</h2>
                       <p className="text-gray-400 text-sm">{client.legalName || client.name}</p>
-                      <p className="text-gray-400 text-sm">Founded: {client.foundedYear ? client.foundedYear : 'Not specified'}</p>
+                      {/* Founded year removed from schema */}
                     </div>
                   </div>
                   <div className="text-right">

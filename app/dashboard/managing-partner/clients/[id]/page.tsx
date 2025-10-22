@@ -15,6 +15,7 @@ import {
   Divider
 } from "@nextui-org/react";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
+import { normalizeOrgId } from "@/lib/utils";
 import { useClient } from "@/hooks/useApi";
 
 // Utility functions
@@ -74,7 +75,7 @@ export default function ClientDetailPage() {
   const [selectedTab, setSelectedTab] = useState("overview");
 
   const clientId = params.id as string;
-  const finalOrganizationId = organizationId || 'org-1760376582926-5cfsef';
+  const finalOrganizationId = normalizeOrgId(organizationId);
   
   console.log('Client Detail Page Debug:', {
     clientId,

@@ -60,6 +60,16 @@ model Organization {
   users                   User[]
   generatedDashboards     GeneratedDashboard[]
   decisionTables          DecisionTable[]
+  clientCommunications    ClientCommunication[]
+  advisoryDocuments       AdvisoryDocument[]
+  riskFactors             RiskFactor[]
+  notifications           Notification[]
+  comments                Comment[]
+  activityFeed            ActivityFeed[]
+  templates               Template[]
+  reports                 Report[]
+  apiKeys                 ApiKey[]
+  webhooks                Webhook[]
 
   @@map("organizations")
 }
@@ -99,6 +109,9 @@ model User {
   userPermissions       UserPermission[]
   userSessions          UserSession[]
   organization          Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  notifications         Notification[]
+  comments              Comment[]
+  activityFeed          ActivityFeed[]
 
   @@unique([organizationId, email])
   @@map("users")
@@ -112,7 +125,7 @@ model Client {
   legalName               String?                  @map("legal_name")
   taxId                   String?                  @map("tax_id")
   industry                String?
-  foundedYear             Int?
+  // foundedYear removed
   employeeCount           Int?                     @map("employee_count")
   annualRevenue           Decimal?                 @map("annual_revenue")
   fiscalYearEnd           DateTime?                @map("fiscal_year_end")
@@ -163,6 +176,11 @@ model Client {
   revenueBreakdowns       RevenueBreakdown[]
   tasks                   Task[]
   decisionTables          DecisionTable[]
+  clientCommunications    ClientCommunication[]
+  revenueHistory          ClientRevenueHistory[]
+  advisoryDocuments       AdvisoryDocument[]
+  riskFactors             RiskFactor[]
+  activityFeed            ActivityFeed[]
 
   @@index([slug])
   @@map("clients")
@@ -522,6 +540,7 @@ model NexusAlert {
   stateCode       String       @map("state_code")
   alertType       String       @map("alert_type")
   priority        String       @default("medium")
+  severity        String       @default("medium")
   status          String       @default("open")
   title           String
   description     String?
@@ -885,4 +904,269 @@ model GeneratedDashboard {
   @@index([clientName])
   @@index([isActive])
   @@map("generated_dashboards")
+}
+
+model ClientCommunication {
+  id                  String       @id @default(uuid())
+  organizationId      String       @map("organization_id")
+  clientId            String       @map("client_id")
+  type                String
+  subject             String?
+  summary             String?
+  userId              String?      @map("user_id")
+  participants        String[]
+  communicationDate   DateTime     @map("communication_date")
+  duration            Int?
+  status              String?
+  followUp            String?      @map("follow_up")
+  followUpDate        DateTime?    @map("follow_up_date")
+  attachments         Json         @default("[]")
+  relatedDecisionId   String?      @map("related_decision_id")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  createdBy           String?      @map("created_by")
+  
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client              Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@map("client_communications")
+}
+
+model ClientRevenueHistory {
+  id               String    @id @default(uuid())
+  clientId         String    @map("client_id")
+  stateCode        String?   @map("state_code")
+  periodStart      DateTime  @map("period_start")
+  periodEnd        DateTime  @map("period_end")
+  revenue          Decimal
+  transactionCount Int?      @map("transaction_count")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  
+  client           Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@unique([clientId, stateCode, periodStart, periodEnd])
+  @@map("client_revenue_history")
+}
+
+model AdvisoryDocument {
+  id                String       @id @default(uuid())
+  organizationId    String       @map("organization_id")
+  clientId          String       @map("client_id")
+  type              String
+  title             String
+  issue             String?
+  content           String?
+  templateId        String?      @map("template_id")
+  status            String       @default("draft")
+  urgency           String?
+  sentDate          DateTime?    @map("sent_date")
+  deliveredDate     DateTime?    @map("delivered_date")
+  acknowledgedDate  DateTime?    @map("acknowledged_date")
+  acknowledgedBy    String?      @map("acknowledged_by")
+  version           Int          @default(1)
+  documentUrl       String?      @map("document_url")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  createdBy         String?      @map("created_by")
+  
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@map("advisory_documents")
+}
+
+model RiskFactor {
+  id                 String       @id @default(uuid())
+  organizationId     String       @map("organization_id")
+  clientId           String?      @map("client_id")
+  category           String
+  factorName         String       @map("factor_name")
+  description        String?
+  likelihood         String?
+  impact             String?
+  riskScore          Int?         @map("risk_score")
+  mitigationStrategy String?      @map("mitigation_strategy")
+  mitigationStatus   String?      @map("mitigation_status")
+  mitigationOwner    String?      @map("mitigation_owner")
+  status             String       @default("active")
+  lastReviewDate     DateTime?    @map("last_review_date")
+  nextReviewDate     DateTime?    @map("next_review_date")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client             Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@map("risk_factors")
+}
+
+model Notification {
+  id                   String       @id @default(uuid())
+  organizationId       String       @map("organization_id")
+  userId               String       @map("user_id")
+  type                 String
+  title                String
+  message              String?
+  priority             String       @default("normal")
+  read                 Boolean      @default(false)
+  readAt               DateTime?    @map("read_at")
+  actionUrl            String?      @map("action_url")
+  actionLabel          String?      @map("action_label")
+  relatedResourceType  String?      @map("related_resource_type")
+  relatedResourceId    String?      @map("related_resource_id")
+  deliveryMethod       String       @default("in-app") @map("delivery_method")
+  sentAt               DateTime?    @map("sent_at")
+  expiresAt            DateTime?    @map("expires_at")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+model Comment {
+  id                String       @id @default(uuid())
+  organizationId    String       @map("organization_id")
+  userId            String       @map("user_id")
+  resourceType      String       @map("resource_type")
+  resourceId        String       @map("resource_id")
+  content           String
+  parentCommentId   String?      @map("parent_comment_id")
+  edited            Boolean      @default(false)
+  editedAt          DateTime?    @map("edited_at")
+  deleted           Boolean      @default(false)
+  deletedAt         DateTime?    @map("deleted_at")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentComment     Comment?     @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies           Comment[]    @relation("CommentReplies")
+  
+  @@map("comments")
+}
+
+model ActivityFeed {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  userId         String?      @map("user_id")
+  activityType   String       @map("activity_type")
+  description    String
+  clientId       String?      @map("client_id")
+  resourceType   String?      @map("resource_type")
+  resourceId     String?      @map("resource_id")
+  metadata       Json         @default("{}")
+  visibility     String       @default("team")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  
+  @@map("activity_feed")
+}
+
+model Template {
+  id          String       @id @default(uuid())
+  organizationId String    @map("organization_id")
+  name        String
+  description String?
+  category    String?
+  type        String?
+  subject     String?
+  content     String
+  variables   Json         @default("[]")
+  status      String       @default("active")
+  usageCount  Int          @default(0) @map("usage_count")
+  lastUsedAt  DateTime?    @map("last_used_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  createdBy   String?      @map("created_by")
+  
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@map("templates")
+}
+
+model Report {
+  id                String       @id @default(uuid())
+  organizationId    String       @map("organization_id")
+  name              String
+  description       String?
+  reportType        String?      @map("report_type")
+  queryConfig       Json         @map("query_config")
+  scheduled         Boolean      @default(false)
+  scheduleFrequency String?      @map("schedule_frequency")
+  scheduleDay       Int?         @map("schedule_day")
+  scheduleTime      String?      @map("schedule_time")
+  recipients        String[]
+  visibility        String       @default("private")
+  lastRunAt         DateTime?    @map("last_run_at")
+  runCount          Int          @default(0) @map("run_count")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  createdBy         String?      @map("created_by")
+  
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@map("reports")
+}
+
+model ApiKey {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  keyName        String       @map("key_name")
+  keyHash        String       @map("key_hash")
+  keyPrefix      String       @map("key_prefix")
+  permissions    Json         @default("[]")
+  active         Boolean      @default(true)
+  lastUsedAt     DateTime?    @map("last_used_at")
+  usageCount     Int          @default(0) @map("usage_count")
+  expiresAt      DateTime?    @map("expires_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  createdBy      String?      @map("created_by")
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  @@map("api_keys")
+}
+
+model Webhook {
+  id               String             @id @default(uuid())
+  organizationId   String             @map("organization_id")
+  name             String
+  url              String
+  events           String[]
+  secret           String?
+  active           Boolean            @default(true)
+  retryOnFailure   Boolean            @default(true) @map("retry_on_failure")
+  maxRetries       Int                @default(3) @map("max_retries")
+  lastTriggeredAt  DateTime?          @map("last_triggered_at")
+  successCount     Int                @default(0) @map("success_count")
+  failureCount     Int                @default(0) @map("failure_count")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  createdBy        String?            @map("created_by")
+  
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deliveries       WebhookDelivery[]
+  
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id             String    @id @default(uuid())
+  webhookId      String    @map("webhook_id")
+  eventType      String    @map("event_type")
+  eventData      Json?     @map("event_data")
+  status         String
+  responseStatus Int?      @map("response_status")
+  responseBody   String?   @map("response_body")
+  attemptNumber  Int       @default(1) @map("attempt_number")
+  deliveredAt    DateTime? @map("delivered_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  
+  webhook        Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  
+  @@map("webhook_deliveries")
 }

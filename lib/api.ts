@@ -333,7 +333,6 @@ class ApiClient {
     legalName: string;
     industry: string;
     annualRevenue: number;
-    foundedYear: number;
     employeeCount: number;
     primaryContactName: string;
     primaryContactEmail: string;
@@ -738,7 +737,7 @@ class ApiClient {
     primaryIndustry: string;
     qualificationStrategy: string;
     additionalNotes?: string;
-  }, organizationId: string): Promise<ApiResponse<{
+  }): Promise<ApiResponse<{
     id: string;
     clientName: string;
     uniqueUrl: string;
@@ -747,10 +746,11 @@ class ApiClient {
     keyMetrics: any;
     statesMonitored: string[];
     lastUpdated: string;
+    organizationId: string; // Backend will return the created organization ID
   }>> {
     return this.request('/api/dashboards/generate', {
       method: 'POST',
-      body: JSON.stringify({ formData, organizationId }),
+      body: JSON.stringify({ formData }),
     });
   }
 
