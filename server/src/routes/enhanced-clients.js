@@ -24,13 +24,10 @@ router.get('/:id', async (req, res) => {
     console.log('🔍 Fetching comprehensive client data for ID:', id);
 
     // Get comprehensive client data with all related entities
-    // Handle both UUID and slug lookups
+    // Use slug lookup since the ID parameter is a slug, not a UUID
     const client = await prisma.client.findFirst({
       where: { 
-        OR: [
-          { id: id },
-          { slug: id }
-        ],
+        slug: id,
         organizationId: organizationId,
         status: 'active'
       },
@@ -84,11 +81,11 @@ router.get('/:id', async (req, res) => {
           orderBy: { decisionDate: 'desc' },
           take: 10
         },
-        // Consultations
-        consultations: {
-          orderBy: { createdAt: 'desc' },
-          take: 10
-        },
+        // Consultations - temporarily disabled due to schema mismatch
+        // consultations: {
+        //   orderBy: { createdAt: 'desc' },
+        //   take: 10
+        // },
         // Communications
         communications: {
           orderBy: { createdAt: 'desc' },
@@ -198,10 +195,7 @@ router.get('/:id/nexus-status', async (req, res) => {
 
     const client = await prisma.client.findFirst({
       where: { 
-        OR: [
-          { id: id },
-          { slug: id }
-        ],
+        slug: id,
         organizationId: organizationId,
         status: 'active'
       },

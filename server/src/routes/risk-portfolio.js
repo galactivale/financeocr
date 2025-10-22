@@ -140,10 +140,7 @@ router.get('/:clientId', async (req, res) => {
 
     const client = await prisma.client.findFirst({
       where: { 
-        OR: [
-          { id: clientId },
-          { slug: clientId }
-        ],
+        slug: clientId,
         organizationId: organizationId,
         status: 'active'
       },

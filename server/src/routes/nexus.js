@@ -800,9 +800,14 @@ router.post('/decision-tables', async (req, res) => {
       });
     }
 
-    // Check if client exists
-    const client = await prisma.client.findUnique({
-      where: { id: clientId }
+    // Check if client exists - handle both UUID and slug
+    const client = await prisma.client.findFirst({
+      where: { 
+        OR: [
+          { id: clientId },
+          { slug: clientId }
+        ]
+      }
     });
 
     if (!client) {

@@ -208,9 +208,14 @@ router.get('/state-compliance/:clientId', async (req, res) => {
     const { clientId } = req.params;
     const { organizationId = 'demo-org-id' } = req.query;
 
-    // Get client with basic info
-    const client = await prisma.client.findUnique({
-      where: { id: clientId },
+    // Get client with basic info - handle both UUID and slug
+    const client = await prisma.client.findFirst({
+      where: { 
+        OR: [
+          { id: clientId },
+          { slug: clientId }
+        ]
+      },
       select: {
         id: true,
         name: true,
