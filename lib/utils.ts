@@ -11,7 +11,7 @@ export const isUuid = (value?: string | null): boolean => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 };
 
-export const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+export const DEMO_ORG_ID = '0e41d0dc-afd0-4e19-9515-71372f5745df';
 
 // Do not fallback to a demo organization. Return a valid UUID or undefined.
 export const normalizeOrgId = (maybeOrgId?: string | null): string | undefined => {

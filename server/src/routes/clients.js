@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
     const where = {};
     
     const isUuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-    const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+    const DEMO_ORG_ID = '0e41d0dc-afd0-4e19-9515-71372f5745df';
     const orgId = isUuid(organizationId) ? organizationId : DEMO_ORG_ID;
     where.organizationId = orgId;
     
@@ -191,7 +191,7 @@ router.get('/:id', async (req, res) => {
     
     // CRITICAL: Filter by organization ID to ensure data isolation
     const isUuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-    const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+    const DEMO_ORG_ID = '0e41d0dc-afd0-4e19-9515-71372f5745df';
     const normalizedOrgId = isUuid(organizationId) ? organizationId : DEMO_ORG_ID;
     
     // Check if id is a UUID or slug

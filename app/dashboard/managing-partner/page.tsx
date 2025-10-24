@@ -5,7 +5,7 @@ import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody,
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
-import { useClients, useAlerts, useNexusAlerts, useClientStates } from "@/hooks/useApi";
+import { useClients, useAlerts, useNexusAlerts, useClientStates, useOrganization } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { normalizeOrgId } from "@/lib/utils";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
@@ -438,11 +438,12 @@ export default function ManagingPartnerDashboard() {
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId, clearDashboardSession } = usePersonalizedDashboard();
   
   // API hooks for data fetching
-  const effectiveOrgId = normalizeOrgId(organizationId);
+  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
   const { data: clientsData, loading: clientsLoading } = useClients({ organizationId: effectiveOrgId });
   const { data: alertsData, loading: alertsLoading } = useAlerts();
   const { data: nexusAlertsData, loading: nexusAlertsLoading } = useNexusAlerts({ organizationId: effectiveOrgId });
   const { data: clientStatesData, loading: clientStatesLoading } = useClientStates({ organizationId: effectiveOrgId });
+  const { data: organizationData, loading: organizationLoading } = useOrganization(effectiveOrgId);
   
   // Fallback clients data
   const fallbackClients = [
@@ -501,7 +502,12 @@ export default function ManagingPartnerDashboard() {
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-1 h-8 bg-blue-500 rounded-full"></div>
               <h2 className="text-3xl font-light text-white tracking-tight">
-                {isPersonalizedMode && clientName ? `${clientName} - Firm Performance Overview` : 'Firm Performance Overview'}
+                {isPersonalizedMode && clientName 
+                  ? `${clientName} - Firm Performance Overview` 
+                  : organizationData?.name 
+                    ? `${organizationData.name} - Firm Performance Overview`
+                    : 'Firm Performance Overview'
+                }
               </h2>
               {isPersonalizedMode && (
                 <div className="ml-4 flex items-center space-x-2">

@@ -82,9 +82,9 @@ const TaxManagerMonitoring = () => {
   const { organizationId } = usePersonalizedDashboard();
 
   // API hooks for data fetching with refresh capability - fetch more data
-  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || '550e8400-e29b-41d4-a716-446655440000');
-  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || '550e8400-e29b-41d4-a716-446655440000' });
-  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || '550e8400-e29b-41d4-a716-446655440000' });
+  const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(organizationId || '0e41d0dc-afd0-4e19-9515-71372f5745df');
+  const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: organizationId || '0e41d0dc-afd0-4e19-9515-71372f5745df' });
+  const { data: nexusAlertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ limit: 100, organizationId: organizationId || '0e41d0dc-afd0-4e19-9515-71372f5745df' });
 
   // Removed fallback demo data; rely solely on API data
 

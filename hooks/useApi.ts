@@ -197,6 +197,13 @@ export function useClientDetail(clientId: string) {
   );
 }
 
+export function useOrganization(organizationId: string) {
+  return useApi(
+    () => apiClient.getOrganization(organizationId),
+    [organizationId]
+  );
+}
+
 export function useClient(clientId: string, organizationId?: string) {
   return useApi(
     () => apiClient.getClient(clientId, organizationId),

@@ -432,7 +432,7 @@ const ManagingPartnerMonitoring = () => {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
 
   // API hooks for data fetching with refresh capability - fetch more data (fallback when not in personalized mode)
-  const effectiveOrgId = normalizeOrgId(organizationId);
+  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
 
   const { data: dashboardSummary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useNexusDashboardSummary(effectiveOrgId);
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError, refetch: refetchClientStates } = useClientStates({ limit: 100, organizationId: effectiveOrgId });

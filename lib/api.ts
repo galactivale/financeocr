@@ -359,6 +359,20 @@ class ApiClient {
     return this.request<any>(`/api/clients/${id}`);
   }
 
+  // Organization methods
+  async getOrganization(id: string): Promise<ApiResponse<{
+    id: string;
+    name: string;
+    slug: string;
+    legalName?: string;
+    subscriptionTier: string;
+    subscriptionStatus: string;
+    country?: string;
+    createdAt: string;
+  }>> {
+    return this.request(`/api/organizations/${id}`);
+  }
+
   // Alert methods
   async getAlerts(params?: {
     page?: number;

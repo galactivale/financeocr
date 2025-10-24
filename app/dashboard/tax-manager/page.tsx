@@ -5,7 +5,7 @@ import { Card, CardBody, CardHeader, Table, TableHeader, TableColumn, TableBody,
 import { Link } from "@nextui-org/react";
 import NextLink from "next/link";
 import { USAMap, USAStateAbbreviation, StateAbbreviations } from '@mirawision/usa-map-react';
-import { useClients, useAlerts, useNexusAlerts, useNexusActivities, useClientStates, useNexusDashboardSummary } from "@/hooks/useApi";
+import { useClients, useAlerts, useNexusAlerts, useNexusActivities, useClientStates, useNexusDashboardSummary, useOrganization } from "@/hooks/useApi";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { normalizeOrgId } from "@/lib/utils";
 import { usePersonalizedClientStates, usePersonalizedNexusAlerts } from "@/hooks/usePersonalizedData";
@@ -384,6 +384,15 @@ const CardResolvedToday = ({ activities }: { activities: any[] }) => {
 
 // Card Components
 const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any[] }) => {
+  // Debug logging
+  console.log('🔍 CardTotalRevenue Debug:', {
+    clientsType: typeof clients,
+    clientsIsArray: Array.isArray(clients),
+    clientsLength: clients?.length,
+    clientsRaw: clients,
+    sampleClient: clients?.[0]
+  });
+  
   const totalRevenue = (clients || []).reduce((sum, client) => sum + (client.annualRevenue || 0), 0);
 
   return (
@@ -416,6 +425,14 @@ const CardTotalRevenue = ({ analytics, clients }: { analytics: any, clients: any
 };
 
 const CardTotalClients = ({ clients }: { clients: any[] }) => {
+  // Debug logging
+  console.log('🔍 CardTotalClients Debug:', {
+    clientsType: typeof clients,
+    clientsIsArray: Array.isArray(clients),
+    clientsLength: clients?.length,
+    clientsRaw: clients
+  });
+  
   // Count all clients in the database
   const totalClients = (clients || []).length;
   
@@ -603,7 +620,10 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
       currentAmount: alert.currentAmount,
       thresholdAmount: alert.thresholdAmount,
       clientId: alert.clientId
-    }))
+    })),
+    // Additional debug info
+    alertsRaw: alerts,
+    clientsRaw: clients
   });
   
   // Use only real alerts from database - no fallback data
@@ -1148,12 +1168,13 @@ export default function TaxManagerDashboard() {
   const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
   // Regular data hooks (used when not in personalized mode) - fetch more data for comprehensive view
-  const effectiveOrgId = normalizeOrgId(organizationId);
+  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50, organizationId: effectiveOrgId });
   const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50, organizationId: effectiveOrgId });
   const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50, organizationId: effectiveOrgId });
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: effectiveOrgId });
   const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary(effectiveOrgId);
+  const { data: organizationData, loading: organizationLoading } = useOrganization(effectiveOrgId);
 
   // Fallback clients data
   const fallbackClients: never[] = [];
@@ -1189,6 +1210,10 @@ export default function TaxManagerDashboard() {
   // Debug logging for data structure
   console.log('🔍 Main Dashboard Data Debug:', {
     isPersonalizedMode,
+    organizationId,
+    effectiveOrgId,
+    organizationIdType: typeof organizationId,
+    effectiveOrgIdType: typeof effectiveOrgId,
     nexusAlertsData: nexusAlertsData,
     personalizedNexusAlerts: personalizedNexusAlerts,
     nexusAlerts: nexusAlerts,
@@ -1202,7 +1227,11 @@ export default function TaxManagerDashboard() {
     personalizedNexusAlertsError,
     // Raw API responses
     rawNexusAlertsData: nexusAlertsData,
-    rawPersonalizedNexusAlerts: personalizedNexusAlerts
+    rawPersonalizedNexusAlerts: personalizedNexusAlerts,
+    // Client data debug
+    clientsData: clientsData,
+    clientsError: clientsError,
+    clientsLoading: clientsLoading
   });
   
   // Use ONLY real backend data - no mock data
@@ -1235,7 +1264,12 @@ export default function TaxManagerDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-light text-white tracking-tight">
-              {isPersonalizedMode && clientName ? `${clientName}` : 'Tax Manager'}
+              {isPersonalizedMode && clientName 
+                ? `${clientName}` 
+                : organizationData?.name 
+                  ? `${organizationData.name} - Tax Manager`
+                  : 'Tax Manager'
+              }
             </h1>
             <p className="text-gray-500 text-sm font-light mt-1">Nexus monitoring and compliance</p>
           </div>

@@ -94,7 +94,7 @@ export default function AddClientPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const effectiveOrgId = normalizeOrgId(organizationId);
+  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};

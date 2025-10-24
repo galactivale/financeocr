@@ -2,9 +2,44 @@
 
 services:
   # Database - Optimized for low memory with proper initialization
+    # Nginx Reverse Proxy - Memory optimized with SSL
+  # Nginx Reverse Proxy - Memory optimized with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: vaultcpa-nginx-vps
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/ssl/certs/financeocr.com.crt:/etc/ssl/certs/financeocr.com.crt:ro
+      - /etc/ssl/private/financeocr.com.key:/etc/ssl/private/financeocr.com.key:ro
+    networks:
+      - vaultcpa-network
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    # Memory limits for VPS
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "https://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
   postgres:
     image: postgres:15-alpine
     container_name: vaultcpa-postgres-vps
+    env_file:
+      - ./server/.env
     environment:
       POSTGRES_DB: vaultcpa
       POSTGRES_USER: vaultcpa_user
@@ -15,6 +50,7 @@ services:
       POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
       POSTGRES_WORK_MEM: 4MB
       POSTGRES_MAINTENANCE_WORK_MEM: 64MB
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyBlYVRdzP2W6PB-Cu-3mGF1tmyD3LgB2Ro}
     ports:
       - "5432:5432"
     volumes:
@@ -55,13 +91,16 @@ services:
       context: ./server
       dockerfile: Dockerfile.vps
     container_name: vaultcpa-backend-vps
+    env_file:
+      - ./server/.env
     environment:
       NODE_ENV: production
       PORT: 3080
-      DATABASE_URL: postgresql://vaultcpa_user:${POSTGRES_PASSWORD:-vaultcpa_secure_password_2024}@postgres:5432/vaultcpa
+      DATABASE_URL: postgresql://vaultcpa_user:${POSTGRES_PASSWORD:-vaultcpa_secure_password_2024}@vaultcpa-postgres-vps:5432/vaultcpa
       JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyBlYVRdzP2W6PB-Cu-3mGF1tmyD3LgB2Ro}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://financeocr.com}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AIzaSyAATadcL-l2ZBoLoWnCeEixbrV2PFM3POc}
+      FRONTEND_URL: ${FRONTEND_URL:-https://financeocr.com}
       # Node.js memory optimizations
       NODE_OPTIONS: "--max-old-space-size=512"
     ports:
@@ -92,10 +131,12 @@ services:
       context: .
       dockerfile: Dockerfile.vps
     container_name: vaultcpa-frontend-vps
+    env_file:
+      - ./.env
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3080}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://financeocr.com/api}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://financeocr.com}
       # Node.js memory optimizations
       NODE_OPTIONS: "--max-old-space-size=1024"
     ports:
@@ -120,39 +161,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Nginx Reverse Proxy - Memory optimized
-  nginx:
-    image: nginx:alpine
-    container_name: vaultcpa-nginx-vps
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/ssl/certs/financeocr.com.crt:/etc/ssl/certs/financeocr.com.crt:ro
-      - /etc/ssl/private/financeocr.com.key:/etc/ssl/private/financeocr.com.key:ro
-    networks:
-      - vaultcpa-network
-    depends_on:
-      frontend:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-    # Memory limits for VPS
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--no-check-certificate", "https://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
 volumes:
   postgres_data:
     driver: local
@@ -160,3 +168,4 @@ volumes:
 networks:
   vaultcpa-network:
     driver: bridge
+

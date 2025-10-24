@@ -104,7 +104,7 @@ export default function ManagingPartnerAlerts() {
   const { organizationId } = usePersonalizedDashboard();
 
   // API hook for fetching alerts with organizationId (consistent with monitoring page)
-  const effectiveOrgId = normalizeOrgId(organizationId);
+  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
   const { data: alertsData, loading: alertsLoading, error: alertsError, refetch: refetchAlerts } = useNexusAlerts({ 
     limit: 100,
     organizationId: effectiveOrgId

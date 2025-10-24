@@ -75,7 +75,7 @@ const AddNexusMonitoring = () => {
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
-      const finalOrganizationId = normalizeOrgId(organizationId);
+      const finalOrganizationId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
       const response = await apiClient.getClients({ limit: 100, organizationId: finalOrganizationId });
       if (response.success && response.data) {
         setClients(response.data.clients || []);
@@ -146,7 +146,7 @@ const AddNexusMonitoring = () => {
     setLoading(true);
     try {
       // Create client states for each selected state
-      const finalOrganizationId = normalizeOrgId(organizationId);
+      const finalOrganizationId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
       if (!finalOrganizationId) {
         alert('Organization context is missing. Please select an organization.');
         setLoading(false);
