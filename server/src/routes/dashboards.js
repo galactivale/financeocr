@@ -46,9 +46,20 @@ function generateUniqueUrl(clientName) {
   return `${cleanName}-${timestamp}-${randomSuffix}`;
 }
 
+// Get base URL for frontend (with proper fallbacks)
+function getFrontendBaseUrl() {
+  // Priority: FRONTEND_URL > NEXT_PUBLIC_APP_URL > production default > localhost
+  let baseUrl = process.env.FRONTEND_URL || 
+                process.env.NEXT_PUBLIC_APP_URL || 
+                (process.env.NODE_ENV === 'production' ? 'https://financeocr.com' : 'http://localhost:3000');
+  
+  // Ensure baseUrl doesn't have trailing slash
+  return baseUrl.replace(/\/$/, '');
+}
+
 // Generate unique URLs for different dashboard roles
 function generateDashboardUrls(clientName, uniqueUrl) {
-  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const baseUrl = getFrontendBaseUrl();
   
   return {
     main: `${baseUrl}/dashboard/view/${uniqueUrl}`,
@@ -701,7 +712,7 @@ router.get('/all', async (req, res) => {
       success: true,
       dashboards: dashboards.map(dashboard => ({
         ...dashboard,
-        dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/view/${dashboard.uniqueUrl}`
+        dashboardUrl: `${getFrontendBaseUrl()}/dashboard/view/${dashboard.uniqueUrl}`
       }))
     });
 
