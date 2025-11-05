@@ -646,9 +646,13 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
   const sortedAlerts = safeAlerts
     .sort((a, b) => {
       // Sort by priority first (critical > high > medium > low)
-      const priorityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
-      const aPriority = priorityOrder[a.priority?.toLowerCase()] || priorityOrder[a.severity?.toLowerCase()] || 0;
-      const bPriority = priorityOrder[b.priority?.toLowerCase()] || priorityOrder[b.severity?.toLowerCase()] || 0;
+      const priorityOrder: Record<string, number> = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+      const getPriorityValue = (priority?: string, severity?: string): number => {
+        const key = priority?.toLowerCase() || severity?.toLowerCase() || '';
+        return priorityOrder[key] || 0;
+      };
+      const aPriority = getPriorityValue(a.priority, a.severity);
+      const bPriority = getPriorityValue(b.priority, b.severity);
       if (aPriority !== bPriority) return bPriority - aPriority;
       // Then sort by creation date (newest first)
       const aDate = new Date(a.createdAt || a.created_at || 0).getTime();
