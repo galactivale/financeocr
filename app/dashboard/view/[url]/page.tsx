@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use } from "react";
 import { Button, Card, CardBody, Chip, Progress } from "@nextui-org/react";
 import { apiClient } from "@/lib/api";
+import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 
 // Icons
 const ExternalLinkIcon = () => (
@@ -105,6 +106,7 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { setDashboardSession } = usePersonalizedDashboard();
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -117,11 +119,32 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
           return;
         }
         
+        // API client will automatically append ?org=${orgId} from sessionStorage
         const response = await apiClient.getDashboard(resolvedParams.url);
         console.log('Dashboard API response:', response);
         
         if (response.success && response.data) {
           setDashboard(response.data);
+          
+          // If dashboard data includes organization info, set it in sessionStorage
+          // This ensures orgId is available for subsequent API calls
+          if (response.data.organization) {
+            // Try to extract organizationId from the dashboard data or use the URL
+            // The backend should return organizationId in the response
+            const dashboardData = response.data as any;
+            if (dashboardData.organizationId) {
+              const { sessionStorageUtils } = require('@/lib/sessionStorage');
+              sessionStorageUtils.setOrgId(dashboardData.organizationId);
+              
+              // Also set the full dashboard session if we have the client name
+              setDashboardSession({
+                dashboardUrl: resolvedParams.url,
+                clientName: response.data.clientName,
+                organizationId: dashboardData.organizationId,
+                createdAt: Date.now()
+              });
+            }
+          }
         } else {
           setError(response.error || 'Failed to load dashboard');
         }
@@ -134,7 +157,7 @@ export default function DashboardViewer({ params }: DashboardViewerProps) {
     };
 
     fetchDashboard();
-  }, [resolvedParams.url]);
+  }, [resolvedParams.url, setDashboardSession]);
 
   if (loading) {
     return (

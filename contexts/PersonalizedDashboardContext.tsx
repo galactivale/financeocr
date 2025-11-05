@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { cookieUtils, DashboardSession } from "@/lib/cookies";
+import { sessionStorageUtils, DashboardSession } from "@/lib/sessionStorage";
 import { normalizeOrgId, isUuid } from "@/lib/utils";
 
 interface PersonalizedDashboardContextType {
@@ -11,6 +11,7 @@ interface PersonalizedDashboardContextType {
   organizationId: string | null;
   setDashboardSession: (session: DashboardSession) => void;
   clearDashboardSession: () => void;
+  refreshFromStorage: () => void; // Refresh orgId from sessionStorage
 }
 
 const PersonalizedDashboardContext = createContext<PersonalizedDashboardContextType | undefined>(undefined);
@@ -34,8 +35,8 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Load dashboard session from cookie on mount
-    const session = cookieUtils.getDashboardSession();
+    // Load dashboard session from sessionStorage on mount (client-side only)
+    const session = sessionStorageUtils.getDashboardSession();
     
     if (session) {
       setDashboardUrl(session.dashboardUrl);
@@ -43,32 +44,59 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
       const normalized = normalizeOrgId(session.organizationId);
       setOrganizationId(normalized || null);
       if (!isUuid(session.organizationId)) {
-        cookieUtils.setDashboardSession({
+        sessionStorageUtils.setDashboardSession({
           ...session,
           organizationId: normalized || session.organizationId,
         });
       }
     } else {
-      setDashboardUrl(null);
-      setClientName(null);
-      setOrganizationId(null);
+      // Try to get orgId directly from sessionStorage (for non-personalized dashboards)
+      const orgId = sessionStorageUtils.getOrgId();
+      if (orgId) {
+        setOrganizationId(normalizeOrgId(orgId));
+      } else {
+        setDashboardUrl(null);
+        setClientName(null);
+        setOrganizationId(null);
+      }
     }
     
     setIsInitialized(true);
   }, []);
 
   const setDashboardSession = (session: DashboardSession) => {
-    cookieUtils.setDashboardSession(session);
+    sessionStorageUtils.setDashboardSession(session);
     setDashboardUrl(session.dashboardUrl);
     setClientName(session.clientName);
     setOrganizationId(session.organizationId);
   };
 
   const clearDashboardSession = () => {
-    cookieUtils.clearDashboardSession();
+    sessionStorageUtils.clearDashboardSession();
     setDashboardUrl(null);
     setClientName(null);
     setOrganizationId(null);
+  };
+
+  const refreshFromStorage = () => {
+    // Refresh orgId from sessionStorage without full page reload
+    const session = sessionStorageUtils.getDashboardSession();
+    
+    if (session) {
+      setDashboardUrl(session.dashboardUrl);
+      setClientName(session.clientName);
+      const normalized = normalizeOrgId(session.organizationId);
+      setOrganizationId(normalized || null);
+    } else {
+      const orgId = sessionStorageUtils.getOrgId();
+      if (orgId) {
+        setOrganizationId(normalizeOrgId(orgId));
+      } else {
+        setDashboardUrl(null);
+        setClientName(null);
+        setOrganizationId(null);
+      }
+    }
   };
 
   const isPersonalizedMode = dashboardUrl !== null;
@@ -79,7 +107,8 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
     clientName,
     organizationId,
     setDashboardSession,
-    clearDashboardSession
+    clearDashboardSession,
+    refreshFromStorage
   };
 
   return (

@@ -3,7 +3,7 @@ import { ArrowRight, Laptop, Users, MessageSquare, Mic } from "lucide-react"
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="section-card">
+    <section id="features" className="py-16 lg:py-24 bg-white">
       <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
         {/* Left side - Laptop with dashboard */}
         <div className="flex-1">

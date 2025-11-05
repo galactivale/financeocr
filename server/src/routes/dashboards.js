@@ -750,7 +750,8 @@ router.get('/:url', async (req, res) => {
         statesMonitored: dashboard.statesMonitored,
         personalizedData: dashboard.personalizedData,
         lastUpdated: dashboard.lastUpdated,
-        organization: dashboard.organization
+        organization: dashboard.organization,
+        organizationId: dashboard.organizationId // Include organizationId for sessionStorage
       }
     });
 

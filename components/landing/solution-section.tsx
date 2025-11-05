@@ -2,7 +2,7 @@ import { Shield, Eye, FileText, CheckCircle } from "lucide-react"
 
 export function SolutionSection() {
   return (
-    <section className="py-16 lg:py-24 bg-white">
+    <section id="compliance" className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-8 sm:px-12 lg:px-16 xl:px-20">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">

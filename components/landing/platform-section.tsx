@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function PlatformSection() {
   return (
-    <section className="py-20 bg-muted/20">
+    <section id="platform" className="py-20 bg-muted/20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="font-serif text-3xl md:text-5xl font-bold text-foreground mb-6 text-balance">
@@ -190,19 +190,6 @@ export function PlatformSection() {
               Generate court-ready audit trails with regulatory citations and professional reasoning.
             </p>
           </div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center">
-          <Button
-            size="lg"
-            className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8 py-4 mr-4"
-          >
-            Request Platform Demo
-          </Button>
-          <Button size="lg" variant="outline" className="font-medium px-8 py-4 bg-transparent">
-            View Sample Dashboard
-          </Button>
         </div>
       </div>
     </section>

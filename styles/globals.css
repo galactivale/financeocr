@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll padding to account for sticky navbar */
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
 /* Updated color system to match professional liability shield aesthetic with deep navy, charcoal grey, white, and gold accents */
 :root {
   --background: 60 9% 98%;

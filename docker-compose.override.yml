@@ -8,7 +8,7 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://vaultcpa_user:vaultcpa_secure_password_2024@postgres:5432/vaultcpa
       JWT_SECRET: dev_jwt_secret_key_2024
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3000,https://financeocr.com,http://financeocr.com
       PORT: 3080
     volumes:
       - ./server:/app
@@ -16,6 +16,10 @@ services:
     command: sh -c "npm ci && npx prisma generate && PORT=3080 npm run dev"
 
   frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:3080
@@ -24,4 +28,5 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
+    command: sh -c "npm install --legacy-peer-deps && npm run dev"
+    user: root

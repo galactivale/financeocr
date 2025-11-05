@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react"
 
 export function HeroSection() {
   return (
-    <section className="relative bg-gray-50 py-16 lg:py-24">
+    <section id="home" className="relative bg-gray-50 py-16 lg:py-24">
       {/* Geometric Background Pattern */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0" style={{
@@ -39,12 +39,12 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-gray-900 hover:bg-gray-800 text-white font-medium px-8 py-3 rounded-lg text-lg">
-              Schedule a Liability Assessment
+            <Button asChild className="bg-gray-900 hover:bg-gray-800 text-white font-medium px-8 py-3 rounded-lg text-lg">
+              <a href="https://cal.com/emmanuel-kyumba-dr5icf/15min" target="_blank" rel="noopener noreferrer">
+                Schedule a Demo 
+              </a>
             </Button>
-            <Button variant="outline" className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium px-8 py-3 rounded-lg text-lg">
-              Request Your Exposure Report
-            </Button>
+           
           </div>
 
           {/* Trust Indicators */}

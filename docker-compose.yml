@@ -36,7 +36,7 @@ services:
       PORT: 3080
       DATABASE_URL: postgresql://vaultcpa_user:vaultcpa_secure_password_2024@postgres:5432/vaultcpa
       JWT_SECRET: your_jwt_secret_key_here
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3000,https://financeocr.com,http://financeocr.com
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     ports:
       - "3080:3080"

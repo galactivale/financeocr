@@ -9,6 +9,7 @@ import { ChevronRightIcon } from "../icons/sidebar/chevron-right-icon";
 import { DocumentIcon } from "../icons/sidebar/document-icon";
 import { TrashIcon } from "../icons/profile/trash-icon";
 import { useDashboard } from "../../contexts/DashboardContext";
+import { usePersonalizedDashboard } from "../../contexts/PersonalizedDashboardContext";
 import { apiClient } from "../../lib/api";
 
 // External link icon component
@@ -27,6 +28,7 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
   const [isArchiveExpanded, setIsArchiveExpanded] = useState(false);
   const [deletingDashboardId, setDeletingDashboardId] = useState<string | null>(null);
   const { dashboards, archivedDashboards, loading, error, setActiveDashboard, refreshDashboards } = useDashboard();
+  const { setDashboardSession, refreshFromStorage } = usePersonalizedDashboard();
 
   const handleNewDashboard = () => {
     // Navigate to generate page
@@ -34,8 +36,34 @@ export const DashboardList = ({ className = "", onDashboardSelect }: DashboardLi
   };
 
   const handleDashboardClick = (dashboardId: string) => {
+    // Find the dashboard to get its organizationId
+    const dashboard = dashboards.find(d => d.id === dashboardId) || archivedDashboards.find(d => d.id === dashboardId);
+    
+    if (dashboard && dashboard.organizationId && dashboard.uniqueUrl && dashboard.clientName) {
+      // Update sessionStorage with the selected dashboard's orgId
+      const { sessionStorageUtils } = require('@/lib/sessionStorage');
+      sessionStorageUtils.setOrgId(dashboard.organizationId);
+      
+      // Set the dashboard session for personalized mode
+      setDashboardSession({
+        dashboardUrl: dashboard.uniqueUrl,
+        clientName: dashboard.clientName,
+        organizationId: dashboard.organizationId,
+        createdAt: Date.now()
+      });
+      
+      // Refresh context from sessionStorage
+      refreshFromStorage();
+      
+      console.log('Dashboard selected - Updated orgId to:', dashboard.organizationId);
+    }
+    
     setActiveDashboard(dashboardId);
     onDashboardSelect?.(dashboardId);
+    
+    // Force a page refresh to reload data with the new orgId
+    // This ensures all hooks re-fetch with the new organizationId
+    window.location.reload();
   };
 
   const handleViewLink = (dashboard: any, event: React.MouseEvent) => {

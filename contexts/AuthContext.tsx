@@ -34,6 +34,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           try {
             const userData = JSON.parse(storedUser);
             setUser(userData);
+            
+            // Set organizationId in sessionStorage if user is logged in
+            if (userData?.organization?.id && typeof window !== 'undefined') {
+              const { sessionStorageUtils } = require('@/lib/sessionStorage');
+              sessionStorageUtils.setOrgId(userData.organization.id);
+            }
           } catch (parseError) {
             console.error('Failed to parse stored user data:', parseError);
             // Token or user data is invalid, clear it
@@ -62,6 +68,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       if (response.success && response.data) {
         setUser(response.data.user);
+        
+        // Set organizationId in sessionStorage after login
+        if (response.data.user?.organization?.id && typeof window !== 'undefined') {
+          const { sessionStorageUtils } = require('@/lib/sessionStorage');
+          sessionStorageUtils.setOrgId(response.data.user.organization.id);
+        }
+        
         return { success: true };
       } else {
         return { success: false, error: response.error || 'Login failed' };
@@ -83,6 +96,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
+      
+      // Clear orgId from sessionStorage on logout
+      if (typeof window !== 'undefined') {
+        const { sessionStorageUtils } = require('@/lib/sessionStorage');
+        sessionStorageUtils.clearOrgId();
+      }
     }
   };
 

@@ -1,0 +1,14 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="6" fill="#1f2937"/>
+  <g stroke="white" stroke-width="2" stroke-linecap="round" fill="none">
+    <!-- Bar chart bars -->
+    <line x1="8" y1="24" x2="8" y2="8"/>
+    <line x1="12" y1="24" x2="12" y2="12"/>
+    <line x1="16" y1="24" x2="16" y2="16"/>
+    <line x1="20" y1="24" x2="20" y2="10"/>
+    <!-- Trend line -->
+    <path d="M8 20 L12 16 L16 12 L20 8"/>
+    <!-- Trend line arrow -->
+    <path d="M18 10 L20 8 L18 6" stroke-linejoin="round"/>
+  </g>
+</svg>

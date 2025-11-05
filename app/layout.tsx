@@ -23,6 +23,14 @@ export const metadata: Metadata = {
   description:
     "Protect your CPA license with regulatory intelligence and audit-ready documentation. Eliminate compliance blind spots and secure your firm's future.",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

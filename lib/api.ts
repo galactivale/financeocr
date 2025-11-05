@@ -1,6 +1,12 @@
 // API Client for VaultCPA Backend
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080';
 
+// Import sessionStorage utils for orgId
+let sessionStorageUtils: any;
+if (typeof window !== 'undefined') {
+  sessionStorageUtils = require('./sessionStorage').sessionStorageUtils;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -250,7 +256,21 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
+    // Get orgId from sessionStorage (client-side only)
+    let url = `${this.baseURL}${endpoint}`;
+    
+    if (typeof window !== 'undefined' && sessionStorageUtils) {
+      const orgId = sessionStorageUtils.getOrgId();
+      if (orgId) {
+        // Append ?org=${orgId} or &org=${orgId} to the endpoint
+        // Only add if not already present in the endpoint
+        if (!url.includes('org=') && !url.includes('organizationId=')) {
+          const separator = endpoint.includes('?') ? '&' : '?';
+          url = `${this.baseURL}${endpoint}${separator}org=${encodeURIComponent(orgId)}`;
+        }
+      }
+    }
+    
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -780,6 +800,7 @@ class ApiClient {
       name: string;
       slug: string;
     };
+    organizationId?: string; // Include organizationId if available
   }>> {
     return this.request(`/api/dashboards/${url}`);
   }

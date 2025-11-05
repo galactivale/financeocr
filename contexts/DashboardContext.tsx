@@ -15,6 +15,8 @@ interface Dashboard {
   keyMetrics?: any;
   statesMonitored?: string[];
   lastUpdated?: string;
+  organizationId?: string; // Include organizationId for sessionStorage
+  clientName?: string; // Include clientName for dashboard session
 }
 
 interface DashboardContextType {
@@ -75,6 +77,8 @@ export const DashboardProvider = ({ children }: DashboardProviderProps) => {
           keyMetrics: item.keyMetrics,
           statesMonitored: item.statesMonitored,
           lastUpdated: item.lastUpdated,
+          organizationId: item.organizationId, // Store organizationId
+          clientName: item.clientName, // Store clientName
         }));
 
         // Separate active and archived dashboards
