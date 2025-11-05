@@ -266,7 +266,7 @@ const TaxManagerMonitoring = () => {
     });
 
     return stateData;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError]);
+  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading]);
 
   const handleMapStateHover = useCallback((stateCode: string, event?: any) => {
     // Add hover effects for better interactivity - only for states with data
@@ -528,7 +528,7 @@ const TaxManagerMonitoring = () => {
     });
 
     return result;
-  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading, alertsError, clientStatesError]);
+  }, [clientStatesData, nexusAlertsData, clientStatesLoading, alertsLoading]);
 
   // Generate dynamic notifications based on alerts and scanning data
   const generateNotifications = useMemo(() => {

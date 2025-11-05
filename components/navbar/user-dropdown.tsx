@@ -64,11 +64,11 @@ export const UserDropdown = () => {
           onPress={handleLogout}>
           Log Out
         </DropdownItem>
-        {!isDashboardRoute && (
+        {!isDashboardRoute ? (
           <DropdownItem key='switch'>
             <DarkModeSwitch />
           </DropdownItem>
-        )}
+        ) : null}
       </DropdownMenu>
     </Dropdown>
   );
