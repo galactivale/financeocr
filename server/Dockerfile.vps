@@ -35,6 +35,9 @@ RUN apk add --no-cache openssl
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
+# Create logs directory BEFORE copying files and setting ownership
+RUN mkdir -p /app/logs && chmod 755 /app/logs
+
 # Copy built application
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/src ./src
@@ -44,8 +47,8 @@ COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 # Copy Prisma generated files
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 
-# Create logs directory with proper permissions
-RUN mkdir -p /app/logs && chown nodejs:nodejs /app/logs
+# Ensure logs directory ownership after all copies
+RUN chown -R nodejs:nodejs /app/logs
 
 USER nodejs
 
