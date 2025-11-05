@@ -53,7 +53,7 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
       // Try to get orgId directly from sessionStorage (for non-personalized dashboards)
       const orgId = sessionStorageUtils.getOrgId();
       if (orgId) {
-        setOrganizationId(normalizeOrgId(orgId));
+        setOrganizationId(normalizeOrgId(orgId) || null);
       } else {
         setDashboardUrl(null);
         setClientName(null);
