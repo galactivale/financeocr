@@ -126,6 +126,7 @@ services:
       start_period: 40s
 
   # Nginx Reverse Proxy - Memory optimized with SSL
+  # Starts last after all other services are healthy
   nginx:
     image: nginx:alpine
     container_name: vaultcpa-nginx-vps
@@ -139,9 +140,11 @@ services:
     networks:
       - vaultcpa-network
     depends_on:
-      frontend:
+      postgres:
         condition: service_healthy
       backend:
+        condition: service_healthy
+      frontend:
         condition: service_healthy
     restart: unless-stopped
     # Memory limits for VPS
