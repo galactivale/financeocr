@@ -11,25 +11,41 @@ const logFormat = winston.format.combine(
   winston.format.prettyPrint()
 );
 
-// Create logger instance
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  defaultMeta: {
-    service: 'vaultcpa-server',
-  },
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    }),
-    
+// Create logs directory if it doesn't exist (with error handling)
+const fs = require('fs');
+const logsDir = path.join(process.cwd(), 'logs');
+let canUseFileLogs = false;
+
+try {
+  if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true, mode: 0o755 });
+  }
+  // Test write permissions
+  fs.accessSync(logsDir, fs.constants.W_OK);
+  canUseFileLogs = true;
+} catch (error) {
+  // If we can't create or write to logs directory, disable file logging
+  console.warn('Warning: Could not create or write to logs directory. File logging disabled.', error.message);
+  canUseFileLogs = false;
+}
+
+// Build transports array conditionally
+const transports = [
+  // Console transport (always available)
+  new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    ),
+  }),
+];
+
+// Add file transports only if directory is accessible
+if (canUseFileLogs) {
+  transports.push(
     // File transport for errors
     new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'error.log'),
+      filename: path.join(logsDir, 'error.log'),
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
@@ -37,19 +53,22 @@ const logger = winston.createLogger({
     
     // File transport for all logs
     new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'combined.log'),
+      filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 5,
-    }),
-  ],
-});
-
-// Create logs directory if it doesn't exist
-const fs = require('fs');
-const logsDir = path.join(process.cwd(), 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+    })
+  );
 }
+
+// Create logger instance
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: logFormat,
+  defaultMeta: {
+    service: 'vaultcpa-server',
+  },
+  transports: transports,
+});
 
 // Add request logging middleware
 const requestLogger = (req, res, next) => {

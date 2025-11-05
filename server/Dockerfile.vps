@@ -47,8 +47,8 @@ COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 # Copy Prisma generated files
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 
-# Ensure logs directory ownership after all copies
-RUN chown -R nodejs:nodejs /app/logs
+# Ensure entire /app directory ownership after all copies (including logs)
+RUN chown -R nodejs:nodejs /app && chmod -R 755 /app
 
 USER nodejs
 
