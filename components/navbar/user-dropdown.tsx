@@ -9,12 +9,16 @@ import {
 } from "@nextui-org/react";
 import React, { useCallback } from "react";
 import { DarkModeSwitch } from "./darkmodeswitch";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { deleteAuthCookie } from "@/actions/auth.action";
 import { User } from "lucide-react";
 
 export const UserDropdown = () => {
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Check if we're in a dashboard route (exclude landing page)
+  const isDashboardRoute = pathname?.startsWith('/dashboard') || pathname?.startsWith('/generate');
 
   const handleLogout = useCallback(async () => {
     await deleteAuthCookie();
@@ -60,9 +64,11 @@ export const UserDropdown = () => {
           onPress={handleLogout}>
           Log Out
         </DropdownItem>
-        <DropdownItem key='switch'>
-          <DarkModeSwitch />
-        </DropdownItem>
+        {!isDashboardRoute && (
+          <DropdownItem key='switch'>
+            <DarkModeSwitch />
+          </DropdownItem>
+        )}
       </DropdownMenu>
     </Dropdown>
   );

@@ -284,6 +284,25 @@ class ApiClient {
 
       const data = await response.json();
 
+      // Debug logging for nexus alerts endpoint
+      if (endpoint.includes('/nexus/alerts')) {
+        console.log('🔍 API Nexus Alerts Response:', {
+          endpoint,
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          dataStructure: {
+            hasData: !!data.data,
+            hasAlerts: !!data.alerts,
+            isArray: Array.isArray(data),
+            keys: data ? Object.keys(data) : null,
+            dataType: typeof data,
+            dataLength: Array.isArray(data) ? data.length : (data?.alerts ? data.alerts.length : 'N/A'),
+            fullData: data
+          }
+        });
+      }
+
       if (!response.ok) {
         return {
           success: false,
@@ -292,9 +311,33 @@ class ApiClient {
         };
       }
 
+      // Handle different response structures
+      let responseData = data.data || data;
+      
+      // For nexus alerts endpoint, ensure we preserve the alerts structure
+      if (endpoint.includes('/nexus/alerts')) {
+        // If data.data exists and has alerts, use it
+        // Otherwise, if data has alerts directly, use that
+        if (data.data && data.data.alerts) {
+          responseData = data.data;
+        } else if (data.alerts) {
+          responseData = { alerts: data.alerts, total: data.total, limit: data.limit, offset: data.offset };
+        } else if (Array.isArray(data.data)) {
+          responseData = { alerts: data.data, total: data.total || data.data.length, limit: data.limit, offset: data.offset };
+        } else if (Array.isArray(data)) {
+          responseData = { alerts: data, total: data.length, limit: 50, offset: 0 };
+        }
+        
+        console.log('🔍 Processed Nexus Alerts Response Data:', {
+          originalData: data,
+          processedData: responseData,
+          alertsCount: responseData?.alerts?.length || 0
+        });
+      }
+      
       return {
         success: true,
-        data: data.data || data,
+        data: responseData,
       };
     } catch (error) {
       return {

@@ -440,16 +440,23 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
       const currentAmount = this.generateCurrentAmount(client.annualRevenue, client.riskLevel);
       const percentage = Math.round((currentAmount / thresholdAmount) * 100);
       
+      // Determine if alerts will be created FIRST
+      const willCreateCriticalAlert = percentage >= 100;
+      const willCreateWarningAlert = percentage >= 80 && percentage < 100;
+      const willCreateAnyAlert = willCreateCriticalAlert || willCreateWarningAlert;
+      
+      // Generate status - but ensure it doesn't indicate threshold exceeded if no alert will be created
       let status = 'compliant';
-      if (percentage >= 100) {
+      if (willCreateCriticalAlert) {
         status = 'critical';
-      } else if (percentage >= 80) {
+      } else if (willCreateWarningAlert) {
         status = 'warning';
       } else if (percentage >= 50) {
         status = 'pending';
       } else if (percentage >= 20) {
         status = 'transit';
       }
+      // If percentage < 20, status remains 'compliant'
 
       const clientState = {
         stateCode,
@@ -463,8 +470,8 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
 
       clientStates.push(clientState);
 
-      // Create nexus alert if threshold exceeded
-      if (status === 'critical') {
+      // Create nexus alert if threshold exceeded (only if willCreateCriticalAlert is true)
+      if (willCreateCriticalAlert) {
         nexusAlerts.push({
           stateCode,
           alertType: 'threshold_breach',
@@ -478,8 +485,8 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
         });
       }
 
-      // Create general alert for high-risk states
-      if (status === 'warning' || status === 'critical') {
+      // Create general alert for high-risk states (only if alerts will actually be created)
+      if (willCreateAnyAlert) {
         alerts.push({
           alertType: 'nexus_monitoring',
           severity: status === 'critical' ? 'high' : 'medium',

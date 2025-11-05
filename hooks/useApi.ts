@@ -22,13 +22,30 @@ export function useApi<T>(
       setError(null);
       const response = await apiCall();
       
+      // Debug logging for API responses
+      if (response && typeof response === 'object') {
+        console.log('🔍 API Response Debug:', {
+          success: response.success,
+          hasData: !!response.data,
+          error: response.error,
+          dataType: typeof response.data,
+          dataIsArray: Array.isArray(response.data),
+          dataKeys: response.data ? Object.keys(response.data) : null,
+          fullResponse: response
+        });
+      }
+      
       if (response.success && response.data) {
         setData(response.data);
       } else {
-        setError(response.error || 'Failed to fetch data');
+        const errorMsg = response.error || 'Failed to fetch data';
+        setError(errorMsg);
+        console.error('❌ API Error:', errorMsg, response);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMsg);
+      console.error('❌ API Exception:', errorMsg, err);
     } finally {
       setLoading(false);
     }

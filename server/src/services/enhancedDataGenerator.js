@@ -887,14 +887,38 @@ IMPORTANT:
         currentAmount = Math.floor(Math.random() * thresholdAmount * 0.9); // 0-90% for lower-risk clients
       }
       
-      // Create client state
+      // Calculate ratio and strategy FIRST to determine if alert will be created
+      const ratio = currentAmount / thresholdAmount;
+      const strategy = this.qualificationStrategies[organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard'] || this.qualificationStrategies['standard'];
+      
+      // Determine if an alert will be created for this state
+      const willCreateAlert = ratio >= strategy.alertThreshold;
+      
+      // Generate status - but ensure it doesn't indicate threshold exceeded if no alert will be created
+      let status;
+      if (willCreateAlert) {
+        // If alert will be created, use normal status generation
+        status = this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard');
+      } else {
+        // If NO alert will be created, ensure status is NOT 'critical' or 'warning'
+        // Status should be 'pending', 'transit', or 'compliant' only
+        if (ratio >= (strategy.warningThreshold * 0.5)) {
+          status = 'pending'; // Cap at pending if no alert
+        } else if (ratio >= (strategy.warningThreshold * 0.2)) {
+          status = 'transit';
+        } else {
+          status = 'compliant';
+        }
+      }
+      
+      // Create client state with the corrected status
       const clientState = await this.prisma.clientState.create({
         data: {
           organizationId,
           clientId: client.id,
           stateCode,
           stateName: this.getStateName(stateCode),
-          status: this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard'),
+          status: status, // Use the corrected status that respects alert creation
           registrationRequired: currentAmount > thresholdAmount,
           thresholdAmount,
           currentAmount,
@@ -904,11 +928,8 @@ IMPORTANT:
       });
       generatedData.clientStates.push(clientState);
 
-      // Create nexus alert based on qualification strategy
-      const ratio = currentAmount / thresholdAmount;
-      const strategy = this.qualificationStrategies[organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard'] || this.qualificationStrategies['standard'];
-      
-      if (ratio >= strategy.alertThreshold) {
+      // Create nexus alert based on qualification strategy (only if willCreateAlert is true)
+      if (willCreateAlert) {
         const isExceeded = ratio >= strategy.criticalThreshold;
         const alertType = isExceeded ? 'threshold_breach' : 'threshold_approaching';
         const priority = isExceeded ? 'high' : 'medium';

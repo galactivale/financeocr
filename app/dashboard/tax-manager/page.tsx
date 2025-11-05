@@ -475,8 +475,24 @@ const CardTotalClients = ({ clients }: { clients: any[] }) => {
 };
 
 const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientStates: any[] }) => {
+  // Calculate compliance rate based on revenue-to-threshold ratio (same logic as EnhancedUSMap)
   const totalStates = (clientStates || []).length;
-  const compliantStates = (clientStates || []).filter(state => state.status === 'compliant' || state.status === 'transit').length;
+  let compliantStates = 0;
+  
+  if (totalStates > 0) {
+    clientStates.forEach((clientState: any) => {
+      const revenue = clientState.currentAmount || clientState.revenue || 0;
+      const threshold = clientState.thresholdAmount || 500000;
+      const ratio = revenue / threshold;
+      
+      // Determine status based on revenue-to-threshold ratio (same as map)
+      // States with ratio < 0.8 are considered compliant
+      if (ratio < 0.8) {
+        compliantStates++;
+      }
+    });
+  }
+  
   const complianceRate = totalStates > 0 ? Math.round((compliantStates / totalStates) * 100) : 100;
 
   return (
@@ -599,7 +615,6 @@ const ClientPerformanceTable = ({ clients, alerts, clientStates }: { clients: an
 const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[] }) => {
   // Ensure alerts is always an array
   const safeAlerts = Array.isArray(alerts) ? alerts : [];
-  const priorityAlerts = safeAlerts.slice(0, 3);
   
   // Debug logging
   console.log('🔍 CardPriorityAlerts Debug:', {
@@ -607,31 +622,43 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
     alertsIsArray: Array.isArray(alerts),
     alertsLength: alerts?.length,
     safeAlertsLength: safeAlerts.length,
-    priorityAlertsLength: priorityAlerts.length,
     sampleAlert: safeAlerts[0],
     clientsLength: clients?.length,
     allAlerts: safeAlerts.map(alert => ({
       id: alert.id,
-      title: alert.title,
+      title: alert.title || alert.alertType,
       description: alert.description,
       priority: alert.priority,
+      severity: alert.severity,
       stateCode: alert.stateCode,
       alertType: alert.alertType,
       currentAmount: alert.currentAmount,
       thresholdAmount: alert.thresholdAmount,
-      clientId: alert.clientId
+      clientId: alert.clientId,
+      status: alert.status
     })),
     // Additional debug info
-    alertsRaw: alerts,
-    clientsRaw: clients
+    alertsRaw: alerts
   });
   
-  // Use only real alerts from database - no fallback data
-  const alertsToUse = priorityAlerts;
+  // Sort all alerts by priority first (high > medium > low), then by creation date (newest first)
+  // Show top 3 alerts regardless of priority (if no high priority, show medium/low)
+  const sortedAlerts = safeAlerts
+    .sort((a, b) => {
+      // Sort by priority first (critical > high > medium > low)
+      const priorityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+      const aPriority = priorityOrder[a.priority?.toLowerCase()] || priorityOrder[a.severity?.toLowerCase()] || 0;
+      const bPriority = priorityOrder[b.priority?.toLowerCase()] || priorityOrder[b.severity?.toLowerCase()] || 0;
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      // Then sort by creation date (newest first)
+      const aDate = new Date(a.createdAt || a.created_at || 0).getTime();
+      const bDate = new Date(b.createdAt || b.created_at || 0).getTime();
+      return bDate - aDate;
+    })
+    .slice(0, 3);
   
-  
-  // Use only real alerts from database - no fallback data
-  const finalAlertsToUse = alertsToUse;
+  // Use sorted alerts - show top 3 regardless of priority
+  const finalAlertsToUse = sortedAlerts;
 
   const getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
@@ -707,21 +734,33 @@ const CardPriorityAlerts = ({ alerts, clients }: { alerts: any[], clients: any[]
           const currentAmount = alert.currentAmount ? parseFloat(alert.currentAmount) : 0;
           const amount = currentAmount > 0 ? `$${(currentAmount / 1000).toFixed(0)}K` : '';
           
+          // Get alert title/description - handle missing fields
+          const alertTitle = alert.title || alert.alertType || 'Alert';
+          const alertDescription = alert.description || alert.stateCode || '';
+          const alertPriority = alert.priority || alert.severity || 'medium';
+          const alertStateCode = alert.stateCode || 'N/A';
+          const alertType = alert.alertType || 'unknown';
+          
           return (
-            <div key={alert.id || `alert-${index}`} className={`group backdrop-blur-sm rounded-xl border border-white/5 p-4 hover:bg-white/[0.02] transition-all duration-300 ${getPriorityColor(alert.priority)}`}>
+            <div key={alert.id || `alert-${index}`} className={`group backdrop-blur-sm rounded-xl border border-white/5 p-4 hover:bg-white/[0.02] transition-all duration-300 ${getPriorityColor(alertPriority)}`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${getPriorityColor(alert.priority)}`}>
-                    {getAlertTypeIcon(alert.alertType)}
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${getPriorityColor(alertPriority)}`}>
+                    {getAlertTypeIcon(alertType)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-light text-white text-sm truncate">{clientName}</p>
-                    <p className="text-xs text-gray-500 font-light truncate">{alert.stateCode} • {amount}</p>
-                    </div>
+                    <p className="font-light text-white text-sm truncate">{alertTitle}</p>
+                    <p className="text-xs text-gray-500 font-light truncate">
+                      {clientName} • {alertStateCode} {amount ? `• ${amount}` : ''}
+                    </p>
+                    {alertDescription && (
+                      <p className="text-xs text-gray-400 font-light truncate mt-1">{alertDescription}</p>
+                    )}
                   </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${alert.priority === 'high' ? 'bg-red-500/20 text-red-400' : alert.priority === 'medium' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                    {getPriorityBadge(alert.priority)}
+                </div>
+                <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${alertPriority === 'high' || alertPriority === 'critical' ? 'bg-red-500/20 text-red-400' : alertPriority === 'medium' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                    {getPriorityBadge(alertPriority)}
                   </span>
                 </div>
               </div>
@@ -1160,62 +1199,84 @@ const SimplifiedNexusTable = ({ activities, clients }: { activities: any[], clie
 };
 
 export default function TaxManagerDashboard() {
-  // Get personalized dashboard context
+  // Get personalized dashboard context (same as alerts page)
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
   
-  // Personalized data hooks
+  // Personalized data hooks (only for client states - not alerts)
   const { data: personalizedClientStates, loading: personalizedClientStatesLoading, error: personalizedClientStatesError } = usePersonalizedClientStates(dashboardUrl || undefined);
-  const { data: personalizedNexusAlerts, loading: personalizedNexusAlertsLoading, error: personalizedNexusAlertsError } = usePersonalizedNexusAlerts(dashboardUrl || undefined);
   
-  // Regular data hooks (used when not in personalized mode) - fetch more data for comprehensive view
-  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df'; // Use organization with alerts data as fallback
+  // Use EXACT same approach as alerts page for fetching alerts
+  // Ensure organizationId is normalized and valid before passing to API
+  const alertOrgId = organizationId ? normalizeOrgId(organizationId) : undefined;
+  
+  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError, refetch: refetchNexusAlerts } = useNexusAlerts({ 
+    limit: 100,
+    organizationId: alertOrgId || undefined
+  });
+  
+  // Debug: Log what we're sending to the API
+  console.log('🔍 Alerts API Request Debug:', {
+    organizationId,
+    alertOrgId,
+    isUuid: alertOrgId ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(alertOrgId) : false,
+    nexusAlertsLoading,
+    nexusAlertsError,
+    nexusAlertsData
+  });
+  
+  // For other data, use effectiveOrgId with fallback
+  const effectiveOrgId = normalizeOrgId(organizationId) || '0e41d0dc-afd0-4e19-9515-71372f5745df';
   const { data: clientsData, loading: clientsLoading, error: clientsError } = useClients({ limit: 50, organizationId: effectiveOrgId });
-  const { data: nexusAlertsData, loading: nexusAlertsLoading, error: nexusAlertsError } = useNexusAlerts({ limit: 50, organizationId: effectiveOrgId });
   const { data: nexusActivitiesData, loading: nexusActivitiesLoading, error: nexusActivitiesError } = useNexusActivities({ limit: 50, organizationId: effectiveOrgId });
   const { data: clientStatesData, loading: clientStatesLoading, error: clientStatesError } = useClientStates({ limit: 100, organizationId: effectiveOrgId });
   const { data: dashboardSummaryData, loading: dashboardSummaryLoading, error: dashboardSummaryError } = useNexusDashboardSummary(effectiveOrgId);
   const { data: organizationData, loading: organizationLoading } = useOrganization(effectiveOrgId);
 
-  // Fallback clients data
-  const fallbackClients: never[] = [];
-
-  // Use personalized data if available, otherwise use regular data with fallback
-  const clients = isPersonalizedMode 
-    ? (personalizedClientStates && personalizedClientStates.length > 0 ? personalizedClientStates : [])
-    : (clientsData?.clients && clientsData.clients.length > 0 ? clientsData.clients : []);
+  // Always use clientsData for clients array (not client states!)
+  // Client states are for compliance/monitoring, clients are for revenue/statistics
+  const clients = (clientsData?.clients && clientsData.clients.length > 0) ? clientsData.clients : [];
   
-  // Process alerts data with fallback - same logic as alerts page
+  // Process alerts data - use EXACT same logic as alerts page
   const nexusAlerts = useMemo(() => {
-    if (isPersonalizedMode) {
-      const personalizedAlerts = Array.isArray(personalizedNexusAlerts) ? personalizedNexusAlerts : ((personalizedNexusAlerts as any)?.alerts || []);
-      return personalizedAlerts.length > 0 ? personalizedAlerts : [];
-    } else {
-      const apiAlerts = nexusAlertsData?.alerts || [];
-      return apiAlerts.length > 0 ? apiAlerts : [];
+    if (nexusAlertsLoading) {
+      return [];
     }
-  }, [isPersonalizedMode, personalizedNexusAlerts, nexusAlertsData]);
+
+    // Use API data only; same approach as alerts page
+    // alertsData should have an 'alerts' property based on the API response structure
+    const apiAlerts = nexusAlertsData?.alerts || [];
+    
+    // Debug logging
+    console.log('🔍 Nexus Alerts Processing (same as alerts page):', {
+      nexusAlertsLoading,
+      nexusAlertsError,
+      nexusAlertsData: nexusAlertsData,
+      hasAlerts: !!nexusAlertsData?.alerts,
+      alertsLength: apiAlerts.length,
+      sampleAlert: apiAlerts[0],
+      organizationId: organizationId,
+      fullNexusAlertsData: nexusAlertsData
+    });
+    
+    return apiAlerts;
+  }, [nexusAlertsData, nexusAlertsLoading, nexusAlertsError, organizationId]);
   
   const nexusActivities = nexusActivitiesData?.activities || [];
   
-  // Debug the personalized data structure
-  console.log('🔍 Personalized Data Structure Debug:', {
-    personalizedNexusAlerts,
-    personalizedNexusAlertsType: typeof personalizedNexusAlerts,
-    personalizedNexusAlertsKeys: personalizedNexusAlerts ? Object.keys(personalizedNexusAlerts) : 'null',
-    personalizedClientStates,
-    personalizedClientStatesType: typeof personalizedClientStates,
-    personalizedClientStatesKeys: personalizedClientStates ? Object.keys(personalizedClientStates) : 'null'
-  });
+  // Use personalized client states if in personalized mode, otherwise use regular client states
+  const clientStates = useMemo(() => {
+    if (isPersonalizedMode && personalizedClientStates && personalizedClientStates.length > 0) {
+      return personalizedClientStates;
+    }
+    return clientStatesData?.clientStates || [];
+  }, [isPersonalizedMode, personalizedClientStates, clientStatesData]);
   
-  // Debug logging for data structure
+  // Debug logging for data structure (simplified - no personalized alerts)
   console.log('🔍 Main Dashboard Data Debug:', {
     isPersonalizedMode,
     organizationId,
     effectiveOrgId,
-    organizationIdType: typeof organizationId,
-    effectiveOrgIdType: typeof effectiveOrgId,
     nexusAlertsData: nexusAlertsData,
-    personalizedNexusAlerts: personalizedNexusAlerts,
     nexusAlerts: nexusAlerts,
     nexusAlertsLength: nexusAlerts?.length,
     clientsLength: clients?.length,
@@ -1223,25 +1284,42 @@ export default function TaxManagerDashboard() {
     // API loading states
     nexusAlertsLoading,
     nexusAlertsError,
-    personalizedNexusAlertsLoading,
-    personalizedNexusAlertsError,
-    // Raw API responses
-    rawNexusAlertsData: nexusAlertsData,
-    rawPersonalizedNexusAlerts: personalizedNexusAlerts,
+    // Raw API responses - expanded
+    rawNexusAlertsData: nexusAlertsData ? {
+      alerts: nexusAlertsData.alerts,
+      total: nexusAlertsData.total,
+      limit: nexusAlertsData.limit,
+      offset: nexusAlertsData.offset,
+      fullData: nexusAlertsData
+    } : null,
     // Client data debug
-    clientsData: clientsData,
+    clientsData: clientsData ? {
+      clients: clientsData.clients?.length || 0,
+      total: clientsData.total,
+      fullData: clientsData
+    } : null,
     clientsError: clientsError,
-    clientsLoading: clientsLoading
+    clientsLoading: clientsLoading,
+    // Alert data structure check
+    alertsStructure: nexusAlerts?.map(a => ({
+      id: a.id,
+      hasTitle: !!a.title,
+      hasAlertType: !!a.alertType,
+      priority: a.priority,
+      status: a.status
+    })),
+    // API Error details
+    apiErrorDetails: {
+      nexusAlertsError,
+      clientsError
+    }
   });
-  
-  // Use ONLY real backend data - no mock data
-  const clientStates = clientStatesData?.clientStates || [];
   
   const dashboardSummary = dashboardSummaryData || {};
 
-  // Loading states
+  // Loading states - always check clients loading since we need it for revenue/statistics
   const isLoading = isPersonalizedMode 
-    ? (personalizedClientStatesLoading || personalizedNexusAlertsLoading)
+    ? (personalizedClientStatesLoading || clientsLoading || nexusAlertsLoading)
     : (clientsLoading || nexusAlertsLoading || nexusActivitiesLoading || clientStatesLoading || dashboardSummaryLoading);
 
   if (isLoading) {

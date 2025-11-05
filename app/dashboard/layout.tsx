@@ -6,6 +6,7 @@ import { NavbarWrapper } from "@/components/navbar/navbar";
 import { DynamicSidebar } from "@/components/sidebar/dynamic-sidebar";
 import { SidebarContext } from "@/components/layout/layout-context";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 
 interface Props {
   children: React.ReactNode;
@@ -15,6 +16,12 @@ export default function DashboardLayout({ children }: Props) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [_, setLocked] = useLockedBody(false);
   const pathname = usePathname();
+  const { setTheme } = useTheme();
+
+  // Force dark mode for all dashboard routes
+  React.useEffect(() => {
+    setTheme('dark');
+  }, [setTheme]);
 
   const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -38,7 +45,7 @@ export default function DashboardLayout({ children }: Props) {
   if (isViewPage) {
     // For view pages, render without sidebar
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen" data-dashboard="true">
         {children}
       </div>
     );
@@ -50,7 +57,7 @@ export default function DashboardLayout({ children }: Props) {
         collapsed: sidebarOpen,
         setCollapsed: handleToggleSidebar,
       }}>
-      <section className='flex'>
+      <section className='flex' data-dashboard="true">
         <DynamicSidebar userRole={userRole} />
         <NavbarWrapper>{children}</NavbarWrapper>
       </section>

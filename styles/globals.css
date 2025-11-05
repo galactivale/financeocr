@@ -7,6 +7,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Force dark mode for dashboard routes */
+body:has([data-dashboard="true"]) {
+  color-scheme: dark;
+}
+
+body[data-dashboard="true"] {
+  color-scheme: dark;
+}
+
 /* Scroll padding to account for sticky navbar */
 section[id] {
   scroll-margin-top: 5rem;

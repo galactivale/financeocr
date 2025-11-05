@@ -457,24 +457,10 @@ const TaxManagerMonitoring = () => {
         client.revenue = `$${newRevenue.toLocaleString()}`;
         client.thresholdProgress = Math.min(100, Math.round(newRevenue / threshold * 100));
         client.riskScore = Math.round(newRevenue / threshold * 100);
-        
-        // Update status based on new revenue-to-threshold ratio
-        const newRatio = newRevenue / threshold;
-        if (newRatio >= 1.0) {
-          client.nexusStatus = 'critical';
-        } else if (newRatio >= 0.8) {
-          client.nexusStatus = 'warning';
-        } else if (newRatio >= 0.5) {
-          client.nexusStatus = 'pending';
-        } else if (newRatio >= 0.2) {
-          client.nexusStatus = 'transit';
-        } else {
-          client.nexusStatus = 'compliant';
-        }
       }
     });
 
-    // Add alert counts
+    // Add alert counts FIRST before calculating status
     const alertsToUse = nexusAlertsData?.alerts && nexusAlertsData.alerts.length > 0 
       ? nexusAlertsData.alerts 
       : [];
@@ -487,6 +473,42 @@ const TaxManagerMonitoring = () => {
         }
       });
     }
+
+    // NOW calculate status based on revenue-to-threshold ratio, but only allow 'critical' or 'warning' if alerts exist
+    clientMap.forEach((client) => {
+      const revenue = parseInt(client.revenue.replace(/[$,]/g, '')) || 0;
+      // Find the highest threshold from client states for this client
+      const clientStatesForClient = dataToUse.filter((cs: any) => cs.clientId === client.id);
+      const highestThreshold = clientStatesForClient.length > 0 
+        ? Math.max(...clientStatesForClient.map((cs: any) => cs.thresholdAmount || 500000))
+        : 500000;
+      
+      const newRatio = revenue / highestThreshold;
+      
+      // Only allow 'critical' or 'warning' status if alerts exist
+      if (client.alerts > 0) {
+        if (newRatio >= 1.0) {
+          client.nexusStatus = 'critical';
+        } else if (newRatio >= 0.8) {
+          client.nexusStatus = 'warning';
+        } else if (newRatio >= 0.5) {
+          client.nexusStatus = 'pending';
+        } else if (newRatio >= 0.2) {
+          client.nexusStatus = 'transit';
+        } else {
+          client.nexusStatus = 'compliant';
+        }
+      } else {
+        // If no alerts, cap status at 'pending'
+        if (newRatio >= 0.5) {
+          client.nexusStatus = 'pending';
+        } else if (newRatio >= 0.2) {
+          client.nexusStatus = 'transit';
+        } else {
+          client.nexusStatus = 'compliant';
+        }
+      }
+    });
 
     const result = Array.from(clientMap.values());
     

@@ -47,6 +47,7 @@ interface Alert {
   threshold: string;
   deadline: string;
   penaltyRisk: string;
+  penaltyRiskValue: number | null; // Numeric value for risk checking
   priority: 'high' | 'medium' | 'low';
   status: 'new' | 'in-progress' | 'resolved';
   actions: string[];
@@ -182,6 +183,7 @@ export default function ManagingPartnerAlerts() {
       threshold: formatThreshold(backendAlert.thresholdAmount),
       deadline: getDaysUntilDeadline(backendAlert.deadline),
       penaltyRisk: getPenaltyRisk(backendAlert.currentAmount, backendAlert.thresholdAmount),
+      penaltyRiskValue: backendAlert.penaltyRisk, // Store numeric value for risk checking
       priority: backendAlert.priority,
       status: mapStatus(backendAlert.status),
       actions: generateActions(backendAlert.alertType, backendAlert.priority, backendAlert.stateCode),
@@ -501,8 +503,8 @@ export default function ManagingPartnerAlerts() {
                     
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center space-x-2">
-                        <Shield className="w-4 h-4 text-red-400" />
-                        <span className="text-red-400 text-xs font-medium">{alert.penaltyRisk}</span>
+                        <Shield className={`w-4 h-4 ${alert.penaltyRiskValue === 0 || alert.penaltyRiskValue === null ? 'text-green-400' : 'text-red-400'}`} />
+                        <span className={`text-xs font-medium ${alert.penaltyRiskValue === 0 || alert.penaltyRiskValue === null ? 'text-green-400' : 'text-red-400'}`}>{alert.penaltyRisk}</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
                     </div>
@@ -553,8 +555,8 @@ export default function ManagingPartnerAlerts() {
                               <span>{alert.deadline}</span>
                             </div>
                             <div className="flex items-center space-x-1">
-                              <Shield className="w-3 h-3 text-red-400" />
-                              <span className="text-red-400">{alert.penaltyRisk}</span>
+                              <Shield className={`w-3 h-3 ${alert.penaltyRiskValue === 0 || alert.penaltyRiskValue === null ? 'text-green-400' : 'text-red-400'}`} />
+                              <span className={alert.penaltyRiskValue === 0 || alert.penaltyRiskValue === null ? 'text-green-400' : 'text-red-400'}>{alert.penaltyRisk}</span>
                             </div>
                           </div>
                         </div>
