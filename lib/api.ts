@@ -282,6 +282,19 @@ class ApiClient {
         headers,
       });
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ Non-JSON response received:', {
+          url,
+          status: response.status,
+          contentType,
+          body: text.substring(0, 500) // Log first 500 chars
+        });
+        throw new Error(`Server returned non-JSON response (${response.status}). This might be an nginx timeout or error page.`);
+      }
+
       const data = await response.json();
 
       // Debug logging for nexus alerts endpoint
