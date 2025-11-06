@@ -90,7 +90,7 @@ export const PersonalizedDashboardProvider = ({ children }: PersonalizedDashboar
     } else {
       const orgId = sessionStorageUtils.getOrgId();
       if (orgId) {
-        setOrganizationId(normalizeOrgId(orgId));
+        setOrganizationId(normalizeOrgId(orgId) || null);
       } else {
         setDashboardUrl(null);
         setClientName(null);
