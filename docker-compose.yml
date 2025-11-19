@@ -97,7 +97,8 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-    nginx:
+  # Reverse Proxy
+  nginx:
     image: nginx:alpine
     container_name: nginx
     ports:
@@ -113,7 +114,6 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
-    # Memory limits for VPS
     deploy:
       resources:
         limits:
