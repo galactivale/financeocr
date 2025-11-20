@@ -7,6 +7,9 @@ export const SidebarWrapper = tv({
     collapsed: {
       true: "translate-x-0 ml-0 pt-20 [display:inherit] w-16 px-2",
     },
+    darkMode: {
+      true: "bg-black/60 border-white/20 dark:bg-black/80",
+    },
   },
 });
 export const Overlay = tv({

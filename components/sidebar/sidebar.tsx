@@ -23,15 +23,18 @@ export const SidebarWrapper = () => {
   const pathname = usePathname();
   const { collapsed, setCollapsed } = useSidebarContext();
 
+  const isGeneratePage = pathname === "/generate";
+
   return (
-    <aside className="h-screen z-[20] sticky top-0">
+    <aside className={`h-screen z-[20] sticky top-0 ${isGeneratePage ? 'dark' : ''}`}>
       {collapsed ? (
         <div className={Sidebar.Overlay()} onClick={setCollapsed} />
       ) : null}
       <div
         className={`sidebar main-sidebar ${Sidebar({
           collapsed: collapsed,
-        })}`}
+          darkMode: isGeneratePage,
+        })} ${isGeneratePage ? 'dark' : ''}`}
       >
         <div className={Sidebar.Header()}>
           <CompaniesDropdown />
