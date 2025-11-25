@@ -568,7 +568,8 @@ const ManagingPartnerMonitoring = () => {
           thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
           riskScore: Math.round(revenue / threshold * 100),
           lastUpdated: clientState.lastUpdated || new Date().toISOString(),
-          hasData: true
+          hasData: true,
+          clientStatuses: [status] // Track individual client statuses
         };
       } else {
         stateData[stateCode].clients += 1;
@@ -577,6 +578,12 @@ const ManagingPartnerMonitoring = () => {
         stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / threshold * 100));
         stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / threshold * 100);
         stateData[stateCode].hasData = true;
+        
+        // Track individual client status
+        if (!stateData[stateCode].clientStatuses) {
+          stateData[stateCode].clientStatuses = [];
+        }
+        stateData[stateCode].clientStatuses.push(status);
         
         // Update status to most critical if needed
         const newRatio = stateData[stateCode].revenue / threshold;
@@ -629,7 +636,28 @@ const ManagingPartnerMonitoring = () => {
       });
     }
 
-    // Final status override: Ensure critical alerts take precedence
+    // Check client states for each state to apply new color logic
+    // If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+    Object.keys(stateData).forEach(stateCode => {
+      const state = stateData[stateCode];
+      
+      if (state.clientStatuses && state.clientStatuses.length > 1) {
+        // Count clients by status
+        const criticalCount = state.clientStatuses.filter((s: string) => s === 'critical').length;
+        const transitCount = state.clientStatuses.filter((s: string) => s === 'transit').length;
+        const warningCount = state.clientStatuses.filter((s: string) => s === 'warning').length;
+        const pendingCount = state.clientStatuses.filter((s: string) => s === 'pending').length;
+        const approachingThresholdCount = transitCount + warningCount + pendingCount;
+        const totalClients = state.clientStatuses.length;
+        
+        // New logic: If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+        if (criticalCount === 1 && approachingThresholdCount === (totalClients - 1)) {
+          state.status = 'warning';
+        }
+      }
+    });
+
+    // Final status override: Ensure critical alerts take precedence (but respect the new logic above)
     Object.keys(stateData).forEach(stateCode => {
       const state = stateData[stateCode];
       if (state.alerts > 0) {
@@ -640,7 +668,22 @@ const ManagingPartnerMonitoring = () => {
         ) || [];
         
         if (criticalAlerts.length > 0) {
-          state.status = 'critical';
+          // Only set to critical if the new logic didn't set it to warning
+          if (state.clientStatuses && state.clientStatuses.length > 1) {
+            const criticalCount = state.clientStatuses.filter((s: string) => s === 'critical').length;
+            const transitCount = state.clientStatuses.filter((s: string) => s === 'transit').length;
+            const warningCount = state.clientStatuses.filter((s: string) => s === 'warning').length;
+            const pendingCount = state.clientStatuses.filter((s: string) => s === 'pending').length;
+            const approachingThresholdCount = transitCount + warningCount + pendingCount;
+            const totalClients = state.clientStatuses.length;
+            
+            // Don't override if the new logic applies
+            if (!(criticalCount === 1 && approachingThresholdCount === (totalClients - 1))) {
+              state.status = 'critical';
+            }
+          } else {
+            state.status = 'critical';
+          }
         } else if (state.alerts >= 3) {
           // Multiple alerts should be at least warning
           if (state.status === 'compliant' || state.status === 'transit') {

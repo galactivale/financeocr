@@ -1,6 +1,5 @@
 # Development override for docker-compose
 # This file is automatically loaded by docker-compose for development
-version: '3.8'
 
 services:
   backend:
@@ -13,7 +12,7 @@ services:
     volumes:
       - ./server:/app
       - /app/node_modules
-    command: sh -c "npm ci && npx prisma generate && PORT=3080 npm run dev"
+    command: sh -c "npm ci && PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh npx prisma generate || npx prisma generate --schema=./prisma/schema.prisma && PORT=3080 npm run dev"
 
   frontend:
     build:

@@ -77,26 +77,41 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
     Object.keys(stateData).forEach(stateCode => {
       const data = stateData[stateCode];
       
-      // Count critical/warning states
-      const criticalStates = (clientStates || []).filter(cs => 
-        cs.stateCode === stateCode && (cs.status === 'critical' || cs.status === 'warning')
-      ).length;
+      // Get all client states for this state
+      const statesInState = (clientStates || []).filter(cs => cs.stateCode === stateCode);
+      const totalStatesInState = statesInState.length;
       
-      const totalStatesInState = (clientStates || []).filter(cs => cs.stateCode === stateCode).length;
-      const criticalRatio = totalStatesInState > 0 ? criticalStates / totalStatesInState : 0;
+      // Count clients by status
+      const criticalCount = statesInState.filter(cs => cs.status === 'critical').length;
+      const transitCount = statesInState.filter(cs => cs.status === 'transit').length;
+      const warningCount = statesInState.filter(cs => cs.status === 'warning').length;
+      const pendingCount = statesInState.filter(cs => cs.status === 'pending').length;
+      const approachingThresholdCount = transitCount + warningCount + pendingCount;
       
-      if (criticalRatio > 0.5 || data.alerts > 3) {
-        data.status = 'poor';
-        data.nexusStatus = 'critical';
-      } else if (criticalRatio > 0.2 || data.alerts > 1) {
+      // New logic: If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+      if (totalStatesInState > 1 && criticalCount === 1 && approachingThresholdCount === (totalStatesInState - 1)) {
         data.status = 'warning';
         data.nexusStatus = 'warning';
-      } else if (data.revenue > 1000000) {
-        data.status = 'excellent';
-        data.nexusStatus = 'compliant';
       } else {
-        data.status = 'good';
-        data.nexusStatus = 'compliant';
+        // Original logic for other cases
+        const criticalStates = statesInState.filter(cs => 
+          cs.status === 'critical' || cs.status === 'warning'
+        ).length;
+        const criticalRatio = totalStatesInState > 0 ? criticalStates / totalStatesInState : 0;
+        
+        if (criticalRatio > 0.5 || data.alerts > 3) {
+          data.status = 'poor';
+          data.nexusStatus = 'critical';
+        } else if (criticalRatio > 0.2 || data.alerts > 1) {
+          data.status = 'warning';
+          data.nexusStatus = 'warning';
+        } else if (data.revenue > 1000000) {
+          data.status = 'excellent';
+          data.nexusStatus = 'compliant';
+        } else {
+          data.status = 'good';
+          data.nexusStatus = 'compliant';
+        }
       }
     });
 

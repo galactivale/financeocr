@@ -13,6 +13,8 @@
     "@emotion/styled": "^11.14.1",
     "@mirawision/usa-map-react": "^2.0.2",
     "@mui/icons-material": "^7.3.5",
+    "@mui/material": "^7.3.5",
+    "@mui/system": "^7.3.5",
     "@nextui-org/react": "^2.6.11",
     "@radix-ui/react-slot": "^1.2.3",
     "@swc/helpers": "^0.5.17",
