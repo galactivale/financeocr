@@ -401,7 +401,7 @@ const ManagingPartnerMonitoring = () => {
   const [currentNotificationIndex, setCurrentNotificationIndex] = useState(0);
 
   // State name mapping for full names
-  const stateNameMapping: Record<string, string> = {
+  const stateNameMapping = useMemo<Record<string, string>>(() => ({
     'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
     'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
     'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
@@ -411,8 +411,9 @@ const ManagingPartnerMonitoring = () => {
     'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
     'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
     'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
-    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
-  };
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming',
+    'DC': 'District of Columbia'
+  }), []);
 
   // Check if we're in personalized dashboard mode
   const { dashboardUrl, isPersonalizedMode, clientName, organizationId } = usePersonalizedDashboard();
@@ -1009,7 +1010,7 @@ const ManagingPartnerMonitoring = () => {
     });
 
     return notifications;
-  }, [nexusData, scanningStateIndex, nexusAlertsData, clients]);
+  }, [nexusData, scanningStateIndex, nexusAlertsData, clients, stateNameMapping]);
 
   useEffect(() => {
     setIsMounted(true);

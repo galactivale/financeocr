@@ -376,9 +376,9 @@ export default function ManagingPartnerAlertDetailPage() {
         doc.setFontSize(fontSize);
         doc.setTextColor(color[0], color[1], color[2]);
         if (isBold) {
-          doc.setFont(undefined, 'bold');
+          doc.setFont('helvetica', 'bold');
         } else {
-          doc.setFont(undefined, 'normal');
+          doc.setFont('helvetica', 'normal');
         }
         
         const lines = doc.splitTextToSize(text, pageWidth - (margin * 2));
@@ -465,7 +465,7 @@ export default function ManagingPartnerAlertDetailPage() {
 
       // Table header
       doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('State', colX[0], yPos);
       doc.text('Threshold', colX[1], yPos);
       doc.text('2024 Exposure', colX[2], yPos);
@@ -493,7 +493,7 @@ export default function ManagingPartnerAlertDetailPage() {
       }
 
       // Table rows
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       sampleStates.forEach((stateData) => {
         // Check if we need a new page
