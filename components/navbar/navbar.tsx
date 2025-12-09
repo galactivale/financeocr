@@ -2,7 +2,6 @@ import { Input, Navbar, NavbarContent } from "@nextui-org/react";
 import React from "react";
 import { SearchIcon } from "../icons/searchicon";
 import { BurguerButton } from "./burguer-button";
-import { NotificationsDropdown } from "./notifications-dropdown";
 import { UserDropdown } from "./user-dropdown";
 import { usePathname } from "next/navigation";
 
@@ -48,8 +47,6 @@ export const NavbarWrapper = ({ children }: Props) => {
           justify="end"
           className="w-fit data-[justify=end]:flex-grow-0"
         >
-          <NotificationsDropdown />
-
           <NavbarContent>
             <UserDropdown />
           </NavbarContent>

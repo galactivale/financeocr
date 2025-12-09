@@ -1,52 +1,37 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const { PrismaClient } = require('@prisma/client');
+const { 
+  TOTAL_CLIENTS, 
+  RISK_DISTRIBUTION, 
+  ALERT_ALLOCATION,
+  RISK_LEVELS,
+  TARGET_ALERTS,
+  REVENUE_RANGE
+} = require('../config/dataGenerationConfig');
+const StateGenerator = require('./stateGenerator');
+const AlertGenerator = require('./alertGenerator');
+const DataValidator = require('./dataValidator');
+const { sanitizeClientState, sanitizeAlert } = require('../utils/dataSanitizer');
 
 class EnhancedDataGenerator {
-  constructor() {
-    const token = process.env.GEMINI_API_KEY;
-    if (!token) {
-      throw new Error('GEMINI_API_KEY not found in environment variables');
+  constructor(strategy = 'standard') {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (apiKey) {
+      this.openai = new OpenAI({ apiKey });
+    } else {
+      this.openai = null;
+      console.log('⚠️ OPENAI_API_KEY not found, will use fallback data generation');
     }
-    this.genAI = new GoogleGenerativeAI(token);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
     this.prisma = new PrismaClient();
     this.usedCompanyNames = new Set();
     this.usedTaxIds = new Set();
     this.usedEmails = new Set();
     
-    // Qualification strategy configurations
-    this.qualificationStrategies = {
-      'conservative': {
-        warningThreshold: 0.6,    // 60% - Early warning
-        alertThreshold: 0.8,      // 80% - Create alerts
-        criticalThreshold: 1.0,   // 100% - Critical alerts
-        description: 'Early warning at 60% threshold, alerts at 80%'
-      },
-      'standard': {
-        warningThreshold: 0.8,    // 80% - Warning
-        alertThreshold: 0.8,      // 80% - Create alerts
-        criticalThreshold: 1.0,   // 100% - Critical alerts
-        description: 'Alerts at 80% threshold, critical at 100%'
-      },
-      'aggressive': {
-        warningThreshold: 0.9,    // 90% - Warning
-        alertThreshold: 0.9,      // 90% - Create alerts
-        criticalThreshold: 1.1,   // 110% - Critical alerts
-        description: 'Alerts at 90% threshold, critical at 110%'
-      },
-      'compliance-focused': {
-        warningThreshold: 0.7,    // 70% - Early warning
-        alertThreshold: 0.7,      // 70% - Create alerts
-        criticalThreshold: 0.9,   // 90% - Critical alerts
-        description: 'Strict monitoring with alerts at 70% threshold'
-      },
-      'risk-tolerant': {
-        warningThreshold: 1.0,    // 100% - Warning
-        alertThreshold: 1.0,      // 100% - Create alerts
-        criticalThreshold: 1.2,   // 120% - Critical alerts
-        description: 'Minimal alerts, only at 100%+ threshold'
-      }
-    };
+    // Initialize new services (always use 'standard' strategy)
+    this.strategy = 'standard';
+    this.stateGenerator = new StateGenerator('standard');
+    this.alertGenerator = new AlertGenerator();
+    this.dataValidator = new DataValidator();
   }
 
   async ensureOrganizationExists(organizationId, formData) {
@@ -63,21 +48,7 @@ class EnhancedDataGenerator {
       if (existingOrg) {
         console.log('✅ Organization already exists:', existingOrg.name);
         
-        // Update organization settings with qualification strategy if not set
-        if (!existingOrg.settings?.qualificationStrategy && formData.qualificationStrategy) {
-          console.log('🔄 Updating organization with qualification strategy:', formData.qualificationStrategy);
-          const updatedSettings = {
-            ...existingOrg.settings,
-            qualificationStrategy: formData.qualificationStrategy
-          };
-          
-          await this.prisma.organization.update({
-            where: { id: organizationId },
-            data: { settings: updatedSettings }
-          });
-          
-          console.log('✅ Organization settings updated with qualification strategy');
-        }
+        // Organization settings update (qualification strategy removed)
         
         return existingOrg;
       }
@@ -101,20 +72,25 @@ class EnhancedDataGenerator {
     }
   }
 
-  async generateCompleteDashboardData(formData, organizationId) {
-    console.log('🚀 Starting complete dashboard data generation...');
-    console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
-    console.log('📊 Client count from form:', formData.multiStateClientCount);
+  async generateCompleteDashboardData(formData, organizationId, logCallback = null) {
+    const log = (message) => {
+      console.log(message);
+      if (logCallback) logCallback(message);
+    };
+    
+    log('🚀 Starting complete dashboard data generation...');
+    log('📊 Form data received');
 
     try {
       // First, ensure the Organization record exists
       const organization = await this.ensureOrganizationExists(organizationId, formData);
 
-      console.log('✅ Gemini API key found, generating complete dashboard data...');
+      log('✅ OpenAI API key found, generating complete dashboard data...');
 
       // Always generate exactly 10 clients for demo
-      const clientCount = 10;
-      console.log(`📊 Generating ${clientCount} clients with complete data relationships...`);
+      const clientCount = TOTAL_CLIENTS;
+      log(`📊 Generating ${clientCount} clients with complete data relationships...`);
+      log(`   Strategy: standard (fixed)`);
 
       const generatedData = {
         clients: [],
@@ -138,9 +114,30 @@ class EnhancedDataGenerator {
         decisionTables: []
       };
 
+      // Get priority states from form data
+      const priorityStates = formData.priorityStates || ['CA', 'NY', 'TX', 'FL', 'IL'];
+      log(`   Priority States: ${priorityStates.join(', ')}`);
+
+      // GUARANTEE: Reserve the first priority state to always be compliant
+      // This ensures at least one state always shows as compliant on the map
+      const guaranteedCompliantState = priorityStates[0];
+      log(`✅ Guaranteeing state "${guaranteedCompliantState}" will always have at least one compliant client`);
+      
+      // Track which client will get the guaranteed compliant state
+      let guaranteedCompliantAssigned = false;
+
+      // Track alert allocation per risk level
+      const riskLevelIndexes = {
+        [RISK_LEVELS.CRITICAL]: 0,
+        [RISK_LEVELS.HIGH]: 0,
+        [RISK_LEVELS.MEDIUM]: 0,
+        [RISK_LEVELS.LOW]: 0
+      };
+
       // Generate clients with complete relationships
       for (let i = 0; i < clientCount; i++) {
-        console.log(`📊 Generating client ${i + 1}/${clientCount} with complete data...`);
+        const riskLevel = RISK_DISTRIBUTION[i];
+        log(`📝 Generating client ${i + 1}/${clientCount} (${riskLevel} risk)...`);
         
         try {
           const clientData = await this.generateUniqueClient(formData, i);
@@ -155,30 +152,330 @@ class EnhancedDataGenerator {
             if (numberMatch) {
               revenue = parseInt(numberMatch[0]);
             } else {
-              revenue = 50000; // Default fallback
+              revenue = REVENUE_RANGE.MIN; // Default fallback
             }
           }
           
           // Convert to number and validate
           revenue = parseFloat(revenue);
-          if (isNaN(revenue) || revenue > 600000) {
-            console.log(`⚠️ Client ${i + 1} revenue ${clientData.annualRevenue} exceeds limit or is invalid, capping at $600K`);
-            revenue = 600000;
+          if (isNaN(revenue) || revenue > REVENUE_RANGE.MAX) {
+            console.log(`⚠️ Client ${i + 1} revenue ${clientData.annualRevenue} exceeds limit or is invalid, capping at $${REVENUE_RANGE.MAX.toLocaleString()}`);
+            revenue = REVENUE_RANGE.MAX;
           }
           
           // Ensure it's a clean integer
           clientData.annualRevenue = Math.round(revenue);
           
-          console.log(`✅ Client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
+          log(`✅ Client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
           
           const client = await this.createClientWithRelationships(clientData, organizationId);
           
           generatedData.clients.push(client);
           
-          // Generate related data for this client
-          await this.generateClientRelatedData(client, organizationId, generatedData, formData, organization);
+          // Generate states for client using StateGenerator
+          // GUARANTEE: Ensure the first client with compliant states gets the guaranteed compliant state
+          const clientRiskLevel = RISK_DISTRIBUTION[i];
+          const distribution = require('../config/dataGenerationConfig').STATE_DISTRIBUTION[clientRiskLevel];
+        const hasCompliantStates = distribution.compliant > 0;
+        
+        let states, activities;
+        
+        // If this client has compliant states and we haven't assigned the guaranteed one yet, do it now
+        if (hasCompliantStates && !guaranteedCompliantAssigned) {
+          // Temporarily modify priority states to put guaranteed state first
+          const modifiedPriorityStates = [
+            guaranteedCompliantState,
+            ...priorityStates.filter(s => s !== guaranteedCompliantState)
+          ];
+          console.log(`   🎯 Client ${i + 1} will receive guaranteed compliant state "${guaranteedCompliantState}"`);
           
-          console.log(`✅ Client ${i + 1} and related data created successfully`);
+          const result = this.stateGenerator.generateStatesForClient(
+            client,
+            modifiedPriorityStates,
+            i
+          );
+          states = result.states;
+          activities = result.activities;
+          
+          // Mark as assigned
+          guaranteedCompliantAssigned = true;
+        } else {
+          // Normal generation for other clients
+          const result = this.stateGenerator.generateStatesForClient(
+            client,
+            priorityStates,
+            i
+          );
+          states = result.states;
+          activities = result.activities;
+        }
+        
+        // Save states to database
+        for (const stateData of states) {
+            // Sanitize the entire state object to ensure all fields fit database constraints
+            // Only pass fields that exist in the ClientState schema
+            const sanitizedStateData = sanitizeClientState({
+              organizationId: stateData.organizationId,
+              clientId: stateData.clientId,
+              stateCode: stateData.stateCode,
+              stateName: stateData.stateName,
+              status: stateData.status,
+              registrationRequired: stateData.registrationRequired,
+              thresholdAmount: stateData.thresholdAmount,
+              currentAmount: stateData.currentAmount,
+              lastUpdated: stateData.lastUpdated,
+              notes: stateData.notes
+              // Note: excessAmount, penaltyRisk, and metadata are NOT in ClientState schema
+              // They are only used for calculations, not stored in ClientState
+            });
+            
+            // Log ALL field lengths for debugging
+            console.log(`🔍 State data field analysis for ${sanitizedStateData.stateCode}:`);
+            Object.keys(sanitizedStateData).forEach(key => {
+              const value = sanitizedStateData[key];
+              if (value !== null && value !== undefined) {
+                if (typeof value === 'string') {
+                  console.log(`  ${key}: ${value.length} chars - "${value.substring(0, 50)}${value.length > 50 ? '...' : ''}"`);
+                  if (value.length > 200) {
+                    console.error(`  ❌ ${key} is VERY LONG: ${value.length} chars!`);
+                  }
+                } else if (typeof value === 'number') {
+                  console.log(`  ${key}: ${value} (number)`);
+                } else if (value instanceof Date) {
+                  console.log(`  ${key}: ${value.toISOString()} (Date)`);
+                } else {
+                  console.log(`  ${key}: ${typeof value} - ${JSON.stringify(value).substring(0, 50)}`);
+                }
+              }
+            });
+            
+            log(`📝 Creating state: ${sanitizedStateData.stateCode} ${sanitizedStateData.stateName}`);
+            
+            try {
+              // Check if state already exists for this client+stateCode combination
+              const existingState = await this.prisma.clientState.findUnique({
+                where: {
+                  clientId_stateCode: {
+                    clientId: sanitizedStateData.clientId,
+                    stateCode: sanitizedStateData.stateCode
+                  }
+                }
+              });
+              
+              if (existingState) {
+                console.warn(`⚠️  State ${sanitizedStateData.stateCode} already exists for client ${sanitizedStateData.clientId}, skipping creation`);
+                generatedData.clientStates.push(existingState);
+                continue;
+              }
+              
+              const clientState = await this.prisma.clientState.create({
+                data: sanitizedStateData
+              });
+              generatedData.clientStates.push(clientState);
+            } catch (error) {
+              // Handle unique constraint violation gracefully
+              if (error.code === 'P2002' && error.meta?.target?.includes('client_id') && error.meta?.target?.includes('state_code')) {
+                console.warn(`⚠️  State ${sanitizedStateData.stateCode} already exists for client ${sanitizedStateData.clientId}, skipping creation`);
+                // Try to fetch the existing state
+                try {
+                  const existingState = await this.prisma.clientState.findUnique({
+                    where: {
+                      clientId_stateCode: {
+                        clientId: sanitizedStateData.clientId,
+                        stateCode: sanitizedStateData.stateCode
+                      }
+                    }
+                  });
+                  if (existingState) {
+                    generatedData.clientStates.push(existingState);
+                  }
+                } catch (fetchError) {
+                  console.error('❌ Error fetching existing state:', fetchError.message);
+                }
+                continue; // Skip this state and continue with the next one
+              }
+              
+              console.error('❌ Error creating client state:', error.message);
+              console.error('❌ Error code:', error.code);
+              console.error('❌ Full state data:', JSON.stringify(sanitizedStateData, null, 2));
+              console.error('❌ Field-by-field breakdown:');
+              Object.keys(sanitizedStateData).forEach(key => {
+                const value = sanitizedStateData[key];
+                if (typeof value === 'string') {
+                  console.error(`  ${key}: ${value.length} chars`);
+                }
+              });
+              throw error;
+            }
+          }
+          
+          // Save activities to database
+          for (const activityData of activities) {
+            // Ensure stateCode is a 2-character code, not a state name
+            let stateCode = activityData.stateCode;
+            if (stateCode && stateCode.length > 2) {
+              // Convert state name to code if needed
+              const stateNameToCode = {
+                'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR',
+                'California': 'CA', 'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE',
+                'Florida': 'FL', 'Georgia': 'GA', 'Hawaii': 'HI', 'Idaho': 'ID',
+                'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA', 'Kansas': 'KS',
+                'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+                'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS',
+                'Missouri': 'MO', 'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV',
+                'New Hampshire': 'NH', 'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY',
+                'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH', 'Oklahoma': 'OK',
+                'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+                'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT',
+                'Vermont': 'VT', 'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV',
+                'Wisconsin': 'WI', 'Wyoming': 'WY'
+              };
+              stateCode = stateNameToCode[stateCode] || stateCode.substring(0, 2).toUpperCase();
+              console.warn(`⚠️  Activity: Converted state name "${activityData.stateCode}" to code "${stateCode}"`);
+            }
+            
+            // Ensure title exists (required field)
+            if (!activityData.title) {
+              console.warn(`⚠️  Activity missing title, generating one...`);
+              activityData.title = `Nexus Activity - ${stateCode}`;
+            }
+            
+            // Only include fields that exist in NexusActivity schema
+            const nexusActivity = await this.prisma.nexusActivity.create({
+              data: {
+                organizationId: activityData.organizationId,
+                clientId: activityData.clientId,
+                stateCode: stateCode, // Ensure it's a 2-char code
+                activityType: activityData.activityType,
+                title: activityData.title, // Required field
+                description: activityData.description || null, // Optional
+                amount: activityData.amount || null, // Optional Decimal
+                thresholdAmount: activityData.thresholdAmount || null, // Optional Decimal
+                status: activityData.status || 'completed',
+                metadata: activityData.metadata || null // Optional Json
+                // Note: createdAt is auto-generated, activityDate doesn't exist in schema
+              }
+            });
+            generatedData.nexusActivities.push(nexusActivity);
+          }
+          
+        console.log(`   ✓ Generated ${states.length} states`);
+        const compliantStates = states.filter(s => s.status === 'compliant');
+        const warningStates = states.filter(s => s.status === 'warning');
+        const criticalStates = states.filter(s => s.status === 'critical');
+        console.log(`     - Compliant: ${compliantStates.length}`);
+        console.log(`     - Warning: ${warningStates.length}`);
+        console.log(`     - Critical: ${criticalStates.length}`);
+        
+        // CREATE COMPLIANCE_CONFIRMED ALERTS for compliant states (needed for map visibility)
+        // Each compliant state needs an alert to appear on the map
+        for (const compliantState of compliantStates) {
+          if (generatedData.nexusAlerts.length < TARGET_ALERTS.TOTAL) {
+            const complianceAlert = this.alertGenerator.createAlert(
+              client,
+              compliantState,
+              'low',
+              'compliance_confirmed',
+              `Compliance Confirmed - ${compliantState.stateName}`,
+              `Client is fully compliant in ${compliantState.stateName}. Revenue at ${Math.round((compliantState.currentAmount / compliantState.thresholdAmount) * 100)}% of threshold.`
+            );
+            
+            // Sanitize and save compliance alert
+            const sanitizedAlertData = sanitizeAlert({
+              organizationId: complianceAlert.organizationId,
+              clientId: complianceAlert.clientId,
+              stateCode: complianceAlert.stateCode,
+              alertType: complianceAlert.alertType,
+              priority: complianceAlert.priority,
+              severity: complianceAlert.severity || complianceAlert.priority,
+              status: complianceAlert.status,
+              title: complianceAlert.title,
+              description: complianceAlert.description,
+              thresholdAmount: complianceAlert.thresholdAmount,
+              currentAmount: complianceAlert.currentAmount,
+              penaltyRisk: complianceAlert.penaltyRisk,
+              deadline: complianceAlert.deadline,
+              isActive: complianceAlert.isActive !== undefined ? complianceAlert.isActive : true
+            });
+            
+            try {
+              const nexusAlert = await this.prisma.nexusAlert.create({
+                data: sanitizedAlertData
+              });
+              generatedData.nexusAlerts.push(nexusAlert);
+              console.log(`   ✓ Created compliance_confirmed alert for ${compliantState.stateCode}`);
+            } catch (error) {
+              console.error('❌ Error creating compliance alert:', error.message);
+            }
+          }
+        }
+        
+        // Get alert allocation for this client
+        const riskLevelIndex = riskLevelIndexes[riskLevel];
+        const allocation = ALERT_ALLOCATION[riskLevel][riskLevelIndex];
+        riskLevelIndexes[riskLevel]++;
+        
+        // Generate alerts for client using AlertGenerator
+        const clientAlerts = this.alertGenerator.generateAlertsForClient(
+          client,
+          states,
+          allocation
+        );
+          
+          // Calculate how many alerts we can still create
+          const remainingAlertBudget = TARGET_ALERTS.TOTAL - generatedData.nexusAlerts.length;
+          
+          // Limit alerts to remaining budget
+          const alertsToCreate = clientAlerts.slice(0, remainingAlertBudget);
+          
+          console.log(`   📊 Alert budget: ${remainingAlertBudget} remaining, ${alertsToCreate.length} to create`);
+          
+          // Save alerts to database
+          for (const alertData of alertsToCreate) {
+            // Double-check we haven't exceeded the limit
+            if (generatedData.nexusAlerts.length >= TARGET_ALERTS.TOTAL) {
+              console.log(`   ⚠️  Alert limit reached (${TARGET_ALERTS.TOTAL}), stopping alert creation`);
+              break;
+            }
+            
+            // Sanitize alert data to ensure all fields fit database constraints
+            // Only pass fields that exist in NexusAlert schema
+            const sanitizedAlertData = sanitizeAlert({
+              organizationId: alertData.organizationId,
+              clientId: alertData.clientId,
+              stateCode: alertData.stateCode, // Required - must not be null
+              alertType: alertData.alertType,
+              priority: alertData.priority,
+              severity: alertData.severity || alertData.priority, // Required field
+              status: alertData.status,
+              title: alertData.title,
+              description: alertData.description,
+              thresholdAmount: alertData.thresholdAmount,
+              currentAmount: alertData.currentAmount, // Required - cannot be null
+              penaltyRisk: alertData.penaltyRisk,
+              deadline: alertData.deadline,
+              isActive: alertData.isActive !== undefined ? alertData.isActive : true
+              // Note: createdAt is auto-generated, excessAmount/metadata don't exist in schema
+            });
+            
+            try {
+              const nexusAlert = await this.prisma.nexusAlert.create({
+                data: sanitizedAlertData
+              });
+              generatedData.nexusAlerts.push(nexusAlert);
+            } catch (error) {
+              console.error('❌ Error creating nexus alert:', error.message);
+              console.error('❌ Alert data:', JSON.stringify(sanitizedAlertData, null, 2));
+              throw error;
+            }
+          }
+          
+          console.log(`   ✓ Generated ${alertsToCreate.length} alerts (${allocation.high}H/${allocation.medium}M/${allocation.low}L) - ${generatedData.nexusAlerts.length}/${TARGET_ALERTS.TOTAL} total`);
+          
+          // Generate other related data (business profiles, contacts, etc.)
+          await this.generateClientRelatedData(client, organizationId, generatedData, formData, organization, TARGET_ALERTS.TOTAL);
+          
+          log(`✅ Client ${i + 1} and related data created successfully`);
         } catch (error) {
           console.error(`❌ Error generating client ${i + 1}:`, error);
           // Fail fast on Prisma errors to avoid wasting AI credits
@@ -190,34 +487,20 @@ class EnhancedDataGenerator {
         }
       }
 
-      console.log('🎉 Complete dashboard data generation successful!');
-      console.log('📊 Generated data summary:', {
-        clients: generatedData.clients.length,
-        clientStates: generatedData.clientStates.length,
-        nexusAlerts: generatedData.nexusAlerts.length,
-        nexusActivities: generatedData.nexusActivities.length,
-        alerts: generatedData.alerts.length,
-        tasks: generatedData.tasks.length,
-        businessProfiles: generatedData.businessProfiles.length,
-        contacts: generatedData.contacts.length,
-        businessLocations: generatedData.businessLocations.length,
-        revenueBreakdowns: generatedData.revenueBreakdowns.length,
-        customerDemographics: generatedData.customerDemographics.length,
-        geographicDistributions: generatedData.geographicDistributions.length,
-        professionalDecisions: generatedData.professionalDecisions.length,
-        consultations: generatedData.consultations.length,
-        communications: generatedData.communications.length,
-        documents: generatedData.documents.length,
-        auditTrails: generatedData.auditTrails.length,
-        dataProcessing: generatedData.dataProcessing.length,
-        decisionTables: generatedData.decisionTables.length
-      });
-      
-      // Validate client count
-      if (generatedData.clients.length < clientCount) {
-        console.warn(`⚠️ Expected ${clientCount} clients but only generated ${generatedData.clients.length}`);
+      console.log('\n📊 Generation complete! Validating data...');
+
+      // Validate generated data
+      const validation = this.dataValidator.validate(generatedData);
+      console.log('\n' + this.dataValidator.formatValidationResult(validation));
+
+      if (!validation.valid) {
+        throw new Error(`Data validation failed:\n${validation.errors.join('\n')}`);
+      }
+
+      if (validation.warnings.length > 0) {
+        console.warn('⚠️  Generation completed with warnings');
       } else {
-        console.log(`✅ Successfully generated ${generatedData.clients.length} clients as expected`);
+        console.log('✅ All validation checks passed!');
       }
 
       return {
@@ -226,7 +509,8 @@ class EnhancedDataGenerator {
         summary: {
           totalClients: generatedData.clients.length,
           totalRecords: Object.values(generatedData).reduce((sum, arr) => sum + arr.length, 0)
-        }
+        },
+        validation: validation.summary
       };
 
     } catch (error) {
@@ -236,8 +520,8 @@ class EnhancedDataGenerator {
   }
 
   async generateUniqueClient(formData, index) {
-    const riskLevels = ['low', 'medium', 'high', 'critical'];
-    const riskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)];
+    // Use predetermined risk level distribution from config
+    const riskLevel = RISK_DISTRIBUTION[index] || RISK_LEVELS.MEDIUM;
     
     // Generate absolutely unique company name
     const companyName = await this.generateUniqueCompanyName(index);
@@ -472,26 +756,72 @@ IMPORTANT:
 - CRITICAL: The business should have significant operations, customers, or revenue in the priority states to create realistic nexus monitoring scenarios
 `;
 
+    // If OpenAI is not available, use fallback data
+    if (!this.openai) {
+      console.log('⚠️ OpenAI not available, using fallback client data');
+      return this.getFallbackClientData(index, riskLevel, companyName, industry);
+    }
+
     try {
-      // Retry Gemini once on 503 overloads
+      // Retry OpenAI once on rate limits
       let result;
       try {
-        result = await this.model.generateContent(prompt);
+        result = await this.openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful assistant that generates realistic business client data for CPA firms. Always respond with valid JSON only."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 4000,
+          response_format: { type: "json_object" }
+        });
       } catch (e) {
-        if (e && e.status === 503) {
-          await new Promise(r => setTimeout(r, 750));
-          result = await this.model.generateContent(prompt);
+        if (e && (e.status === 429 || e.code === 'rate_limit_exceeded')) {
+          await new Promise(r => setTimeout(r, 1000));
+          result = await this.openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: "You are a helpful assistant that generates realistic business client data for CPA firms. Always respond with valid JSON only."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 4000,
+            response_format: { type: "json_object" }
+          });
         } else {
           throw e;
         }
       }
-      const response = await result.response;
-      const text = response.text();
+      const text = result.choices[0].message.content;
       
-      // Extract JSON from response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const clientData = JSON.parse(jsonMatch[0]);
+      // Parse JSON from response (OpenAI returns JSON directly when response_format is json_object)
+      let clientData;
+      try {
+        clientData = JSON.parse(text);
+      } catch (parseError) {
+        // Fallback: try to extract JSON if not directly parseable
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          clientData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No valid JSON found in AI response');
+        }
+      }
+      
+      if (clientData) {
         
         // Ensure uniqueness
         clientData.name = companyName;
@@ -594,32 +924,10 @@ IMPORTANT:
     return industries[Math.floor(Math.random() * industries.length)];
   }
 
-  generateClientStateStatus(currentAmount, thresholdAmount, riskLevel, qualificationStrategy = 'standard') {
-    const ratio = currentAmount / thresholdAmount;
-    const strategy = this.qualificationStrategies[qualificationStrategy] || this.qualificationStrategies['standard'];
-    
-    // Critical: Exceeded critical threshold based on strategy
-    if (ratio >= strategy.criticalThreshold) {
-      return 'critical';
-    }
-    
-    // Warning: Close to warning threshold based on strategy
-    if (ratio >= strategy.warningThreshold) {
-      return 'warning';
-    }
-    
-    // Pending: Moderate activity (50-79% of warning threshold)
-    if (ratio >= (strategy.warningThreshold * 0.5)) {
-      return 'pending';
-    }
-    
-    // Transit: Some activity but low (20-49% of warning threshold)
-    if (ratio >= (strategy.warningThreshold * 0.2)) {
-      return 'transit';
-    }
-    
-    // Compliant: Very low activity (below 20% of warning threshold)
-    return 'compliant';
+  generateClientStateStatus(currentAmount, thresholdAmount, riskLevel) {
+    // Use the new status determination utility (always uses 'standard' strategy)
+    const { determineStatus } = require('../utils/statusDetermination');
+    return determineStatus(currentAmount, thresholdAmount, 'standard');
   }
 
   cleanRevenueValue(revenue) {
@@ -693,7 +1001,7 @@ IMPORTANT:
     return client;
   }
 
-  async generateClientRelatedData(client, organizationId, generatedData, formData, organization = null) {
+  async generateClientRelatedData(client, organizationId, generatedData, formData, organization = null, maxAlerts = 20) {
     // Create business profile
     if (client.businessProfile) {
       const businessProfile = await this.prisma.businessProfile.create({
@@ -806,8 +1114,31 @@ IMPORTANT:
       }
     }
 
-    // Generate nexus monitoring data
-    await this.generateNexusMonitoringData(client, organizationId, generatedData, formData, organization);
+    // Nexus monitoring data (states and alerts) is now generated in the main loop
+    // using StateGenerator and AlertGenerator services
+    // This method only handles business profiles, contacts, locations, etc.
+
+    // CHANGE: Add low priority "monitoring" alerts for medium/low risk clients (only if under limit)
+    if (['medium', 'low'].includes(client.riskLevel) && generatedData.nexusAlerts.length < 20) {
+      // Create 1 low priority monitoring alert per medium/low risk client
+      const monitoringAlert = await this.prisma.nexusAlert.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode: 'CA', // Use a common state for monitoring alerts
+          alertType: 'nexus_monitoring',
+          priority: 'low',
+          status: 'open',
+          title: `${client.name} - Routine Nexus Monitoring Check`,
+          description: `Regular monitoring for ${client.name} nexus compliance. Scheduled routine check.`,
+          thresholdAmount: 500000,
+          currentAmount: 0,
+          penaltyRisk: 0,
+          deadline: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
+        },
+      });
+      generatedData.nexusAlerts.push(monitoringAlert);
+    }
 
     // Generate alerts and tasks
     await this.generateAlertsAndTasks(client, organizationId, generatedData);
@@ -822,13 +1153,101 @@ IMPORTANT:
     await this.generateAuditTrail(client, organizationId, generatedData);
   }
 
-  async generateNexusMonitoringData(client, organizationId, generatedData, formData, organization = null) {
-    // Use Priority States from the form data instead of random states
-    const priorityStates = formData.priorityStates || [];
+  // Helper function: Determine state count based on risk level (3-5 states)
+  determineStateCount(riskLevel) {
+    const stateCountMap = {
+      'critical': 4 + Math.floor(Math.random() * 2), // 4-5 states
+      'high': 4 + Math.floor(Math.random() * 2),     // 4-5 states
+      'medium': 3 + Math.floor(Math.random() * 2),   // 3-4 states
+      'low': 3 + Math.floor(Math.random() * 2)       // 3-4 states
+    };
     
-    // If no priority states selected, fall back to a default set
-    const defaultStates = ['CA', 'TX', 'NY', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI', 'NJ', 'VA', 'WA', 'AZ', 'MA', 'TN', 'IN', 'MO', 'MD', 'WI'];
-    const availableStates = priorityStates.length > 0 ? priorityStates : defaultStates;
+    return stateCountMap[riskLevel] || 4; // Default to 4 if unknown
+  }
+
+  // Helper function: Calculate state distribution to achieve 40/40/20 split
+  calculateStateDistribution(riskLevel, totalStates) {
+    const distributions = {
+      'critical': {
+        // For 4-5 states: 1-2 compliant, 2 warning, 1-2 critical
+        compliant: Math.max(1, Math.floor(totalStates * 0.30)),
+        warning: 2,
+        critical: Math.min(2, Math.ceil(totalStates * 0.40))
+      },
+      'high': {
+        // For 4-5 states: 2 compliant, 2 warning, 0-1 critical
+        compliant: 2,
+        warning: 2,
+        critical: Math.random() > 0.5 ? 1 : 0
+      },
+      'medium': {
+        // For 3-4 states: 2-3 compliant, 1-2 warning, 0 critical
+        compliant: Math.ceil(totalStates * 0.60),
+        warning: Math.floor(totalStates * 0.40),
+        critical: 0
+      },
+      'low': {
+        // For 3-4 states: 2-3 compliant, 1 warning, 0 critical
+        compliant: Math.ceil(totalStates * 0.70),
+        warning: Math.floor(totalStates * 0.30),
+        critical: 0
+      }
+    };
+    
+    const distribution = distributions[riskLevel] || distributions['medium'];
+    
+    // Ensure total matches
+    const total = distribution.compliant + distribution.warning + distribution.critical;
+    if (total < totalStates) {
+      distribution.compliant += (totalStates - total);
+    } else if (total > totalStates) {
+      distribution.compliant = Math.max(1, distribution.compliant - (total - totalStates));
+    }
+    
+    return distribution;
+  }
+
+  // Helper function: Determine if warning state should create alert
+  shouldCreateWarningAlert(client, warningStateIndex) {
+    const alertPlan = {
+      'critical': {
+        // 2 alerts: 1 high (from critical state), 1 medium (from warning)
+        warningAlerts: 1,
+        createOnIndex: [0] // First warning state gets an alert
+      },
+      'high': {
+        // 2 alerts: 0-1 high (from critical if exists), 1-2 medium (from warnings)
+        warningAlerts: 2,
+        createOnIndex: [0, 1] // First two warning states get alerts
+      },
+      'medium': {
+        // 2 alerts: 0 high, 1 medium (warning), 1 low (monitoring)
+        warningAlerts: 1,
+        createOnIndex: [0] // First warning state gets an alert
+      },
+      'low': {
+        // 2 alerts: 0 high, 1 medium (warning), 1 low (monitoring)
+        warningAlerts: 1,
+        createOnIndex: [0] // First warning state gets an alert
+      }
+    };
+    
+    const plan = alertPlan[client.riskLevel] || alertPlan['medium'];
+    return plan.createOnIndex.includes(warningStateIndex);
+  }
+
+  // DEPRECATED: This method is replaced by StateGenerator and AlertGenerator in the main loop
+  // Keeping for backward compatibility only - should not be called in new code
+  async generateNexusMonitoringData(client, organizationId, generatedData, formData, organization = null, maxAlerts = 20) {
+    console.warn('⚠️ generateNexusMonitoringData is deprecated. States and alerts are now generated in the main loop using StateGenerator and AlertGenerator.');
+    // This method is intentionally left empty - all logic moved to main generation loop
+    return;
+  }
+  
+  // Legacy implementation - kept for reference only
+  async generateNexusMonitoringData_LEGACY(client, organizationId, generatedData, formData, organization = null, maxAlerts = 20) {
+    // Use Priority States from the form data, or fall back to all US states
+    const priorityStates = formData.priorityStates || [];
     
     // Convert state names to state codes if needed
     const stateCodeMap = {
@@ -844,133 +1263,101 @@ IMPORTANT:
     };
     
     // Convert state names to codes, or use as-is if already codes
-    const states = availableStates.map(state => {
-      return stateCodeMap[state] || state;
-    });
+    const availableStates = priorityStates.length > 0 
+      ? priorityStates.map(state => stateCodeMap[state] || state)
+      : ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
+          'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+          'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+          'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+          'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
     
-    console.log(`🎯 Using Priority States for client ${client.name}:`, states);
+    // Always use 'standard' strategy (qualification strategy removed)
+    const strategy = require('../config/dataGenerationConfig').QUALIFICATION_STRATEGIES['standard'];
+    const riskLevel = client.riskLevel || 'medium';
     
-    // Vary the number of states based on client risk level and business type
-    let numStates;
-    if (client.riskLevel === 'critical') {
-      numStates = Math.floor(Math.random() * 3) + 4; // 4-6 states for high-risk clients
-    } else if (client.riskLevel === 'high') {
-      numStates = Math.floor(Math.random() * 3) + 3; // 3-5 states
-    } else {
-      numStates = Math.floor(Math.random() * 3) + 2; // 2-4 states
-    }
+    // CHANGE 1: Reduce state count based on risk level (3-5 states instead of 5-8)
+    const totalStates = this.determineStateCount(riskLevel);
     
-    // Ensure we don't exceed the number of available priority states
-    numStates = Math.min(numStates, states.length);
+    // CHANGE 2: Calculate state distribution to achieve 40/40/20 split
+    const stateDistribution = this.calculateStateDistribution(riskLevel, totalStates);
     
-    // Select states from the priority states list
-    const selectedStates = states.sort(() => 0.5 - Math.random()).slice(0, numStates);
-
-    for (const stateCode of selectedStates) {
-      // Vary thresholds based on state and client characteristics
-      let thresholdAmount;
+    const numCompliantStates = stateDistribution.compliant;
+    const numWarningStates = stateDistribution.warning;
+    const numCriticalStates = stateDistribution.critical;
+    
+    console.log(`📊 State allocation for ${client.name} (${riskLevel} risk): ${numCompliantStates} compliant, ${numWarningStates} warning, ${numCriticalStates} critical`);
+    
+    // STEP 2: Select States Randomly
+    const shuffledStates = [...availableStates].sort(() => Math.random() - 0.5);
+    
+    const compliantStates = shuffledStates.slice(0, numCompliantStates);
+    const warningStates = shuffledStates.slice(numCompliantStates, numCompliantStates + numWarningStates);
+    const criticalStates = shuffledStates.slice(numCompliantStates + numWarningStates, numCompliantStates + numWarningStates + numCriticalStates);
+    
+    // Helper function to determine threshold amount
+    const determineThresholdAmount = (stateCode) => {
       if (['CA', 'NY', 'TX'].includes(stateCode)) {
-        thresholdAmount = 500000 + Math.floor(Math.random() * 500000); // $500K-$1M for major states
+        return 500000 + Math.floor(Math.random() * 500000); // $500K-$1M
       } else if (['FL', 'IL', 'PA', 'OH'].includes(stateCode)) {
-        thresholdAmount = 200000 + Math.floor(Math.random() * 300000); // $200K-$500K for medium states
+        return 200000 + Math.floor(Math.random() * 300000); // $200K-$500K
       } else {
-        thresholdAmount = 100000 + Math.floor(Math.random() * 200000); // $100K-$300K for other states
+        return 100000 + Math.floor(Math.random() * 200000); // $100K-$300K
       }
-      
-      // Vary current amounts based on client risk level
-      let currentAmount;
-      if (client.riskLevel === 'critical') {
-        currentAmount = Math.floor(Math.random() * thresholdAmount * 1.5); // 0-150% for critical clients
-      } else if (client.riskLevel === 'high') {
-        currentAmount = Math.floor(Math.random() * thresholdAmount * 1.2); // 0-120% for high-risk clients
-      } else {
-        currentAmount = Math.floor(Math.random() * thresholdAmount * 0.9); // 0-90% for lower-risk clients
-      }
-      
-      // Calculate ratio and strategy FIRST to determine if alert will be created
-      const ratio = currentAmount / thresholdAmount;
-      const strategy = this.qualificationStrategies[organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard'] || this.qualificationStrategies['standard'];
-      
-      // Determine if an alert will be created for this state
-      const willCreateAlert = ratio >= strategy.alertThreshold;
-      
-      // Generate status - but ensure it doesn't indicate threshold exceeded if no alert will be created
-      let status;
-      if (willCreateAlert) {
-        // If alert will be created, use normal status generation
-        status = this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, organization?.settings?.qualificationStrategy || formData.qualificationStrategy || 'standard');
-      } else {
-        // If NO alert will be created, ensure status is NOT 'critical' or 'warning'
-        // Status should be 'pending', 'transit', or 'compliant' only
-        if (ratio >= (strategy.warningThreshold * 0.5)) {
-          status = 'pending'; // Cap at pending if no alert
-        } else if (ratio >= (strategy.warningThreshold * 0.2)) {
-          status = 'transit';
-        } else {
-          status = 'compliant';
-        }
-      }
-      
-      // Create client state with the corrected status
+    };
+    
+    // STEP 3: Generate Compliant States (Green - 10% threshold, NO alerts)
+    for (const stateCode of compliantStates) {
+      const thresholdAmount = determineThresholdAmount(stateCode);
+      const complianceRatio = 0.10; // Fixed at exactly 10% of threshold
+      const currentAmount = Math.floor(thresholdAmount * complianceRatio);
+
       const clientState = await this.prisma.clientState.create({
         data: {
           organizationId,
           clientId: client.id,
           stateCode,
           stateName: this.getStateName(stateCode),
-          status: status, // Use the corrected status that respects alert creation
-          registrationRequired: currentAmount > thresholdAmount,
+          status: 'compliant',
+          registrationRequired: false,
           thresholdAmount,
           currentAmount,
           lastUpdated: new Date(),
-          notes: `${client.industry} company monitoring ${stateCode} nexus status - ${client.riskLevel} risk client with ${client.customFields?.businessType || 'B2B'} model`,
+          notes: `Fully compliant - Revenue at ${(complianceRatio * 100).toFixed(1)}% of threshold`,
         },
       });
       generatedData.clientStates.push(clientState);
-
-      // Create nexus alert based on qualification strategy (only if willCreateAlert is true)
-      if (willCreateAlert) {
-        const isExceeded = ratio >= strategy.criticalThreshold;
-        const alertType = isExceeded ? 'threshold_breach' : 'threshold_approaching';
-        const priority = isExceeded ? 'high' : 'medium';
-        const title = isExceeded 
-          ? `${client.name} - ${stateCode} Nexus Threshold Exceeded`
-          : `${client.name} - ${stateCode} Nexus Threshold Approaching`;
-        const description = isExceeded
-          ? `${client.industry} company (${client.customFields?.businessType || 'B2B'}) has exceeded the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(ratio * 100).toFixed(1)}%)`
-          : `${client.industry} company (${client.customFields?.businessType || 'B2B'}) is approaching the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(ratio * 100).toFixed(1)}%)`;
-        
-        const nexusAlert = await this.prisma.nexusAlert.create({
+      
+      // CREATE COMPLIANCE_CONFIRMED ALERT for compliant states (needed for map visibility)
+      // Only create if we haven't hit the alert limit
+      if (generatedData.nexusAlerts.length < maxAlerts) {
+        const complianceAlert = await this.prisma.nexusAlert.create({
           data: {
             organizationId,
             clientId: client.id,
             stateCode,
-            alertType,
-            priority,
+            alertType: 'compliance_confirmed',
+            priority: 'low',
             status: 'open',
-            title,
-            description,
+            title: `${client.name} - ${stateCode} Compliance Confirmed`,
+            description: `${client.industry} company is fully compliant in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(complianceRatio * 100).toFixed(1)}%)`,
             thresholdAmount,
             currentAmount,
-            penaltyRisk: isExceeded ? Math.floor((currentAmount - thresholdAmount) * 0.1) : 0,
-            deadline: new Date(Date.now() + (isExceeded ? 30 : 60) * 24 * 60 * 60 * 1000), // 30 days for exceeded, 60 days for approaching
+            penaltyRisk: 0, // No penalty for compliant states
+            deadline: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year (routine monitoring)
           },
         });
-        generatedData.nexusAlerts.push(nexusAlert);
+        generatedData.nexusAlerts.push(complianceAlert);
       }
-
-      // Create nexus activity
-      const activityTypes = ['revenue_update', 'threshold_monitoring', 'compliance_check', 'registration_review', 'penalty_assessment'];
-      const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
       
+      // Create nexus activity
       const nexusActivity = await this.prisma.nexusActivity.create({
         data: {
           organizationId,
           clientId: client.id,
           stateCode,
-          activityType,
-          title: `${client.name} - ${activityType.replace('_', ' ').toUpperCase()} for ${stateCode}`,
-          description: `${activityType.replace('_', ' ')} activity for ${client.industry} company in ${stateCode}. ${client.customFields?.businessType || 'B2B'} model with ${client.riskLevel} risk profile`,
+          activityType: 'compliance_check',
+          title: `${client.name} - Compliance Check for ${stateCode}`,
+          description: `Compliance check for ${client.industry} company in ${stateCode}. Status: Compliant`,
           amount: currentAmount,
           thresholdAmount,
           status: 'completed',
@@ -985,6 +1372,153 @@ IMPORTANT:
       });
       generatedData.nexusActivities.push(nexusActivity);
     }
+    
+    // STEP 4: Generate Warning States (Orange - Between alert and critical thresholds, Selective Medium alerts)
+    for (let i = 0; i < warningStates.length; i++) {
+      const stateCode = warningStates[i];
+      const thresholdAmount = determineThresholdAmount(stateCode);
+      // Generate ratio between alert threshold and critical threshold
+      const minRatio = strategy.alertThreshold;
+      const maxRatio = strategy.criticalThreshold - 0.01; // Just below critical
+      const warningRatio = minRatio + Math.random() * (maxRatio - minRatio);
+      const currentAmount = Math.floor(thresholdAmount * warningRatio);
+
+      const clientState = await this.prisma.clientState.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode,
+          stateName: this.getStateName(stateCode),
+          status: 'warning',
+          registrationRequired: false,
+          thresholdAmount,
+          currentAmount,
+          lastUpdated: new Date(),
+          notes: `Approaching threshold - Revenue at ${(warningRatio * 100).toFixed(1)}% of threshold`,
+        },
+      });
+      generatedData.clientStates.push(clientState);
+      
+      // CHANGE 4: Only create alert if this client needs warning alerts AND we haven't hit the limit
+      if (this.shouldCreateWarningAlert(client, i) && generatedData.nexusAlerts.length < maxAlerts) {
+        const nexusAlert = await this.prisma.nexusAlert.create({
+          data: {
+            organizationId,
+            clientId: client.id,
+            stateCode,
+            alertType: 'threshold_approaching',
+            priority: 'medium',
+            status: 'open',
+            title: `${client.name} - ${stateCode} Nexus Threshold Approaching`,
+            description: `${client.industry} company is approaching the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(warningRatio * 100).toFixed(1)}%)`,
+            thresholdAmount,
+            currentAmount,
+            penaltyRisk: 0, // No penalty yet
+            deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+          },
+        });
+        generatedData.nexusAlerts.push(nexusAlert);
+      }
+      
+      // Create nexus activity
+      const nexusActivity = await this.prisma.nexusActivity.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode,
+          activityType: 'threshold_monitoring',
+          title: `${client.name} - Threshold Alert for ${stateCode}`,
+          description: `Threshold approaching alert for ${client.industry} company in ${stateCode}. Status: Warning`,
+          amount: currentAmount,
+          thresholdAmount,
+          status: 'completed',
+          metadata: {
+            source: 'automated_tracking',
+            updateType: 'monthly_review',
+            clientIndustry: client.industry,
+            businessType: client.customFields?.businessType || 'B2B',
+            riskLevel: client.riskLevel
+          },
+        },
+      });
+      generatedData.nexusActivities.push(nexusActivity);
+    }
+    
+    // STEP 5: Generate Critical States (Red - Exceeds critical threshold, High alerts)
+    for (const stateCode of criticalStates) {
+      const thresholdAmount = determineThresholdAmount(stateCode);
+      // Generate ratio above critical threshold (100-150% of threshold)
+      const criticalRatio = strategy.criticalThreshold + Math.random() * 0.5; // Critical threshold to 50% over
+      const currentAmount = Math.floor(thresholdAmount * criticalRatio);
+      const excessAmount = currentAmount - thresholdAmount;
+      const penaltyRisk = Math.floor(excessAmount * 0.1); // 10% of excess
+
+      const clientState = await this.prisma.clientState.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode,
+          stateName: this.getStateName(stateCode),
+          status: 'critical',
+          registrationRequired: true,
+          thresholdAmount,
+          currentAmount,
+          lastUpdated: new Date(),
+          notes: `THRESHOLD EXCEEDED - Revenue at ${(criticalRatio * 100).toFixed(1)}% of threshold. Immediate action required.`,
+        },
+      });
+      generatedData.clientStates.push(clientState);
+      
+      // CREATE HIGH PRIORITY ALERT (only if we haven't hit the limit)
+      if (generatedData.nexusAlerts.length < maxAlerts) {
+        const nexusAlert = await this.prisma.nexusAlert.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode,
+          alertType: 'threshold_breach',
+          priority: 'high',
+          status: 'open',
+          title: `${client.name} - ${stateCode} Nexus Threshold EXCEEDED`,
+          description: `${client.industry} company has EXCEEDED the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(criticalRatio * 100).toFixed(1)}%). Excess: $${excessAmount.toLocaleString()}`,
+          thresholdAmount,
+          currentAmount,
+          penaltyRisk,
+          deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days (urgent)
+        },
+      });
+      generatedData.nexusAlerts.push(nexusAlert);
+      } else {
+        console.log(`⚠️ Alert limit reached, skipping critical alert for ${client.name} in ${stateCode}`);
+      }
+      
+      // Create nexus activity
+      const nexusActivity = await this.prisma.nexusActivity.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode,
+          activityType: 'penalty_assessment',
+          title: `${client.name} - Penalty Assessment for ${stateCode}`,
+          description: `Penalty assessment for ${client.industry} company in ${stateCode}. Status: Critical - Threshold Exceeded`,
+          amount: currentAmount,
+          thresholdAmount,
+          status: 'completed',
+          metadata: {
+            source: 'automated_tracking',
+            updateType: 'monthly_review',
+            clientIndustry: client.industry,
+            businessType: client.customFields?.businessType || 'B2B',
+            riskLevel: client.riskLevel,
+            excessAmount,
+            penaltyRisk
+          },
+        },
+      });
+      generatedData.nexusActivities.push(nexusActivity);
+    }
+    
+    console.log(`✅ Generated ${totalStates} states for ${client.name}: ${numCompliantStates} compliant (green, no alerts), ${numWarningStates} warning (orange, medium alerts), ${numCriticalStates} critical (red, high alerts)`);
   }
 
   async generateAlertsAndTasks(client, organizationId, generatedData) {
@@ -1133,10 +1667,16 @@ IMPORTANT:
 
   getStateName(stateCode) {
     const stateNames = {
-      'CA': 'California', 'TX': 'Texas', 'NY': 'New York', 'FL': 'Florida', 'IL': 'Illinois',
-      'PA': 'Pennsylvania', 'OH': 'Ohio', 'GA': 'Georgia', 'NC': 'North Carolina', 'MI': 'Michigan',
-      'NJ': 'New Jersey', 'VA': 'Virginia', 'WA': 'Washington', 'AZ': 'Arizona', 'MA': 'Massachusetts',
-      'TN': 'Tennessee', 'IN': 'Indiana', 'MO': 'Missouri', 'MD': 'Maryland', 'WI': 'Wisconsin'
+      'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+      'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+      'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+      'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+      'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+      'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+      'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+      'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+      'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+      'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
     };
     return stateNames[stateCode] || stateCode;
   }

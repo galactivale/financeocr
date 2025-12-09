@@ -83,12 +83,11 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
       
       // Count clients by status
       const criticalCount = statesInState.filter(cs => cs.status === 'critical').length;
-      const transitCount = statesInState.filter(cs => cs.status === 'transit').length;
       const warningCount = statesInState.filter(cs => cs.status === 'warning').length;
       const pendingCount = statesInState.filter(cs => cs.status === 'pending').length;
-      const approachingThresholdCount = transitCount + warningCount + pendingCount;
+      const approachingThresholdCount = warningCount + pendingCount;
       
-      // New logic: If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+      // New logic: If multiple clients, only 1 critical, and rest are warning/pending, show yellow
       if (totalStatesInState > 1 && criticalCount === 1 && approachingThresholdCount === (totalStatesInState - 1)) {
         data.status = 'warning';
         data.nexusStatus = 'warning';
@@ -125,7 +124,6 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
       fill: data.nexusStatus === 'critical' ? '#ef4444' : 
             data.nexusStatus === 'warning' ? '#f59e0b' : 
             data.nexusStatus === 'pending' ? '#3b82f6' : 
-            data.nexusStatus === 'transit' ? '#8b5cf6' : 
             data.nexusStatus === 'compliant' ? '#10b981' : '#6b7280',
       stroke: '#ffffff',
       strokeWidth: 1,
@@ -182,7 +180,6 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
                   firmPerformanceData[hoveredState]?.nexusStatus === 'critical' ? 'text-red-400' :
                   firmPerformanceData[hoveredState]?.nexusStatus === 'warning' ? 'text-yellow-400' :
                   firmPerformanceData[hoveredState]?.nexusStatus === 'pending' ? 'text-blue-400' :
-                  firmPerformanceData[hoveredState]?.nexusStatus === 'transit' ? 'text-purple-400' :
                   firmPerformanceData[hoveredState]?.nexusStatus === 'compliant' ? 'text-green-400' : 'text-gray-400'
                 }`}>
                   {firmPerformanceData[hoveredState]?.nexusStatus || 'Unknown'}
@@ -235,7 +232,6 @@ const EnhancedUSMap = ({ clientStates, clients, nexusAlerts }: { clientStates: a
               firmPerformanceData[selectedState]?.nexusStatus === 'critical' ? 'text-red-400' :
               firmPerformanceData[selectedState]?.nexusStatus === 'warning' ? 'text-yellow-400' :
               firmPerformanceData[selectedState]?.nexusStatus === 'pending' ? 'text-blue-400' :
-              firmPerformanceData[selectedState]?.nexusStatus === 'transit' ? 'text-purple-400' :
               firmPerformanceData[selectedState]?.nexusStatus === 'compliant' ? 'text-green-400' : 'text-gray-400'
             }`}>{firmPerformanceData[selectedState]?.nexusStatus || 'Unknown'}</span></p>
           </div>
@@ -322,7 +318,7 @@ const CardTotalClients = ({ clients }: { clients: any[] }) => {
 
 const CardComplianceRate = ({ alerts, clientStates }: { alerts: any[], clientStates: any[] }) => {
   const totalStates = (clientStates || []).length;
-  const compliantStates = (clientStates || []).filter(state => state.status === 'compliant' || state.status === 'transit').length;
+  const compliantStates = (clientStates || []).filter(state => state.status === 'compliant').length;
   const complianceRate = totalStates > 0 ? Math.round((compliantStates / totalStates) * 100) : 100;
 
   return (

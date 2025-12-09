@@ -3,12 +3,15 @@
 
 services:
   backend:
+    env_file:
+      - .env
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://vaultcpa_user:vaultcpa_secure_password_2024@postgres:5432/vaultcpa
       JWT_SECRET: dev_jwt_secret_key_2024
       CORS_ORIGIN: http://localhost:3000,https://financeocr.com,http://financeocr.com
       PORT: 3080
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ./server:/app
       - /app/node_modules

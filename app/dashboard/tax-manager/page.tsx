@@ -52,7 +52,7 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
       } else if (ratio >= 0.5) {
         status = 'pending';
       } else if (ratio >= 0.2) {
-        status = 'transit';
+        status = 'compliant';
       }
       
       if (!stateData[stateCode]) {
@@ -90,8 +90,6 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
           stateData[stateCode].status = 'warning';
         } else if (newRatio >= 0.5 && stateData[stateCode].status === 'compliant') {
           stateData[stateCode].status = 'pending';
-        } else if (newRatio >= 0.2 && stateData[stateCode].status === 'compliant') {
-          stateData[stateCode].status = 'transit';
         }
       }
     });
@@ -123,20 +121,19 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
     }
 
     // Check client states for each state to apply new color logic
-    // If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+    // If multiple clients, only 1 critical, and rest are warning/pending, show yellow
     Object.keys(stateData).forEach(stateCode => {
       const state = stateData[stateCode];
       
       if (state.clientStatuses && state.clientStatuses.length > 1) {
         // Count clients by status
         const criticalCount = state.clientStatuses.filter((s: string) => s === 'critical').length;
-        const transitCount = state.clientStatuses.filter((s: string) => s === 'transit').length;
         const warningCount = state.clientStatuses.filter((s: string) => s === 'warning').length;
         const pendingCount = state.clientStatuses.filter((s: string) => s === 'pending').length;
-        const approachingThresholdCount = transitCount + warningCount + pendingCount;
+        const approachingThresholdCount = warningCount + pendingCount;
         const totalClients = state.clientStatuses.length;
         
-        // New logic: If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+        // New logic: If multiple clients, only 1 critical, and rest are warning/pending, show yellow
         if (criticalCount === 1 && approachingThresholdCount === (totalClients - 1)) {
           state.status = 'warning';
         }
@@ -193,10 +190,6 @@ const EnhancedUSMap = ({ clientStates, nexusAlerts }: { clientStates: any[], nex
           case 'compliant':
             fillColor = '#10b981';
             strokeColor = '#059669';
-            break;
-          case 'transit':
-            fillColor = '#06b6d4';
-            strokeColor = '#0891b2';
             break;
         }
         

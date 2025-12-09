@@ -10,7 +10,8 @@ import {
   Select,
   SelectItem,
   Progress,
-  Tooltip
+  Tooltip,
+  Chip
 } from "@nextui-org/react";
 import { 
   ArrowLeft,
@@ -59,12 +60,14 @@ import {
   Workflow,
   Database,
   Link as LinkIcon,
+  ExternalLink,
   Code,
   Terminal,
   Cpu,
   Network
 } from "lucide-react";
 import Link from "next/link";
+import { apiClient } from "@/lib/api";
 
 // Block types for the builder
 interface Block {
@@ -262,6 +265,12 @@ function DecisionBuilderContent() {
   const [showNexusAlertDropdown, setShowNexusAlertDropdown] = useState<{[key: string]: boolean}>({});
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [showSeal, setShowSeal] = useState(false);
+  const [showStatuteDatabase, setShowStatuteDatabase] = useState(false);
+  const [statuteSearchQuery, setStatuteSearchQuery] = useState("");
+  const [statuteSearchState, setStatuteSearchState] = useState("");
+  const [statuteSearchResults, setStatuteSearchResults] = useState<any[]>([]);
+  const [statuteSearchLoading, setStatuteSearchLoading] = useState(false);
+  const [currentStatuteBlockId, setCurrentStatuteBlockId] = useState<string | null>(null);
   const clientDropdownRef = useRef<HTMLDivElement>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -359,6 +368,81 @@ function DecisionBuilderContent() {
               ...prev,
               blocks: [nexusAlertBlock, ...prev.blocks]
             };
+          }
+
+          return prev;
+        });
+      }
+
+      // Auto-create statute block with state code if state parameter is provided
+      if (state) {
+        setDecision(prev => {
+          // Check if a statute block for this state already exists
+          const existingStatuteBlock = prev.blocks.find(block => 
+            block.type === 'statute' && 
+            block.metadata?.stateCode === state.toUpperCase()
+          );
+
+          // Only add if it doesn't already exist
+          if (!existingStatuteBlock) {
+            // Fetch state tax info from database
+            apiClient.getStateTaxInfo(state.toUpperCase()).then(response => {
+              if (response.success && response.data?.stateTaxInfo && response.data.stateTaxInfo.length > 0) {
+                const stateInfo = response.data.stateTaxInfo[0];
+                const stateName = stateInfo.stateName || state;
+                
+                setDecision(prevDecision => ({
+                  ...prevDecision,
+                  blocks: prevDecision.blocks.map(block => {
+                    // Find the statute block we just created and update it with state info
+                    if (block.type === 'statute' && block.metadata?.stateCode === state.toUpperCase()) {
+                      return {
+                        ...block,
+                        title: `State Statute - ${stateName} (${state.toUpperCase()})`,
+                        content: `State Code: ${state.toUpperCase()}\nState Name: ${stateName}\n\nReview applicable state tax statutes and regulations for ${stateName}.`,
+                        metadata: {
+                          ...block.metadata,
+                          stateName,
+                          stateInfo
+                        }
+                      };
+                    }
+                    return block;
+                  })
+                }));
+              }
+            }).catch(error => {
+              console.error('Error fetching state tax info:', error);
+            });
+
+            const statuteBlock: Block = {
+              id: `block-statute-${Date.now()}`,
+              type: 'statute',
+              title: `State Statute - ${state.toUpperCase()}`,
+              content: `State Code: ${state.toUpperCase()}\n\nReview applicable state tax statutes and regulations.`,
+              metadata: {
+                stateCode: state.toUpperCase(),
+                stateName: state
+              }
+            };
+
+            // Insert statute block as second item (after nexus_alert if it exists)
+            const nexusAlertIndex = prev.blocks.findIndex(b => b.type === 'nexus_alert');
+            if (nexusAlertIndex >= 0) {
+              // Insert after nexus_alert
+              const newBlocks = [...prev.blocks];
+              newBlocks.splice(nexusAlertIndex + 1, 0, statuteBlock);
+              return {
+                ...prev,
+                blocks: newBlocks
+              };
+            } else {
+              // If no nexus_alert, add at the beginning
+              return {
+                ...prev,
+                blocks: [statuteBlock, ...prev.blocks]
+              };
+            }
           }
 
           return prev;
@@ -478,10 +562,33 @@ function DecisionBuilderContent() {
       timestamp: new Date().toISOString()
     };
 
-    setDecision(prev => ({
-      ...prev,
-      blocks: [...prev.blocks, newBlock]
-    }));
+    setDecision(prev => {
+      // If adding a statute block, insert it as second (after nexus_alert if it exists)
+      if (blockType === 'statute') {
+        const nexusAlertIndex = prev.blocks.findIndex(b => b.type === 'nexus_alert');
+        if (nexusAlertIndex >= 0) {
+          // Insert after nexus_alert
+          const newBlocks = [...prev.blocks];
+          newBlocks.splice(nexusAlertIndex + 1, 0, newBlock);
+          return {
+            ...prev,
+            blocks: newBlocks
+          };
+        } else {
+          // If no nexus_alert, add at the beginning
+          return {
+            ...prev,
+            blocks: [newBlock, ...prev.blocks]
+          };
+        }
+      } else {
+        // For other blocks, add at the end
+        return {
+          ...prev,
+          blocks: [...prev.blocks, newBlock]
+        };
+      }
+    });
     setShowBlockSelector(false);
   };
 
@@ -1068,6 +1175,41 @@ function DecisionBuilderContent() {
                                 </div>
                               )}
                               
+                              {/* State Code Display for Statute Block */}
+                              {block.type === 'statute' && block.metadata?.stateCode && (
+                                <div className="mb-3 space-y-2">
+                                  <label className="text-white/80 text-xs font-medium mb-2 block">State Code</label>
+                                  <div className="relative">
+                                    <input
+                                      type="text"
+                                      value={block.metadata.stateCode}
+                                      readOnly
+                                      className="w-full bg-blue-500/20 border border-blue-500/50 rounded-lg px-3 py-2 text-white font-semibold placeholder-gray-400 focus:outline-none focus:border-blue-500/70 focus:bg-blue-500/30 transition-all duration-200 text-sm"
+                                    />
+                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                      <CheckCircle className="w-4 h-4 text-blue-400" />
+                                    </div>
+                                  </div>
+                                  {block.metadata.stateName && (
+                                    <p className="text-gray-400 text-xs mt-1">
+                                      {block.metadata.stateName}
+                                    </p>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                                    startContent={<Database className="w-4 h-4" />}
+                                    onPress={() => {
+                                      setStatuteSearchState(block.metadata.stateCode);
+                                      setShowStatuteDatabase(true);
+                                      setCurrentStatuteBlockId(block.id);
+                                    }}
+                                  >
+                                    Open Database Statute
+                                  </Button>
+                                </div>
+                              )}
+                              
                               <Textarea
                         placeholder={`Enter ${block.title.toLowerCase()} details...`}
                                 value={block.content}
@@ -1164,9 +1306,32 @@ function DecisionBuilderContent() {
                                     </div>
                                   )}
                                 </div>
+                              </div>
+                            )}
+                            
+                            {/* State Code Display for Statute Block */}
+                            {block.type === 'statute' && block.metadata?.stateCode && (
+                              <div className="mb-3">
+                                <label className="text-white/80 text-xs font-medium mb-2 block">State Code</label>
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    value={block.metadata.stateCode}
+                                    readOnly
+                                    className="w-full bg-blue-500/20 border border-blue-500/50 rounded-lg px-3 py-2 text-white font-semibold placeholder-gray-400 focus:outline-none focus:border-blue-500/70 focus:bg-blue-500/30 transition-all duration-200 text-sm"
+                                  />
+                                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <CheckCircle className="w-4 h-4 text-blue-400" />
+                                  </div>
                                 </div>
-                              )}
-                              
+                                {block.metadata.stateName && (
+                                  <p className="text-gray-400 text-xs mt-1">
+                                    {block.metadata.stateName}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            
                             <Textarea
                               placeholder={`Enter ${block.title.toLowerCase()} details...`}
                               value={block.content}
@@ -1777,6 +1942,269 @@ function DecisionBuilderContent() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Statute Database Search Modal */}
+      {showStatuteDatabase && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-black/90 backdrop-blur-xl rounded-2xl border border-white/20 max-w-4xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center">
+                    <Database className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-semibold text-white">Statute Database Search</h2>
+                    <p className="text-gray-400 text-sm">Search for state tax statutes and regulations</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white"
+                  onPress={() => {
+                    setShowStatuteDatabase(false);
+                    setStatuteSearchQuery("");
+                    setStatuteSearchResults([]);
+                    setCurrentStatuteBlockId(null);
+                  }}
+                >
+                  ×
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {/* Search Controls */}
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search statutes (e.g., 'nexus threshold', 'sales tax', 'economic nexus')..."
+                    value={statuteSearchQuery}
+                    onChange={(e) => setStatuteSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-200"
+                  />
+                </div>
+                <Select
+                  placeholder="Select State"
+                  selectedKeys={statuteSearchState ? [statuteSearchState] : []}
+                  onChange={(e) => setStatuteSearchState(e.target.value)}
+                  className="w-48"
+                  classNames={{
+                    trigger: "bg-white/5 border-white/10 h-12",
+                    value: "text-white"
+                  }}
+                >
+                  <SelectItem key="AL" value="AL">Alabama</SelectItem>
+                  <SelectItem key="AK" value="AK">Alaska</SelectItem>
+                  <SelectItem key="AZ" value="AZ">Arizona</SelectItem>
+                  <SelectItem key="AR" value="AR">Arkansas</SelectItem>
+                  <SelectItem key="CA" value="CA">California</SelectItem>
+                  <SelectItem key="CO" value="CO">Colorado</SelectItem>
+                  <SelectItem key="CT" value="CT">Connecticut</SelectItem>
+                  <SelectItem key="DE" value="DE">Delaware</SelectItem>
+                  <SelectItem key="FL" value="FL">Florida</SelectItem>
+                  <SelectItem key="GA" value="GA">Georgia</SelectItem>
+                  <SelectItem key="HI" value="HI">Hawaii</SelectItem>
+                  <SelectItem key="ID" value="ID">Idaho</SelectItem>
+                  <SelectItem key="IL" value="IL">Illinois</SelectItem>
+                  <SelectItem key="IN" value="IN">Indiana</SelectItem>
+                  <SelectItem key="IA" value="IA">Iowa</SelectItem>
+                  <SelectItem key="KS" value="KS">Kansas</SelectItem>
+                  <SelectItem key="KY" value="KY">Kentucky</SelectItem>
+                  <SelectItem key="LA" value="LA">Louisiana</SelectItem>
+                  <SelectItem key="ME" value="ME">Maine</SelectItem>
+                  <SelectItem key="MD" value="MD">Maryland</SelectItem>
+                  <SelectItem key="MA" value="MA">Massachusetts</SelectItem>
+                  <SelectItem key="MI" value="MI">Michigan</SelectItem>
+                  <SelectItem key="MN" value="MN">Minnesota</SelectItem>
+                  <SelectItem key="MS" value="MS">Mississippi</SelectItem>
+                  <SelectItem key="MO" value="MO">Missouri</SelectItem>
+                  <SelectItem key="MT" value="MT">Montana</SelectItem>
+                  <SelectItem key="NE" value="NE">Nebraska</SelectItem>
+                  <SelectItem key="NV" value="NV">Nevada</SelectItem>
+                  <SelectItem key="NH" value="NH">New Hampshire</SelectItem>
+                  <SelectItem key="NJ" value="NJ">New Jersey</SelectItem>
+                  <SelectItem key="NM" value="NM">New Mexico</SelectItem>
+                  <SelectItem key="NY" value="NY">New York</SelectItem>
+                  <SelectItem key="NC" value="NC">North Carolina</SelectItem>
+                  <SelectItem key="ND" value="ND">North Dakota</SelectItem>
+                  <SelectItem key="OH" value="OH">Ohio</SelectItem>
+                  <SelectItem key="OK" value="OK">Oklahoma</SelectItem>
+                  <SelectItem key="OR" value="OR">Oregon</SelectItem>
+                  <SelectItem key="PA" value="PA">Pennsylvania</SelectItem>
+                  <SelectItem key="RI" value="RI">Rhode Island</SelectItem>
+                  <SelectItem key="SC" value="SC">South Carolina</SelectItem>
+                  <SelectItem key="SD" value="SD">South Dakota</SelectItem>
+                  <SelectItem key="TN" value="TN">Tennessee</SelectItem>
+                  <SelectItem key="TX" value="TX">Texas</SelectItem>
+                  <SelectItem key="UT" value="UT">Utah</SelectItem>
+                  <SelectItem key="VT" value="VT">Vermont</SelectItem>
+                  <SelectItem key="VA" value="VA">Virginia</SelectItem>
+                  <SelectItem key="WA" value="WA">Washington</SelectItem>
+                  <SelectItem key="WV" value="WV">West Virginia</SelectItem>
+                  <SelectItem key="WI" value="WI">Wisconsin</SelectItem>
+                  <SelectItem key="WY" value="WY">Wyoming</SelectItem>
+                </Select>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6"
+                  startContent={<Search className="w-4 h-4" />}
+                  onPress={async () => {
+                    if (!statuteSearchState || !statuteSearchQuery) {
+                      window.alert('Please select a state and enter a search query');
+                      return;
+                    }
+                    setStatuteSearchLoading(true);
+                    try {
+                      // Use public API to search for statutes
+                      // Using Justia API or similar legal database
+                      const searchUrl = `https://api.justia.com/v1/statutes/search?state=${statuteSearchState}&query=${encodeURIComponent(statuteSearchQuery)}`;
+                      
+                      // Fallback: Use a mock search with state-specific legal database URLs
+                      const stateStatuteUrls: Record<string, string> = {
+                        'CA': 'https://leginfo.legislature.ca.gov',
+                        'NY': 'https://www.nysenate.gov',
+                        'TX': 'https://statutes.capitol.texas.gov',
+                        'FL': 'https://www.flsenate.gov',
+                        'IL': 'https://www.ilga.gov',
+                        'PA': 'https://www.legis.state.pa.us',
+                        'OH': 'https://codes.ohio.gov',
+                        'MI': 'https://www.legislature.mi.gov',
+                        'NC': 'https://www.ncleg.gov',
+                        'GA': 'https://www.legis.ga.gov',
+                        'LA': 'https://www.legis.la.gov',
+                      };
+
+                      // Simulate API call with mock data
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+                      
+                      const mockResults = [
+                        {
+                          id: `statute-${Date.now()}-1`,
+                          title: `${statuteSearchState} Sales and Use Tax Code - Economic Nexus`,
+                          code: `${statuteSearchState} Tax Code`,
+                          section: '§ 201.001',
+                          summary: `State tax code section covering economic nexus thresholds and registration requirements for ${statuteSearchState}.`,
+                          url: stateStatuteUrls[statuteSearchState] || `https://www.${statuteSearchState.toLowerCase()}.gov/tax`,
+                          category: 'Sales Tax',
+                          status: 'active'
+                        },
+                        {
+                          id: `statute-${Date.now()}-2`,
+                          title: `${statuteSearchState} Business Tax Registration Requirements`,
+                          code: `${statuteSearchState} Business Code`,
+                          section: '§ 101.005',
+                          summary: `Requirements for business tax registration and compliance in ${statuteSearchState}.`,
+                          url: stateStatuteUrls[statuteSearchState] || `https://www.${statuteSearchState.toLowerCase()}.gov/tax`,
+                          category: 'Business Tax',
+                          status: 'active'
+                        },
+                        {
+                          id: `statute-${Date.now()}-3`,
+                          title: `${statuteSearchState} Remote Seller Nexus Provisions`,
+                          code: `${statuteSearchState} Tax Code`,
+                          section: '§ 151.107',
+                          summary: `Provisions regarding remote seller nexus and marketplace facilitator requirements.`,
+                          url: stateStatuteUrls[statuteSearchState] || `https://www.${statuteSearchState.toLowerCase()}.gov/tax`,
+                          category: 'Sales Tax',
+                          status: 'active'
+                        }
+                      ];
+
+                      setStatuteSearchResults(mockResults);
+                    } catch (error) {
+                      console.error('Error searching statutes:', error);
+                      window.alert('Error searching statutes. Please try again.');
+                    } finally {
+                      setStatuteSearchLoading(false);
+                    }
+                  }}
+                  isLoading={statuteSearchLoading}
+                >
+                  Search
+                </Button>
+              </div>
+
+              {/* Search Results */}
+              {statuteSearchLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+                </div>
+              )}
+
+              {!statuteSearchLoading && statuteSearchResults.length > 0 && (
+                <div className="max-h-96 overflow-y-auto space-y-3">
+                  {statuteSearchResults.map((statute) => (
+                    <div
+                      key={statute.id}
+                      className="p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 cursor-pointer"
+                      onClick={() => {
+                        if (currentStatuteBlockId) {
+                          updateBlock(currentStatuteBlockId, {
+                            content: `State Code: ${statuteSearchState}\nStatute: ${statute.title}\nCode: ${statute.code} ${statute.section}\n\n${statute.summary}\n\nSource: ${statute.url}`,
+                            metadata: {
+                              ...decision.blocks.find(b => b.id === currentStatuteBlockId)?.metadata,
+                              statuteUrl: statute.url,
+                              statuteCode: statute.code,
+                              statuteSection: statute.section
+                            }
+                          });
+                        }
+                        setShowStatuteDatabase(false);
+                        setStatuteSearchQuery("");
+                        setStatuteSearchResults([]);
+                        setCurrentStatuteBlockId(null);
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <FileText className="w-4 h-4 text-blue-400" />
+                            <h3 className="text-white font-semibold text-sm">{statute.title}</h3>
+                          </div>
+                          <p className="text-gray-400 text-xs mb-2">{statute.code} {statute.section}</p>
+                          <p className="text-gray-300 text-xs">{statute.summary}</p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Chip size="sm" variant="flat" className="bg-blue-500/20 text-blue-400 text-xs">
+                              {statute.category}
+                            </Chip>
+                            <Chip size="sm" variant="flat" className="bg-green-500/20 text-green-400 text-xs">
+                              {statute.status}
+                            </Chip>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-gray-400 ml-2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!statuteSearchLoading && statuteSearchResults.length === 0 && statuteSearchQuery && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-white font-semibold text-lg mb-2">No statutes found</h3>
+                  <p className="text-gray-400 text-sm">Try adjusting your search query or state selection</p>
+                </div>
+              )}
+
+              {!statuteSearchLoading && !statuteSearchQuery && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Database className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-white font-semibold text-lg mb-2">Search State Statutes</h3>
+                  <p className="text-gray-400 text-sm">Select a state and enter a search query to find relevant tax statutes</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

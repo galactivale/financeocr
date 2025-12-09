@@ -49,7 +49,7 @@ interface Alert {
   penaltyRisk: string;
   penaltyRiskValue: number | null; // Numeric value for risk checking
   priority: 'high' | 'medium' | 'low';
-  status: 'new' | 'in-progress' | 'resolved';
+  status: 'new' | 'in-progress' | 'compliant';
   actions: string[];
   details: string;
 }
@@ -67,7 +67,7 @@ interface BackendAlert {
   currentAmount: number;
   deadline: string | null;
   penaltyRisk: number | null;
-  status: 'open' | 'acknowledged' | 'resolved';
+  status: 'open' | 'acknowledged' | 'compliant';
   createdAt: string;
   client: {
     id: string;
@@ -92,7 +92,7 @@ const statusOptions = [
   { key: "all", label: "All Status" },
   { key: "new", label: "New" },
   { key: "in-progress", label: "In Progress" },
-  { key: "resolved", label: "Resolved" }
+  { key: "compliant", label: "Compliant" }
 ];
 
 export default function ManagingPartnerAlerts() {
@@ -136,11 +136,18 @@ export default function ManagingPartnerAlerts() {
     };
 
     // Map backend status to frontend status
-    const mapStatus = (status: string) => {
+    // Also check alertType for compliance_confirmed alerts
+    const mapStatus = (status: string, alertType?: string) => {
+      // If alert is compliance_confirmed, it's compliant
+      if (alertType === 'compliance_confirmed') {
+        return 'compliant';
+      }
+      
       switch (status) {
         case 'open': return 'new';
         case 'acknowledged': return 'in-progress';
-        case 'resolved': return 'resolved';
+        case 'resolved': return 'compliant';
+        case 'compliant': return 'compliant';
         default: return 'new';
       }
     };
@@ -185,7 +192,7 @@ export default function ManagingPartnerAlerts() {
       penaltyRisk: getPenaltyRisk(backendAlert.currentAmount, backendAlert.thresholdAmount),
       penaltyRiskValue: backendAlert.penaltyRisk, // Store numeric value for risk checking
       priority: backendAlert.priority,
-      status: mapStatus(backendAlert.status),
+      status: mapStatus(backendAlert.status, backendAlert.alertType),
       actions: generateActions(backendAlert.alertType, backendAlert.priority, backendAlert.stateCode),
       details: backendAlert.description || `Client has business activities in ${backendAlert.stateCode} that may trigger tax obligations.`
     };
@@ -355,9 +362,9 @@ export default function ManagingPartnerAlerts() {
             <CardBody className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 text-sm font-medium">Resolved</p>
+                  <p className="text-gray-400 text-sm font-medium">Compliant</p>
                   <p className="text-3xl font-bold text-green-400 mt-1">
-                    {filteredAlerts.filter(a => a.status === 'resolved').length}
+                    {filteredAlerts.filter(a => a.status === 'compliant').length}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center">

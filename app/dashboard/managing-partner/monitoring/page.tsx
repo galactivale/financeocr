@@ -201,17 +201,9 @@ const EnhancedUSMap = ({
           fillColor = '#f59e0b';
           strokeColor = '#d97706';
           break;
-        case 'pending':
-          fillColor = '#3b82f6';
-          strokeColor = '#2563eb';
-          break;
         case 'compliant':
           fillColor = '#10b981';
           strokeColor = '#059669';
-          break;
-        case 'transit':
-          fillColor = '#06b6d4';
-          strokeColor = '#0891b2';
           break;
       }
       
@@ -317,8 +309,6 @@ const EnhancedUSMap = ({
                 <span className={`font-medium ${
                   firmPerformanceData[hoveredState]?.nexusStatus === 'critical' ? 'text-red-400' :
                   firmPerformanceData[hoveredState]?.nexusStatus === 'warning' ? 'text-yellow-400' :
-                  firmPerformanceData[hoveredState]?.nexusStatus === 'pending' ? 'text-blue-400' :
-                  firmPerformanceData[hoveredState]?.nexusStatus === 'transit' ? 'text-purple-400' :
                   firmPerformanceData[hoveredState]?.nexusStatus === 'compliant' ? 'text-green-400' : 'text-gray-400'
                 }`}>
                   {firmPerformanceData[hoveredState]?.nexusStatus || 'Unknown'}
@@ -342,10 +332,6 @@ const EnhancedUSMap = ({
             <span>Warning</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-            <span>Pending</span>
-          </div>
-          <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-purple-500 rounded"></div>
             <span>Transit</span>
           </div>
@@ -364,19 +350,25 @@ const EnhancedUSMap = ({
   );
 };
 
-// Client data structure for monitoring
+// Client-Alert data structure for monitoring (one entry per alert)
 interface Client {
-  id: string;
+  id: string; // alert.id
+  clientId: string;
+  alertId: string;
   name: string;
   state: string;
+  stateCode: string;
   industry: string;
   revenue: string;
-  nexusStatus: 'compliant' | 'warning' | 'critical' | 'pending' | 'transit';
+  currentAmount: number;
+  thresholdAmount: number;
+  nexusStatus: 'compliant' | 'warning' | 'critical';
   thresholdProgress: number;
   lastUpdate: string;
-  alerts: number;
-  riskScore: number;
-  states: string[];
+  alertType: string;
+  priority: string;
+  penaltyRisk: string;
+  deadline: string;
 }
 
 // State monitoring data
@@ -462,10 +454,10 @@ const ManagingPartnerMonitoring = () => {
   const handleClientCardClick = (client: Client) => {
     setSelectedClient(client);
     setIsDetailsPanelOpen(true);
-    // Focus the primary state (first state in the array) on the map
-    if (client.states && client.states.length > 0) {
-      setMapFocusState(client.states[0]);
-      setSelectedState(client.states[0]);
+    // Focus the state from this alert on the map
+    if (client.stateCode) {
+      setMapFocusState(client.stateCode);
+      setSelectedState(client.stateCode);
     }
   };
 
@@ -545,18 +537,8 @@ const ManagingPartnerMonitoring = () => {
       const revenue = clientState.currentAmount || clientState.revenue || 0;
       const threshold = clientState.thresholdAmount || 500000;
       
-      // Determine status based on revenue-to-threshold ratio
-      const ratio = revenue / threshold;
-      let status = 'compliant';
-      if (ratio >= 1.0) {
-        status = 'critical';
-      } else if (ratio >= 0.8) {
-        status = 'warning';
-      } else if (ratio >= 0.5) {
-        status = 'pending';
-      } else if (ratio >= 0.2) {
-        status = 'transit';
-      }
+      // ALWAYS use status from database - it's the source of truth
+      const status = clientState.status || 'compliant';
       
       if (!stateData[stateCode]) {
         stateData[stateCode] = {
@@ -575,8 +557,11 @@ const ManagingPartnerMonitoring = () => {
         stateData[stateCode].clients += 1;
         stateData[stateCode].revenue += revenue;
         stateData[stateCode].companies.push(clientState.client?.name || 'Unknown Client');
-        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(stateData[stateCode].revenue / threshold * 100));
-        stateData[stateCode].riskScore = Math.round(stateData[stateCode].revenue / threshold * 100);
+        // Calculate threshold progress based on individual client ratios, not aggregated
+        // Use the average ratio to avoid inflating progress
+        const avgRatio = stateData[stateCode].revenue / (threshold * stateData[stateCode].clients);
+        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(avgRatio * 100));
+        stateData[stateCode].riskScore = Math.round(avgRatio * 100);
         stateData[stateCode].hasData = true;
         
         // Track individual client status
@@ -585,21 +570,35 @@ const ManagingPartnerMonitoring = () => {
         }
         stateData[stateCode].clientStatuses.push(status);
         
-        // Update status to most critical if needed
-        const newRatio = stateData[stateCode].revenue / threshold;
-        if (newRatio >= 1.0) {
+        // Determine state status based on client statuses
+        // Priority: critical > warning > compliant
+        // But preserve compliant if all clients are compliant
+        const statuses = stateData[stateCode].clientStatuses;
+        const allCompliant = statuses.every((s: string) => s === 'compliant');
+        
+        // Count status occurrences
+        const criticalCount = statuses.filter((s: string) => s === 'critical').length;
+        const warningCount = statuses.filter((s: string) => s === 'warning').length;
+        const compliantCount = statuses.filter((s: string) => s === 'compliant').length;
+        
+        if (allCompliant) {
+          stateData[stateCode].status = 'compliant';
+        } else if (criticalCount > 0) {
           stateData[stateCode].status = 'critical';
-        } else if (newRatio >= 0.8 && stateData[stateCode].status !== 'critical') {
+        } else if (warningCount > 0 && compliantCount === 0) {
+          // Only mark as warning if there are NO compliant clients
+          // If there are both warning and compliant, we'll check alerts later
           stateData[stateCode].status = 'warning';
-        } else if (newRatio >= 0.5 && stateData[stateCode].status === 'compliant') {
-          stateData[stateCode].status = 'pending';
-        } else if (newRatio >= 0.2 && stateData[stateCode].status === 'compliant') {
-          stateData[stateCode].status = 'transit';
+        } else {
+          // Has compliant clients (even if mixed with warnings)
+          // Will be validated with alerts in final pass
+          stateData[stateCode].status = 'compliant';
         }
       }
     });
 
-    // Process alerts data with enhanced status mapping
+    // Process alerts data - USE ALERTS AS PRIMARY SOURCE (matching alerts page logic)
+    // Alerts page uses alertType to determine status - we'll do the same here
     const alertsToUse = isPersonalizedMode
       ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 
           ? personalizedNexusAlerts 
@@ -610,84 +609,70 @@ const ManagingPartnerMonitoring = () => {
           ? nexusAlertsData.alerts 
           : []);
     
+    // Build alert-based status map for each state (matching alerts page logic)
+    // Priority: critical > compliant (if compliance_confirmed exists) > warning
+    const alertStatusMap: Record<string, { status: string; priority: number; hasComplianceConfirmed: boolean }> = {};
+    
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
         const stateCode = alert.stateCode?.toUpperCase();
-        if (stateCode && stateData[stateCode]) {
-          stateData[stateCode].alerts += 1;
-          
-          // Enhanced status determination based on alert priority and threshold
-          const currentStatus = stateData[stateCode].status;
-          const thresholdProgress = stateData[stateCode].thresholdProgress;
-          
-          // Priority order: critical > warning > pending > transit > compliant
-          if (alert.priority === 'high' || thresholdProgress >= 95) {
-            stateData[stateCode].status = 'critical';
-          } else if (alert.priority === 'medium' || thresholdProgress >= 70) {
-            if (currentStatus !== 'critical') {
-              stateData[stateCode].status = 'warning';
-            }
-          } else if (alert.priority === 'low' && thresholdProgress < 50) {
-            if (currentStatus === 'compliant') {
-              stateData[stateCode].status = 'pending';
-            }
+        if (!stateCode) return; // Skip alerts without stateCode (monitoring alerts)
+        
+        // Initialize state map if not exists
+        if (!alertStatusMap[stateCode]) {
+          alertStatusMap[stateCode] = { status: 'compliant', priority: 1, hasComplianceConfirmed: false };
+        }
+        
+        // Check for compliance_confirmed alerts first (these mark states as compliant/green)
+        if (alert.alertType === 'compliance_confirmed') {
+          alertStatusMap[stateCode].hasComplianceConfirmed = true;
+          // Compliance confirmed alerts mark state as compliant (green)
+          // Only override if current status is not critical
+          if (alertStatusMap[stateCode].status !== 'critical') {
+            alertStatusMap[stateCode].status = 'compliant';
+            alertStatusMap[stateCode].priority = 2; // Higher than warning, lower than critical
           }
+        } else if (alert.alertType === 'threshold_breach' || alert.priority === 'high') {
+          // Critical alerts always override everything
+          alertStatusMap[stateCode].status = 'critical';
+          alertStatusMap[stateCode].priority = 4;
+        } else if (alert.alertType === 'threshold_approaching' || alert.priority === 'medium') {
+          // Warning alerts only apply if no compliance_confirmed exists
+          // and current status is not critical
+          if (!alertStatusMap[stateCode].hasComplianceConfirmed && alertStatusMap[stateCode].status !== 'critical') {
+            alertStatusMap[stateCode].status = 'warning';
+            alertStatusMap[stateCode].priority = 3;
+          }
+        }
+        
+        // Count alerts (for display)
+        if (stateData[stateCode]) {
+          stateData[stateCode].alerts += 1;
         }
       });
     }
-
-    // Check client states for each state to apply new color logic
-    // If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
+    
+    // Apply alert-based status to states (alerts are primary source, matching alerts page)
     Object.keys(stateData).forEach(stateCode => {
       const state = stateData[stateCode];
       
-      if (state.clientStatuses && state.clientStatuses.length > 1) {
-        // Count clients by status
-        const criticalCount = state.clientStatuses.filter((s: string) => s === 'critical').length;
-        const transitCount = state.clientStatuses.filter((s: string) => s === 'transit').length;
-        const warningCount = state.clientStatuses.filter((s: string) => s === 'warning').length;
-        const pendingCount = state.clientStatuses.filter((s: string) => s === 'pending').length;
-        const approachingThresholdCount = transitCount + warningCount + pendingCount;
-        const totalClients = state.clientStatuses.length;
-        
-        // New logic: If multiple clients, only 1 critical, and rest are transit/warning/pending, show yellow
-        if (criticalCount === 1 && approachingThresholdCount === (totalClients - 1)) {
-          state.status = 'warning';
-        }
-      }
-    });
-
-    // Final status override: Ensure critical alerts take precedence (but respect the new logic above)
-    Object.keys(stateData).forEach(stateCode => {
-      const state = stateData[stateCode];
-      if (state.alerts > 0) {
-        // If there are any alerts, check if they should override the status
-        const criticalAlerts = alertsToUse?.filter((alert: any) => 
-          alert.stateCode?.toUpperCase() === stateCode && 
-          (alert.priority === 'high' || alert.priority === 'critical')
-        ) || [];
-        
-        if (criticalAlerts.length > 0) {
-          // Only set to critical if the new logic didn't set it to warning
-          if (state.clientStatuses && state.clientStatuses.length > 1) {
-            const criticalCount = state.clientStatuses.filter((s: string) => s === 'critical').length;
-            const transitCount = state.clientStatuses.filter((s: string) => s === 'transit').length;
-            const warningCount = state.clientStatuses.filter((s: string) => s === 'warning').length;
-            const pendingCount = state.clientStatuses.filter((s: string) => s === 'pending').length;
-            const approachingThresholdCount = transitCount + warningCount + pendingCount;
-            const totalClients = state.clientStatuses.length;
-            
-            // Don't override if the new logic applies
-            if (!(criticalCount === 1 && approachingThresholdCount === (totalClients - 1))) {
-              state.status = 'critical';
-            }
-          } else {
+      // If alerts exist for this state, use alert status (matching alerts page logic)
+      if (alertStatusMap[stateCode]) {
+        state.status = alertStatusMap[stateCode].status;
+      } else {
+        // Fall back to clientState.status if no alerts (for states without alerts)
+        // Use priority logic: critical > warning > compliant
+        if (state.clientStatuses && state.clientStatuses.length > 0) {
+          const criticalCount = state.clientStatuses.filter((s: string) => s === 'critical').length;
+          const warningCount = state.clientStatuses.filter((s: string) => s === 'warning').length;
+          const compliantCount = state.clientStatuses.filter((s: string) => s === 'compliant').length;
+          
+          if (criticalCount > 0) {
             state.status = 'critical';
-          }
-        } else if (state.alerts >= 3) {
-          // Multiple alerts should be at least warning
-          if (state.status === 'compliant' || state.status === 'transit') {
+          } else if (warningCount > 0) {
             state.status = 'warning';
+          } else if (compliantCount > 0) {
+            state.status = 'compliant';
           }
         }
       }
@@ -702,8 +687,6 @@ const ManagingPartnerMonitoring = () => {
       statesCompliant: Object.values(stateData).filter((s: any) => s.status === 'compliant').length,
       statesCritical: Object.values(stateData).filter((s: any) => s.status === 'critical').length,
       statesWarning: Object.values(stateData).filter((s: any) => s.status === 'warning').length,
-      statesPending: Object.values(stateData).filter((s: any) => s.status === 'pending').length,
-      statesTransit: Object.values(stateData).filter((s: any) => s.status === 'transit').length,
       sampleStates: Object.entries(stateData).slice(0, 5).map(([code, data]: [string, any]) => ({
         state: code,
         status: data.status,
@@ -770,17 +753,9 @@ const ManagingPartnerMonitoring = () => {
             fillColor = '#f59e0b';
             strokeColor = '#d97706';
             break;
-          case 'pending':
-            fillColor = '#3b82f6';
-            strokeColor = '#2563eb';
-            break;
           case 'compliant':
             fillColor = '#10b981';
             strokeColor = '#059669';
-            break;
-          case 'transit':
-            fillColor = '#06b6d4';
-            strokeColor = '#0891b2';
             break;
         }
         
@@ -837,91 +812,20 @@ const ManagingPartnerMonitoring = () => {
     return settings;
   }, [mapFocusState, nexusData, handleMapStateClick, selectedState]);
 
-  // Process client data from API with better error handling and fallback
+  // Process alerts data - show each alert individually (one entry per alert)
   const clients: Client[] = useMemo(() => {
     // If still loading, return empty array
     if (isPersonalizedMode) {
-      if (personalizedClientStatesLoading || personalizedNexusAlertsLoading) {
+      if (personalizedNexusAlertsLoading) {
         return [];
       }
     } else {
-      if (clientStatesLoading || alertsLoading) {
+      if (alertsLoading) {
         return [];
       }
     }
     
-    // Use personalized data if available, otherwise fall back to API data
-    const dataToUse = isPersonalizedMode 
-      ? (personalizedClientStates && personalizedClientStates.length > 0 
-          ? personalizedClientStates 
-          : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-              ? clientStatesData.clientStates 
-              : []))
-      : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
-          ? clientStatesData.clientStates 
-          : []);
-    
-    if (!dataToUse || dataToUse.length === 0) {
-      return [];
-    }
-
-    // Group client states by client
-    const clientMap = new Map<string, any>();
-    
-    dataToUse.forEach((clientState: any) => {
-      const clientId = clientState.clientId;
-      if (!clientId) return; // Skip if no client ID
-      
-      if (!clientMap.has(clientId)) {
-        // Use currentAmount from backend data, fallback to revenue for static data
-        const revenue = clientState.currentAmount || clientState.revenue || 0;
-        const threshold = clientState.thresholdAmount || 500000;
-        
-        // Determine status based on revenue-to-threshold ratio (same logic as nexusData)
-        const ratio = revenue / threshold;
-        let status = 'compliant';
-        if (ratio >= 1.0) {
-          status = 'critical';
-        } else if (ratio >= 0.8) {
-          status = 'warning';
-        } else if (ratio >= 0.5) {
-          status = 'pending';
-        } else if (ratio >= 0.2) {
-          status = 'transit';
-        }
-
-        clientMap.set(clientId, {
-          id: clientId,
-          name: clientState.client?.name || clientState.client?.legalName || 'Unknown Client',
-          state: clientState.stateCode || 'Unknown',
-          industry: clientState.client?.industry || 'Unknown',
-          revenue: `$${revenue.toLocaleString()}`,
-          nexusStatus: status,
-          thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
-          lastUpdate: new Date(clientState.lastUpdated || Date.now()).toLocaleString(),
-          alerts: 0,
-          riskScore: Math.round(revenue / threshold * 100),
-          states: [clientState.stateCode].filter(Boolean)
-        });
-      } else {
-        const client = clientMap.get(clientId);
-        if (clientState.stateCode && !client.states.includes(clientState.stateCode)) {
-          client.states.push(clientState.stateCode);
-        }
-        
-        // Update revenue calculation
-        const currentRevenue = parseInt(client.revenue.replace(/[$,]/g, '')) || 0;
-        const additionalRevenue = clientState.currentAmount || clientState.revenue || 0;
-        const newRevenue = currentRevenue + additionalRevenue;
-        const threshold = clientState.thresholdAmount || 500000;
-        
-        client.revenue = `$${newRevenue.toLocaleString()}`;
-        client.thresholdProgress = Math.min(100, Math.round(newRevenue / threshold * 100));
-        client.riskScore = Math.round(newRevenue / threshold * 100);
-      }
-    });
-
-    // Add alert counts FIRST before calculating status
+    // Get alerts data - this is our primary source
     const alertsToUse = isPersonalizedMode
       ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 
           ? personalizedNexusAlerts 
@@ -932,78 +836,92 @@ const ManagingPartnerMonitoring = () => {
           ? nexusAlertsData.alerts 
           : []);
     
-    if (alertsToUse && alertsToUse.length > 0) {
-      alertsToUse.forEach((alert: any) => {
-        const client = clientMap.get(alert.clientId);
-        if (client) {
-          client.alerts += 1;
-        }
-      });
+    if (!alertsToUse || alertsToUse.length === 0) {
+      return [];
     }
 
-    // NOW calculate status based on revenue-to-threshold ratio, but only allow 'critical' or 'warning' if alerts exist
-    clientMap.forEach((client) => {
-      const revenue = parseInt(client.revenue.replace(/[$,]/g, '')) || 0;
-      // Find the highest threshold from client states for this client
-      const clientStatesForClient = dataToUse.filter((cs: any) => cs.clientId === client.id);
-      const highestThreshold = clientStatesForClient.length > 0 
-        ? Math.max(...clientStatesForClient.map((cs: any) => cs.thresholdAmount || 500000))
-        : 500000;
-      
-      const newRatio = revenue / highestThreshold;
-      
-      // Only allow 'critical' or 'warning' status if alerts exist
-      if (client.alerts > 0) {
-        if (newRatio >= 1.0) {
-          client.nexusStatus = 'critical';
-        } else if (newRatio >= 0.8) {
-          client.nexusStatus = 'warning';
-        } else if (newRatio >= 0.5) {
-          client.nexusStatus = 'pending';
-        } else if (newRatio >= 0.2) {
-          client.nexusStatus = 'transit';
-        } else {
-          client.nexusStatus = 'compliant';
-        }
-      } else {
-        // If no alerts, cap status at 'pending'
-        if (newRatio >= 0.5) {
-          client.nexusStatus = 'pending';
-        } else if (newRatio >= 0.2) {
-          client.nexusStatus = 'transit';
-        } else {
-          client.nexusStatus = 'compliant';
-        }
-      }
+    // Get client states data for additional info (client name, industry, etc.)
+    const clientStatesToUse = isPersonalizedMode
+      ? (personalizedClientStates && personalizedClientStates.length > 0 
+          ? personalizedClientStates 
+          : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
+              ? clientStatesData.clientStates 
+              : []))
+      : (clientStatesData?.clientStates && clientStatesData.clientStates.length > 0 
+          ? clientStatesData.clientStates 
+          : []);
+
+    // Create a map of client states for quick lookup
+    const clientStateMap = new Map<string, any>();
+    clientStatesToUse.forEach((cs: any) => {
+      const key = `${cs.clientId}-${cs.stateCode}`;
+      clientStateMap.set(key, cs);
     });
 
-    const result = Array.from(clientMap.values());
-    
-    // Debug logging for client status values
-    console.log('🔍 Managing Partner Monitoring - Client status values:', {
-      totalClients: result.length,
-      statusBreakdown: result.reduce((acc, client) => {
-        acc[client.nexusStatus] = (acc[client.nexusStatus] || 0) + 1;
+    // Create one entry per alert
+    const result: Client[] = alertsToUse.map((alert: any) => {
+      // Find matching client state for additional info
+      const stateKey = `${alert.clientId}-${alert.stateCode}`;
+      const clientState = clientStateMap.get(stateKey);
+      
+      // Determine status from alert type
+      let nexusStatus: 'compliant' | 'warning' | 'critical' = 'compliant';
+      if (alert.alertType === 'threshold_breach' || alert.priority === 'high') {
+        nexusStatus = 'critical';
+      } else if (alert.alertType === 'threshold_approaching' || alert.priority === 'medium') {
+        nexusStatus = 'warning';
+      } else if (alert.alertType === 'compliance_confirmed') {
+        nexusStatus = 'compliant';
+      }
+
+      const currentAmount = alert.currentAmount || clientState?.currentAmount || 0;
+      const thresholdAmount = alert.thresholdAmount || clientState?.thresholdAmount || 500000;
+      const thresholdProgress = Math.min(100, Math.round((currentAmount / thresholdAmount) * 100));
+
+      return {
+        id: alert.id, // Use alert ID as unique identifier
+        clientId: alert.clientId,
+        alertId: alert.id,
+        name: alert.client?.name || clientState?.client?.name || clientState?.client?.legalName || 'Unknown Client',
+        state: alert.stateCode ? stateNameMapping[alert.stateCode] || alert.stateCode : 'Unknown',
+        stateCode: alert.stateCode || 'US',
+        industry: alert.client?.industry || clientState?.client?.industry || 'Unknown',
+        revenue: `$${currentAmount.toLocaleString()}`,
+        currentAmount: currentAmount,
+        thresholdAmount: thresholdAmount,
+        nexusStatus: nexusStatus,
+        thresholdProgress: thresholdProgress,
+        lastUpdate: new Date(alert.createdAt || alert.updatedAt || Date.now()).toLocaleString(),
+        alertType: alert.alertType || 'nexus_monitoring',
+        priority: alert.priority || 'low',
+        penaltyRisk: alert.penaltyRisk || '$0K - $0K',
+        deadline: alert.deadline || 'N/A'
+      };
+    });
+
+    // Debug logging
+    console.log('🔍 Managing Partner Monitoring - Alert entries:', {
+      totalAlerts: result.length,
+      statusBreakdown: result.reduce((acc, entry) => {
+        acc[entry.nexusStatus] = (acc[entry.nexusStatus] || 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      sampleClients: result.slice(0, 3).map(client => ({
-        name: client.name,
-        status: client.nexusStatus,
-        revenue: client.revenue,
-        thresholdProgress: client.thresholdProgress
+      sampleEntries: result.slice(0, 3).map(entry => ({
+        name: entry.name,
+        state: entry.stateCode,
+        status: entry.nexusStatus,
+        alertType: entry.alertType
       }))
     });
 
     return result;
   }, [
     isPersonalizedMode,
-    personalizedClientStates,
     personalizedNexusAlerts,
-    personalizedClientStatesLoading,
+    personalizedClientStates,
     personalizedNexusAlertsLoading,
-    clientStatesData, 
-    nexusAlertsData, 
-    clientStatesLoading, 
+    nexusAlertsData,
+    clientStatesData,
     alertsLoading
   ]);
 
@@ -1135,7 +1053,7 @@ const ManagingPartnerMonitoring = () => {
     // Filter by map focus state
     if (mapFocusState) {
       filtered = filtered.filter(client => 
-        client.states.includes(mapFocusState)
+        client.stateCode === mapFocusState
       );
     }
     
@@ -1296,20 +1214,6 @@ const ManagingPartnerMonitoring = () => {
                         {filteredClients.filter(c => c.nexusStatus === 'warning').length}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-white text-sm font-medium">Pending</span>
-                      <span className="text-blue-400 text-sm font-semibold ml-auto">
-                        {filteredClients.filter(c => c.nexusStatus === 'pending').length}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-cyan-500 rounded-full"></div>
-                      <span className="text-white text-sm font-medium">In Transit</span>
-                      <span className="text-cyan-400 text-sm font-semibold ml-auto">
-                        {filteredClients.filter(c => c.nexusStatus === 'transit').length}
-                      </span>
-                    </div>
                     <div className="flex items-center space-x-2 col-span-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                       <span className="text-white text-sm font-medium">Compliant</span>
@@ -1337,8 +1241,6 @@ const ManagingPartnerMonitoring = () => {
                     switch (normalizedStatus) {
                       case 'critical': return 'bg-red-500';
                       case 'warning': return 'bg-orange-500';
-                      case 'pending': return 'bg-blue-500';
-                      case 'transit': return 'bg-cyan-500';
                       case 'compliant': return 'bg-green-500';
                       default: return 'bg-gray-500';
                     }
@@ -1351,8 +1253,6 @@ const ManagingPartnerMonitoring = () => {
                     switch (normalizedStatus) {
                       case 'critical': return 'Critical';
                       case 'warning': return 'Warning';
-                      case 'pending': return 'Pending';
-                      case 'transit': return 'In Transit';
                       case 'compliant': return 'Compliant';
                       default: 
                         console.warn('🔍 Unknown status value:', status, 'for client');
@@ -1366,8 +1266,6 @@ const ManagingPartnerMonitoring = () => {
                     switch (normalizedStatus) {
                       case 'critical': return 'text-red-500';
                       case 'warning': return 'text-orange-500';
-                      case 'pending': return 'text-blue-500';
-                      case 'transit': return 'text-cyan-500';
                       case 'compliant': return 'text-green-500';
                       default: return 'text-gray-500';
                     }
@@ -1379,8 +1277,6 @@ const ManagingPartnerMonitoring = () => {
                     switch (normalizedStatus) {
                       case 'critical': return 'text-red-500';
                       case 'warning': return 'text-orange-500';
-                      case 'pending': return 'text-blue-500';
-                      case 'transit': return 'text-cyan-500';
                       case 'compliant': return 'text-green-500';
                       default: return 'text-gray-500';
                     }
@@ -1392,16 +1288,10 @@ const ManagingPartnerMonitoring = () => {
                     switch (normalizedStatus) {
                       case 'critical': return 'bg-red-500/10';
                       case 'warning': return 'bg-orange-500/10';
-                      case 'pending': return 'bg-blue-500/10';
-                      case 'transit': return 'bg-cyan-500/10';
                       case 'compliant': return 'bg-green-500/10';
                       default: return 'bg-gray-500/10';
                     }
                   };
-
-                  // Get the primary state (first in the array)
-                  const primaryState = client.states[0];
-                  const secondaryState = client.states[1];
 
                   return (
                     <div 
@@ -1417,10 +1307,6 @@ const ManagingPartnerMonitoring = () => {
                             <svg className={`w-4 h-4 ${getIconColor(client.nexusStatus)}`} fill="currentColor" viewBox="0 0 20 20">
                               {client.nexusStatus === 'critical' || client.nexusStatus === 'warning' ? (
                                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                              ) : client.nexusStatus === 'pending' ? (
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                              ) : client.nexusStatus === 'transit' ? (
-                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                               ) : (
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               )}
@@ -1428,7 +1314,7 @@ const ManagingPartnerMonitoring = () => {
                           </div>
                           <div>
                             <h3 className="text-white font-semibold text-sm tracking-tight">{client.name}</h3>
-                            <p className="text-gray-400 text-xs font-medium">{client.industry}</p>
+                            <p className="text-gray-400 text-xs font-medium">{client.state} • {client.industry}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1445,36 +1331,27 @@ const ManagingPartnerMonitoring = () => {
 
                       {/* Content */}
                       <div className="space-y-2">
-                        {/* Revenue and States */}
+                        {/* Revenue and Threshold */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                             <span className="text-white text-sm font-medium">{client.revenue}</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="bg-white/10 rounded-lg px-2 py-1">
-                              <span className="text-white text-xs font-medium">{primaryState}</span>
-                            </div>
-                            {secondaryState && (
-                              <div className="bg-white/5 rounded-lg px-2 py-1">
-                                <span className="text-gray-300 text-xs font-medium">{secondaryState}</span>
-                              </div>
-                            )}
+                          <div className="bg-white/10 rounded-lg px-2 py-1">
+                            <span className="text-white text-xs font-medium">of ${client.thresholdAmount.toLocaleString()}</span>
                           </div>
                         </div>
 
                         {/* Status Description */}
                         <div className="flex items-center justify-between">
                           <p className={`text-sm font-medium ${getStatusTextColor(client.nexusStatus)}`}>
-                            {client.nexusStatus === 'critical' ? `Exceeded nexus threshold` :
-                             client.nexusStatus === 'warning' ? `Approaching nexus threshold` :
-                             client.nexusStatus === 'pending' ? 'Under review process' :
-                             client.nexusStatus === 'transit' ? 'Active monitoring' :
+                            {client.nexusStatus === 'critical' ? `Exceeded threshold` :
+                             client.nexusStatus === 'warning' ? `Approaching threshold` :
                              'Fully compliant'}
                           </p>
                           <div className="flex items-center space-x-1">
                             <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                            <span className="text-gray-400 text-xs">{client.alerts} alert{client.alerts !== 1 ? 's' : ''}</span>
+                            <span className="text-gray-400 text-xs">{client.priority} priority</span>
                           </div>
                         </div>
 
@@ -1489,8 +1366,6 @@ const ManagingPartnerMonitoring = () => {
                               className={`h-1 rounded-full transition-all duration-500 ${
                                 client.nexusStatus === 'critical' ? 'bg-red-500' :
                                 client.nexusStatus === 'warning' ? 'bg-orange-500' :
-                                client.nexusStatus === 'pending' ? 'bg-blue-500' :
-                                client.nexusStatus === 'transit' ? 'bg-cyan-500' :
                                 'bg-green-500'
                               }`}
                               style={{ width: `${client.thresholdProgress}%` }}
@@ -1708,15 +1583,11 @@ const ManagingPartnerMonitoring = () => {
                       <div className={`px-3 py-1 ${
                         nexusData[selectedState].status === 'critical' ? 'bg-red-500' :
                         nexusData[selectedState].status === 'warning' ? 'bg-orange-500' :
-                        nexusData[selectedState].status === 'pending' ? 'bg-blue-500' :
-                        nexusData[selectedState].status === 'transit' ? 'bg-cyan-500' :
                         'bg-green-500'
                       } rounded-full`}>
                         <span className="text-white text-sm font-semibold">
                           {nexusData[selectedState].status === 'critical' ? 'Critical' :
                            nexusData[selectedState].status === 'warning' ? 'Warning' :
-                           nexusData[selectedState].status === 'pending' ? 'Pending' :
-                           nexusData[selectedState].status === 'transit' ? 'Transit' :
                            'Compliant'}
                           </span>
                         </div>
@@ -1724,8 +1595,6 @@ const ManagingPartnerMonitoring = () => {
                     <p className="text-gray-300 text-sm leading-relaxed">
                       {nexusData[selectedState].status === 'critical' ? 'This state has clients exceeding the nexus threshold and requires immediate attention.' :
                        nexusData[selectedState].status === 'warning' ? 'This state has clients approaching the nexus threshold and should be monitored closely.' :
-                       nexusData[selectedState].status === 'pending' ? 'This state is currently under review for nexus compliance.' :
-                       nexusData[selectedState].status === 'transit' ? 'This state is actively being monitored for nexus compliance.' :
                        'This state is fully compliant with all nexus requirements.'}
                     </p>
                         </div>
@@ -1758,7 +1627,7 @@ const ManagingPartnerMonitoring = () => {
                     <h3 className="text-white font-medium mb-3">Clients in {selectedState}</h3>
                     <div className="space-y-2">
                       {filteredClients
-                        .filter(client => client.states.includes(selectedState))
+                        .filter(client => client.stateCode === selectedState)
                         .map((client) => (
                           <div 
                             key={client.id}
@@ -1777,15 +1646,11 @@ const ManagingPartnerMonitoring = () => {
                               <div className={`px-2 py-1 ${
                                 client.nexusStatus === 'critical' ? 'bg-red-500' :
                                 client.nexusStatus === 'warning' ? 'bg-orange-500' :
-                                client.nexusStatus === 'pending' ? 'bg-blue-500' :
-                                client.nexusStatus === 'transit' ? 'bg-cyan-500' :
                                 'bg-green-500'
                               } rounded-full`}>
                                 <span className="text-white text-xs font-semibold">
                                   {client.nexusStatus === 'critical' ? 'Critical' :
                                    client.nexusStatus === 'warning' ? 'Warning' :
-                                   client.nexusStatus === 'pending' ? 'Pending' :
-                                   client.nexusStatus === 'transit' ? 'Transit' :
                                    'Compliant'}
                                 </span>
                     </div>
@@ -1828,23 +1693,15 @@ const ManagingPartnerMonitoring = () => {
                 <div className={`w-10 h-10 ${
                   selectedClient.nexusStatus === 'critical' ? 'bg-red-500/10' :
                   selectedClient.nexusStatus === 'warning' ? 'bg-orange-500/10' :
-                  selectedClient.nexusStatus === 'pending' ? 'bg-blue-500/10' :
-                  selectedClient.nexusStatus === 'transit' ? 'bg-cyan-500/10' :
                   'bg-green-500/10'
                 } rounded-xl flex items-center justify-center`}>
                   <svg className={`w-5 h-5 ${
                     selectedClient.nexusStatus === 'critical' ? 'text-red-500' :
                     selectedClient.nexusStatus === 'warning' ? 'text-orange-500' :
-                    selectedClient.nexusStatus === 'pending' ? 'text-blue-500' :
-                    selectedClient.nexusStatus === 'transit' ? 'text-cyan-500' :
                     'text-green-500'
                   }`} fill="currentColor" viewBox="0 0 20 20">
                     {selectedClient.nexusStatus === 'critical' || selectedClient.nexusStatus === 'warning' ? (
                       <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    ) : selectedClient.nexusStatus === 'pending' ? (
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    ) : selectedClient.nexusStatus === 'transit' ? (
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                     ) : (
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     )}
@@ -1872,15 +1729,11 @@ const ManagingPartnerMonitoring = () => {
                 <div className={`px-3 py-1 ${
                   selectedClient.nexusStatus === 'critical' ? 'bg-red-500' :
                   selectedClient.nexusStatus === 'warning' ? 'bg-orange-500' :
-                  selectedClient.nexusStatus === 'pending' ? 'bg-blue-500' :
-                  selectedClient.nexusStatus === 'transit' ? 'bg-cyan-500' :
                   'bg-green-500'
                 } rounded-full`}>
                   <span className="text-white text-sm font-semibold">
                     {selectedClient.nexusStatus === 'critical' ? 'Critical' :
                      selectedClient.nexusStatus === 'warning' ? 'Warning' :
-                     selectedClient.nexusStatus === 'pending' ? 'Pending' :
-                     selectedClient.nexusStatus === 'transit' ? 'In Transit' :
                      'Compliant'}
                   </span>
                 </div>
@@ -1888,8 +1741,6 @@ const ManagingPartnerMonitoring = () => {
               <p className="text-gray-300 text-sm leading-relaxed">
                 {selectedClient.nexusStatus === 'critical' ? 'This client has exceeded nexus thresholds and requires immediate registration in the affected states.' :
                  selectedClient.nexusStatus === 'warning' ? 'This client is approaching nexus thresholds and should be monitored closely for potential registration requirements.' :
-                 selectedClient.nexusStatus === 'pending' ? 'This client is currently under review for nexus determination and compliance requirements.' :
-                 selectedClient.nexusStatus === 'transit' ? 'This client is actively being monitored for nexus compliance across multiple states.' :
                  'This client is fully compliant with all nexus requirements and thresholds.'}
               </p>
             </div>
@@ -1908,44 +1759,53 @@ const ManagingPartnerMonitoring = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400 text-sm">Risk Score</span>
-                  <span className="text-white font-medium">{selectedClient.riskScore}/100</span>
+                  <span className="text-white font-medium">{selectedClient.thresholdProgress}/100</span>
                 </div>
               </div>
             </div>
 
-            {/* State Coverage */}
+            {/* State Information */}
             <div className="mb-6">
-              <h3 className="text-white font-medium mb-3">State Coverage</h3>
+              <h3 className="text-white font-medium mb-3">State Information</h3>
               <div className="flex flex-wrap gap-2">
-                {selectedClient.states.map((state, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setMapFocusState(state);
-                      setSelectedState(state);
-                    }}
-                    className={`rounded-lg px-3 py-1 transition-all duration-200 ${
-                      mapFocusState === state 
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
-                        : 'bg-white/10 text-white hover:bg-white/20'
-                    }`}
-                  >
-                    <span className="text-sm font-medium">{state}</span>
-                  </button>
-                ))}
+                <button
+                  onClick={() => {
+                    setMapFocusState(selectedClient.stateCode);
+                    setSelectedState(selectedClient.stateCode);
+                  }}
+                  className={`rounded-lg px-3 py-1 transition-all duration-200 ${
+                    mapFocusState === selectedClient.stateCode 
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' 
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  <span className="text-sm font-medium">{selectedClient.stateCode}</span>
+                </button>
               </div>
               <p className="text-gray-400 text-xs mt-2">
-                Click a state to focus it on the map
+                {selectedClient.state}
               </p>
             </div>
 
-            {/* Alerts & Updates */}
+            {/* Alert Details */}
             <div className="mb-6">
-              <h3 className="text-white font-medium mb-3">Alerts & Updates</h3>
+              <h3 className="text-white font-medium mb-3">Alert Details</h3>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">Active Alerts</span>
-                  <span className="text-white font-medium">{selectedClient.alerts}</span>
+                  <span className="text-gray-400 text-sm">Alert Type</span>
+                  <span className="text-white font-medium">{selectedClient.alertType}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Priority</span>
+                  <span className="text-white font-medium capitalize">{selectedClient.priority}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Penalty Risk</span>
+                  <span className="text-white font-medium">{selectedClient.penaltyRisk}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Deadline</span>
+                  <span className="text-white font-medium">{selectedClient.deadline}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400 text-sm">Last Update</span>
@@ -1959,14 +1819,8 @@ const ManagingPartnerMonitoring = () => {
               <button 
                 className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
                 onClick={() => {
-                  // Find the first alert for this client
-                  const clientAlert = nexusAlertsData?.alerts?.find((alert: any) => alert.clientId === selectedClient.id);
-                  if (clientAlert) {
-                    router.push(`/dashboard/managing-partner/alerts/${clientAlert.id}`);
-                  } else {
-                    // Fallback to general alerts page if no specific alert found
-                    router.push('/dashboard/managing-partner/alerts');
-                  }
+                  // Navigate directly to the alert detail page
+                  router.push(`/dashboard/managing-partner/alerts/${selectedClient.alertId}`);
                 }}
               >
                 View Details

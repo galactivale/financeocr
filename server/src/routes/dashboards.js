@@ -1,6 +1,6 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const RiskBasedDataGenerator = require('../services/riskBasedDataGenerator');
 const EnhancedDataGenerator = require('../services/enhancedDataGenerator');
 const router = express.Router();
@@ -22,21 +22,16 @@ async function safeDeleteMany(modelDeleteMany, criteria) {
   }
 }
 
-// Initialize Gemini AI with configuration
-const geminiConfig = {
-  token: process.env.GEMINI_API_KEY,
-  gemini: {
-    name: "gemini-1.5-flash",
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 8192,
-    }
+// Initialize OpenAI with configuration (lazy initialization)
+let openai = null;
+function getOpenAI() {
+  if (!openai && process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
   }
-};
-
-const genAI = new GoogleGenerativeAI(geminiConfig.token);
+  return openai;
+}
 
 // Generate unique URL for dashboard
 function generateUniqueUrl(clientName) {
@@ -138,36 +133,40 @@ function calculateTotalPenaltyExposure(clients) {
 }
 
 // Generate comprehensive dashboard data using enhanced approach
-async function generateDashboardData(formData, organizationId) {
-  console.log('🤖 Starting risk-based dashboard data generation...');
-  console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
+// logCallback: optional function to emit log messages (for SSE streaming)
+async function generateDashboardData(formData, organizationId, logCallback = null) {
+  const log = (message) => {
+    console.log(message);
+    if (logCallback) logCallback(message);
+  };
+  
+  log('🤖 Starting risk-based dashboard data generation...');
+  log('📊 Form data received');
   
   try {
-    console.log('🔑 Checking Gemini API key...');
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not found in environment variables');
+    log('🔑 Checking OpenAI API key...');
+    if (!process.env.OPENAI_API_KEY) {
+      log('⚠️ OPENAI_API_KEY not found, will use fallback data generation');
+    } else {
+      log('✅ OpenAI API key found');
     }
-    console.log('✅ Gemini API key found');
     
-    console.log('🚀 Initializing enhanced data generator...');
-    const enhancedGenerator = new EnhancedDataGenerator();
+    log('🚀 Initializing enhanced data generator...');
+    // Always use 'standard' strategy internally (qualification strategy removed)
+    const enhancedGenerator = new EnhancedDataGenerator('standard');
     
-    console.log('📊 Generating complete client portfolio with relationships...');
-    const generatedData = await enhancedGenerator.generateCompleteDashboardData(formData, organizationId);
+    log('📊 Generating complete client portfolio with relationships...');
+    const generatedData = await enhancedGenerator.generateCompleteDashboardData(formData, organizationId, logCallback);
     
-    console.log('✅ Enhanced data generation completed');
-    console.log('📊 Generated data summary:', {
-      totalClients: generatedData?.summary?.totalClients || 0,
-      totalRecords: generatedData?.summary?.totalRecords || 0,
-      hasClientStates: generatedData?.data?.clientStates?.length > 0,
-      hasNexusAlerts: generatedData?.data?.nexusAlerts?.length > 0,
-      hasDecisionTables: generatedData?.data?.decisionTables?.length > 0
-    });
+    log('✅ Enhanced data generation completed');
+    log('📊 Generated data summary');
     
     return generatedData;
     
   } catch (error) {
-    console.error('❌ Error generating schema-based data:', error);
+    const errorMsg = `❌ Error generating schema-based data: ${error.message}`;
+    console.error(errorMsg);
+    if (logCallback) logCallback(errorMsg);
     throw error;
   }
 }
@@ -336,6 +335,163 @@ function getStateName(stateCode) {
   return stateNames[stateCode] || stateCode;
 }
 
+async function ensureCompliantVisualizationStates(organizationId, generatedData, formData = {}) {
+  if (!organizationId || !generatedData) {
+    return;
+  }
+
+  const dataSection = generatedData.data || generatedData;
+  if (!dataSection) {
+    return;
+  }
+
+  if (!Array.isArray(dataSection.clientStates)) {
+    dataSection.clientStates = [];
+  }
+  if (!Array.isArray(dataSection.nexusAlerts)) {
+    dataSection.nexusAlerts = [];
+  }
+
+  const clients = await prisma.client.findMany({
+    where: { organizationId },
+    select: { id: true, name: true, industry: true }
+  });
+  if (!clients.length) {
+    return;
+  }
+
+  const targetCount = Math.max(1, Math.min(3, Math.floor(Math.random() * 3) + 1));
+  const priorityStates = (formData.priorityStates || [])
+    .map((state) => (state || '').toString().trim().toUpperCase())
+    .filter(Boolean);
+  const fallbackStates = ['CA', 'TX', 'FL', 'WA', 'NY', 'VA', 'CO'];
+
+  const candidateStates = [...new Set([
+    ...priorityStates,
+    ...dataSection.clientStates
+      .map((state) => (state.stateCode || state.state || state.code || '').toString().trim().toUpperCase())
+      .filter(Boolean),
+    ...fallbackStates
+  ])];
+
+  if (!candidateStates.length) {
+    candidateStates.push('CA', 'TX', 'FL');
+  }
+
+  const clientStates = await prisma.clientState.findMany({
+    where: { organizationId }
+  });
+
+  const alerts = await prisma.nexusAlert.findMany({
+    where: { organizationId }
+  });
+
+  const alertMap = new Map();
+  alerts.forEach((alert) => {
+    const key = `${alert.clientId || 'org'}:${(alert.stateCode || '').toUpperCase()}`;
+    const list = alertMap.get(key) || [];
+    list.push(alert.id);
+    alertMap.set(key, list);
+  });
+
+  const isZeroAlertState = (state) => {
+    const key = `${state.clientId}:${(state.stateCode || '').toUpperCase()}`;
+    return !alertMap.has(key);
+  };
+
+  const shuffle = (array) => {
+    return [...array].sort(() => Math.random() - 0.5);
+  };
+
+  const ensuredStates = [];
+  const existingCompliant = clientStates.filter(
+    (state) => (state.status || '').toLowerCase() === 'compliant' && isZeroAlertState(state)
+  );
+
+  for (const state of shuffle(existingCompliant)) {
+    ensuredStates.push(state);
+    if (ensuredStates.length >= targetCount) {
+      break;
+    }
+  }
+
+  let remaining = targetCount - ensuredStates.length;
+
+  if (remaining > 0) {
+    const convertibleStates = shuffle(
+      clientStates.filter((state) => !ensuredStates.some((selected) => selected.id === state.id))
+    );
+
+    for (const state of convertibleStates) {
+      if (remaining <= 0) break;
+
+      const thresholdAmount = state.thresholdAmount ? Number(state.thresholdAmount) : 150000;
+      const currentAmount = Math.round(thresholdAmount * (0.18 + Math.random() * 0.12)); // 18-30%
+
+      const updatedState = await prisma.clientState.update({
+        where: { id: state.id },
+        data: {
+          status: 'compliant',
+          registrationRequired: false,
+          currentAmount,
+          thresholdAmount,
+          lastUpdated: new Date(),
+          notes: 'Compliant state added for visual balance'
+        }
+      });
+
+      await safeDeleteMany(prisma.nexusAlert.deleteMany.bind(prisma.nexusAlert), {
+        where: {
+          organizationId,
+          clientId: updatedState.clientId,
+          stateCode: updatedState.stateCode
+        }
+      });
+
+      ensuredStates.push(updatedState);
+      remaining -= 1;
+    }
+  }
+
+  if (remaining > 0) {
+    const usedStateCodes = new Set(clientStates.map((state) => (state.stateCode || '').toUpperCase()));
+    const availableNewStates = candidateStates.filter((code) => !usedStateCodes.has(code));
+    const statePool = availableNewStates.length ? availableNewStates : candidateStates;
+
+    for (let i = 0; i < remaining; i++) {
+      const client = clients[(i + Math.floor(Math.random() * clients.length)) % clients.length];
+      const stateCode = statePool[(i + Math.floor(Math.random() * statePool.length)) % statePool.length] || 'CA';
+      const thresholdAmount = 140000 + Math.floor(Math.random() * 60000);
+      const currentAmount = Math.round(thresholdAmount * (0.15 + Math.random() * 0.1));
+
+      const newState = await prisma.clientState.create({
+        data: {
+          organizationId,
+          clientId: client.id,
+          stateCode,
+          stateName: getStateName(stateCode),
+          status: 'compliant',
+          registrationRequired: false,
+          thresholdAmount,
+          currentAmount,
+          lastUpdated: new Date(),
+          notes: `Compliant monitoring state for ${client.name}`
+        }
+      });
+
+      ensuredStates.push(newState);
+    }
+  }
+
+  if (ensuredStates.length) {
+    const refreshedStates = await prisma.clientState.findMany({ where: { organizationId } });
+    const refreshedAlerts = await prisma.nexusAlert.findMany({ where: { organizationId } });
+
+    dataSection.clientStates = refreshedStates;
+    dataSection.nexusAlerts = refreshedAlerts;
+  }
+}
+
 // Validate critical DB schema before running costly AI generation
 async function validateDatabaseSchema() {
   const issues = [];
@@ -396,28 +552,37 @@ async function validateDatabaseSchema() {
 }
 
 // Test endpoint to check Gemini API
-router.get('/test-gemini', async (req, res) => {
+router.get('/test-openai', async (req, res) => {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(400).json({ error: 'GEMINI_API_KEY not found' });
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(400).json({ error: 'OPENAI_API_KEY not found' });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-    
-    const result = await model.generateContent("Hello, respond with 'API working'");
-    const response = await result.response;
-    const text = response.text();
+    const openaiClient = getOpenAI();
+    if (!openaiClient) {
+      return res.status(400).json({ error: 'OPENAI_API_KEY not configured' });
+    }
+    const result = await openaiClient.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: "Hello, respond with 'API working'"
+        }
+      ],
+      max_tokens: 50
+    });
+    const text = result.choices[0].message.content;
     
     res.json({ 
       success: true, 
-      message: 'Gemini API is working',
+      message: 'OpenAI API is working',
       response: text 
     });
   } catch (error) {
-    console.error('Gemini API test error:', error);
+    console.error('OpenAI API test error:', error);
     res.status(500).json({ 
-      error: 'Gemini API test failed',
+      error: 'OpenAI API test failed',
       details: error.message,
       status: error.status,
       statusText: error.statusText
@@ -425,55 +590,54 @@ router.get('/test-gemini', async (req, res) => {
   }
 });
 
-// POST /api/dashboards/generate
-router.post('/generate', async (req, res) => {
-  console.log('🚀 Dashboard generation request received');
+// POST /api/dashboards/generate/stream - SSE endpoint for real-time logs
+router.post('/generate/stream', async (req, res) => {
+  console.log('🚀 Dashboard generation request received (SSE)');
   console.log('📥 Request body:', JSON.stringify(req.body, null, 2));
   
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Helper function to send SSE events
+  const sendLog = (message, type = 'log') => {
+    const data = JSON.stringify({ type, message, timestamp: new Date().toISOString() });
+    res.write(`data: ${data}\n\n`);
+  };
+  
+  // Helper function to send progress updates
+  const sendProgress = (progress, message) => {
+    const data = JSON.stringify({ type: 'progress', progress, message, timestamp: new Date().toISOString() });
+    res.write(`data: ${data}\n\n`);
+  };
+  
   try {
+    sendLog('Starting dashboard generation...', 'info');
+    
     const schema = await validateDatabaseSchema();
     if (!schema.ok) {
-      console.error('❌ Database schema validation failed. Aborting generation to save API credits.', schema.issues);
-      return res.status(500).json({ 
-        error: 'Database schema not ready',
-        issues: schema.issues
-      });
+      sendLog('Database schema validation failed. Aborting generation.', 'error');
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Database schema not ready', details: schema.issues })}\n\n`);
+      res.end();
+      return;
     }
 
     const { formData } = req.body;
 
     if (!formData) {
-      console.error('❌ Missing required fields:', { formData: !!formData });
-      return res.status(400).json({ 
-        error: 'Missing required fields: formData is required' 
-      });
+      sendLog('Missing required fields: formData is required', 'error');
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Missing required fields: formData is required' })}\n\n`);
+      res.end();
+      return;
     }
 
     // Create a new organization for this dashboard
-    console.log('🏢 Creating new organization for dashboard generation...');
-    
-    // Check if there are any existing organizations that might cause conflicts
-    const existingOrgs = await prisma.organization.findMany({
-      select: { id: true, slug: true, name: true },
-      take: 5
-    });
-    console.log('🔍 Existing organizations:', existingOrgs);
-    
-    // Test UUID generation
-    console.log('🧪 Testing UUID generation...');
-    try {
-      const testResult = await prisma.$queryRaw`SELECT gen_random_uuid() as test_uuid`;
-      console.log('✅ Database UUID generation test:', testResult);
-    } catch (uuidTestError) {
-      console.error('❌ Database UUID generation test failed:', uuidTestError);
-    }
+    sendLog('🏢 Creating new organization for dashboard generation...', 'info');
     
     const orgSlug = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    console.log('📝 Organization data:', {
-      slug: orgSlug,
-      name: `${formData.clientName} Dashboard Organization`,
-      legalName: `${formData.clientName} Dashboard Organization LLC`
-    });
     
     // Prepare organization data - only include absolutely required fields
     const orgData = {
@@ -481,95 +645,55 @@ router.post('/generate', async (req, res) => {
       name: `${formData.clientName} Dashboard Organization`
     };
     
-    console.log('🔍 Full organization data being sent:', JSON.stringify(orgData, null, 2));
-    
-    // Try creating a minimal organization first to isolate the issue
-    console.log('🧪 Testing minimal organization creation...');
-    let testOrg;
-    try {
-      testOrg = await prisma.organization.create({
-        data: {
-          slug: `test-${Date.now()}`,
-          name: 'Test Organization',
-          subscriptionTier: 'trial',
-          subscriptionStatus: 'active',
-          country: 'US'
-        }
-      });
-      console.log('✅ Minimal organization created successfully:', testOrg.id);
-      
-      // Delete the test organization
-      await prisma.organization.delete({ where: { id: testOrg.id } });
-      console.log('🗑️ Test organization deleted');
-    } catch (testError) {
-      console.error('❌ Minimal organization creation failed:', testError);
-      return res.status(500).json({
-        error: 'Database schema issue detected',
-        details: testError.message
-      });
-    }
-    
-    // Debug the data before creating organization
-    console.log('🔍 About to create organization with data:', JSON.stringify(orgData, null, 2));
-    console.log('🔍 Data types check:');
-    Object.entries(orgData).forEach(([key, value]) => {
-      console.log(`  ${key}: ${typeof value} = ${value}`);
-    });
-    
     let newOrganization;
     try {
       newOrganization = await prisma.organization.create({
         data: orgData
       });
-
-      console.log('✅ Organization created:', { id: newOrganization.id, name: newOrganization.name });
-      const finalOrganizationId = newOrganization.id;
+      sendLog(`✅ Organization created: ${newOrganization.name}`, 'success');
     } catch (orgError) {
-      console.error('❌ Error creating organization:', orgError);
-      return res.status(500).json({
-        error: 'Failed to create organization',
-        details: orgError.message
-      });
+      sendLog(`❌ Error creating organization: ${orgError.message}`, 'error');
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Failed to create organization', details: orgError.message })}\n\n`);
+      res.end();
+      return;
     }
 
     // Get the organization ID from the created organization
     const finalOrganizationId = newOrganization.id;
+    sendLog(`✅ Organization created: ${newOrganization.name}`, 'success');
     
-    console.log('📊 Generating risk-based dashboard data...');
+    sendLog('📊 Generating risk-based dashboard data...', 'info');
     let generatedData;
     try {
-      generatedData = await generateDashboardData(formData, finalOrganizationId);
+      // Pass logCallback to stream logs via SSE
+      generatedData = await generateDashboardData(formData, finalOrganizationId, sendLog);
     } catch (err) {
       if (err && (err.code?.startsWith('P') || (err.name && err.name.toLowerCase().includes('prisma')))) {
-        console.error('❌ Prisma error during generation. Aborting to save API credits:', err);
-        return res.status(500).json({
-          error: 'Database error during generation',
-          details: err.message,
-          code: err.code
-        });
+        sendLog(`❌ Prisma error during generation: ${err.message}`, 'error');
+        res.write(`data: ${JSON.stringify({ type: 'error', message: 'Database error during generation', details: err.message, code: err.code })}\n\n`);
+        res.end();
+        return;
       }
-      throw err;
+      sendLog(`❌ Error during generation: ${err.message}`, 'error');
+      res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
+      res.end();
+      return;
     }
     
-    console.log('📊 Generated data structure:', {
-      hasClients: !!generatedData.data?.clients || !!generatedData.clients,
-      clientCount: generatedData.data?.clients?.length || generatedData.clients?.length || 0,
-      hasClientStates: !!generatedData.data?.clientStates,
-      hasNexusAlerts: !!generatedData.data?.nexusAlerts,
-      hasDecisionTables: !!generatedData.data?.decisionTables,
-      totalRecords: generatedData.summary?.totalRecords || 0
-    });
+    await ensureCompliantVisualizationStates(finalOrganizationId, generatedData, formData);
+    
+    sendLog('📊 Validating generated data structure...', 'info');
     
     const clients = generatedData.data?.clients || generatedData.clients;
     if (!generatedData || !clients || clients.length === 0) {
-      console.error('❌ No clients generated or invalid data structure');
-      return res.status(500).json({ 
-        error: 'Failed to generate client data',
-        details: 'No clients were created during the generation process'
-      });
+      sendLog('❌ No clients generated or invalid data structure', 'error');
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Failed to generate client data', details: 'No clients were created during the generation process' })}\n\n`);
+      res.end();
+      return;
     }
     
-    console.log('💾 Creating dashboard reference...');
+    sendLog(`✅ Generated ${clients.length} clients successfully`, 'success');
+    sendLog('💾 Creating dashboard reference...', 'info');
     
     // Calculate portfolio metrics
     const totalClients = clients.length;
@@ -578,18 +702,9 @@ router.post('/generate', async (req, res) => {
     const totalRevenue = clients.reduce((sum, c) => {
       // Use the helper function to clean and validate revenue values
       const cleanRevenue = cleanRevenueValue(c.annualRevenue);
-      console.log(`🔍 Client "${c.name}": Original revenue: ${c.annualRevenue}, Clean revenue: ${cleanRevenue}`);
       return sum + cleanRevenue;
     }, 0);
     const averageQualityScore = totalClients > 0 ? Math.round(clients.reduce((sum, c) => sum + (c.qualityScore || 0), 0) / totalClients) : 0;
-        
-        console.log('💾 Creating dashboard with data:', {
-          organizationId: finalOrganizationId,
-          clientName: formData.clientName,
-          totalClients,
-          totalRevenue,
-          averageQualityScore
-        });
 
     const generatedDashboard = await prisma.generatedDashboard.create({
       data: {
@@ -644,7 +759,7 @@ router.post('/generate', async (req, res) => {
           }
         });
 
-    console.log('✅ Dashboard stored in database with ID:', generatedDashboard.id);
+    sendLog(`✅ Dashboard stored in database with ID: ${generatedDashboard.id}`, 'success');
 
     // Generate all dashboard URLs for different roles
     const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
@@ -666,13 +781,198 @@ router.post('/generate', async (req, res) => {
       }
     };
 
-    console.log('🎉 Dashboard generation completed successfully');
-        console.log('📤 Response data:', {
-          id: response.data.id,
-          clientName: response.data.clientName,
-          uniqueUrl: response.data.uniqueUrl,
-          dashboardUrl: response.data.dashboardUrl
+    sendLog('🎉 Dashboard generation completed successfully', 'success');
+    sendLog(`✅ Dashboard URL: ${response.data.dashboardUrl}`, 'success');
+    
+    // Send final response via SSE with success flag
+    res.write(`data: ${JSON.stringify({ type: 'complete', success: true, data: response.data })}\n\n`);
+    res.end();
+    
+  } catch (error) {
+    sendLog(`❌ Error generating dashboard: ${error.message}`, 'error');
+    res.write(`data: ${JSON.stringify({ type: 'error', message: error.message, details: error.stack })}\n\n`);
+    res.end();
+  }
+});
+
+// POST /api/dashboards/generate
+router.post('/generate', async (req, res) => {
+  console.log('🚀 Dashboard generation request received');
+  console.log('📥 Request body:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const schema = await validateDatabaseSchema();
+    if (!schema.ok) {
+      console.error('❌ Database schema validation failed. Aborting generation to save API credits.', schema.issues);
+      return res.status(500).json({ 
+        error: 'Database schema not ready',
+        issues: schema.issues
+      });
+    }
+
+    const { formData } = req.body;
+
+    if (!formData) {
+      console.error('❌ Missing required fields:', { formData: !!formData });
+      return res.status(400).json({ 
+        error: 'Missing required fields: formData is required' 
+      });
+    }
+
+    // Create a new organization for this dashboard
+    console.log('🏢 Creating new organization for dashboard generation...');
+    
+    const orgSlug = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    
+    // Prepare organization data - only include absolutely required fields
+    const orgData = {
+      slug: orgSlug,
+      name: `${formData.clientName} Dashboard Organization`
+    };
+    
+    let newOrganization;
+    try {
+      newOrganization = await prisma.organization.create({
+        data: orgData
+      });
+
+      console.log('✅ Organization created:', { id: newOrganization.id, name: newOrganization.name });
+    } catch (orgError) {
+      console.error('❌ Error creating organization:', orgError);
+      return res.status(500).json({
+        error: 'Failed to create organization',
+        details: orgError.message
+      });
+    }
+
+    // Get the organization ID from the created organization
+    const finalOrganizationId = newOrganization.id;
+    
+    console.log('📊 Generating risk-based dashboard data...');
+    let generatedData;
+    try {
+      generatedData = await generateDashboardData(formData, finalOrganizationId);
+    } catch (err) {
+      if (err && (err.code?.startsWith('P') || (err.name && err.name.toLowerCase().includes('prisma')))) {
+        console.error('❌ Prisma error during generation. Aborting to save API credits:', err);
+        return res.status(500).json({
+          error: 'Database error during generation',
+          details: err.message,
+          code: err.code
         });
+      }
+      throw err;
+    }
+    
+    await ensureCompliantVisualizationStates(finalOrganizationId, generatedData, formData);
+    
+    console.log('📊 Generated data structure:', {
+      hasClients: !!generatedData.data?.clients || !!generatedData.clients,
+      clientCount: generatedData.data?.clients?.length || generatedData.clients?.length || 0,
+      hasClientStates: !!generatedData.data?.clientStates,
+      hasNexusAlerts: !!generatedData.data?.nexusAlerts,
+      hasDecisionTables: !!generatedData.data?.decisionTables,
+      totalRecords: generatedData.summary?.totalRecords || 0
+    });
+    
+    const clients = generatedData.data?.clients || generatedData.clients;
+    if (!generatedData || !clients || clients.length === 0) {
+      console.error('❌ No clients generated or invalid data structure');
+      return res.status(500).json({ 
+        error: 'Failed to generate client data',
+        details: 'No clients were created during the generation process'
+      });
+    }
+    
+    console.log('💾 Creating dashboard reference...');
+    
+    // Calculate portfolio metrics
+    const totalClients = clients.length;
+    const riskDistribution = generatedData.riskDistribution || calculateRiskDistribution(clients);
+    const totalPenaltyExposure = generatedData.totalPenaltyExposure || calculateTotalPenaltyExposure(clients);
+    const totalRevenue = clients.reduce((sum, c) => {
+      // Use the helper function to clean and validate revenue values
+      const cleanRevenue = cleanRevenueValue(c.annualRevenue);
+      return sum + cleanRevenue;
+    }, 0);
+    const averageQualityScore = totalClients > 0 ? Math.round(clients.reduce((sum, c) => sum + (c.qualityScore || 0), 0) / totalClients) : 0;
+
+    const generatedDashboard = await prisma.generatedDashboard.create({
+      data: {
+        organizationId: finalOrganizationId,
+        clientName: formData.clientName,
+        uniqueUrl: generateUniqueUrl(formData.clientName),
+        clientInfo: {
+          name: formData.clientName,
+          industry: formData.primaryIndustry || 'Technology',
+          totalClients: totalClients,
+          riskDistribution: riskDistribution,
+          totalPenaltyExposure: totalPenaltyExposure
+        },
+        keyMetrics: {
+          totalRevenue: totalRevenue,
+          complianceScore: averageQualityScore,
+          riskScore: (riskDistribution.critical || 0) * 25 + (riskDistribution.high || 0) * 15 + (riskDistribution.medium || 0) * 5,
+          statesMonitored: formData.priorityStates.length,
+          alertsActive: (generatedData.data?.nexusAlerts?.length || 0) + (generatedData.data?.alerts?.length || 0),
+          tasksCompleted: generatedData.data?.tasks?.filter(t => t.status === 'completed').length || 0
+        },
+        statesMonitored: formData.priorityStates,
+        personalizedData: {
+          clientCount: totalClients,
+          riskDistribution: riskDistribution,
+          totalPenaltyExposure: totalPenaltyExposure,
+          clientIds: clients.map(c => c.id),
+          generatedAt: new Date().toISOString()
+        },
+        // Store comprehensive generated data
+        generatedClients: generatedData.data?.clients || clients,
+        generatedAlerts: generatedData.data?.alerts || [],
+        generatedTasks: generatedData.data?.tasks || [],
+        generatedAnalytics: {
+          riskDistribution,
+          totalPenaltyExposure,
+          totalRevenue,
+          averageQualityScore
+        },
+        generatedClientStates: generatedData.data?.clientStates || [],
+        generatedNexusAlerts: generatedData.data?.nexusAlerts || [],
+        generatedNexusActivities: generatedData.data?.nexusActivities || [],
+        generatedSystemHealth: {
+          totalRecords: generatedData.summary?.totalRecords || 0,
+          dataCompleteness: '100%',
+          lastGenerated: new Date().toISOString()
+        },
+        generatedReports: [],
+        generatedCommunications: generatedData.data?.communications || [],
+        generatedDecisions: generatedData.data?.decisionTables || [],
+        lastUpdated: new Date()
+      }
+    });
+
+    console.log('✅ Dashboard stored in database with ID:', generatedDashboard.id);
+
+    // Generate all dashboard URLs for different roles
+    const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
+    
+    const response = {
+      success: true,
+      data: {
+        id: generatedDashboard.id,
+        clientName: generatedDashboard.clientName,
+        uniqueUrl: generatedDashboard.uniqueUrl,
+        dashboardUrl: dashboardUrls.main,
+        dashboardUrls: dashboardUrls, // Include all role-specific URLs
+        clientInfo: generatedDashboard.clientInfo,
+        keyMetrics: generatedDashboard.keyMetrics,
+        statesMonitored: generatedDashboard.statesMonitored,
+        personalizedData: generatedDashboard.personalizedData,
+        lastUpdated: generatedDashboard.lastUpdated,
+        organizationId: finalOrganizationId // Include the created organization ID
+      }
+    };
+
+    console.log('🎉 Dashboard generation completed successfully');
     res.json(response);
 
   } catch (error) {

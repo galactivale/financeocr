@@ -73,7 +73,7 @@ interface Client {
     revenue: number;
     threshold: number;
     percentage: number;
-    status: 'critical' | 'warning' | 'pending' | 'transit' | 'compliant';
+    status: 'critical' | 'warning' | 'pending' | 'compliant';
     daysSinceThreshold?: number;
     penaltyRange?: { min: number; max: number };
     transactions?: number;
@@ -1084,7 +1084,6 @@ export default function TaxManagerClients() {
                                 state.status === 'critical' ? 'bg-red-500/20 text-red-400' :
                                 state.status === 'warning' ? 'bg-orange-500/20 text-orange-400' :
                                 state.status === 'pending' ? 'bg-blue-500/20 text-blue-400' :
-                                state.status === 'transit' ? 'bg-cyan-500/20 text-cyan-400' :
                                 'bg-green-500/20 text-green-400'
                               }`}>
                                 {state.status.toUpperCase()}

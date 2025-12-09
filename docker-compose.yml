@@ -29,13 +29,15 @@ services:
       context: ./server
       dockerfile: Dockerfile
     container_name: vaultcpa-backend
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 3080
       DATABASE_URL: postgresql://vaultcpa_user:vaultcpa_secure_password_2024@postgres:5432/vaultcpa
       JWT_SECRET: your_jwt_secret_key_here
       CORS_ORIGIN: https://financeocr.com,http://financeocr.com
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "3080:3080"
     networks:

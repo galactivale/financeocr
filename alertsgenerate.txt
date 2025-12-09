@@ -1,0 +1,327 @@
+# Alert Generation System Documentation
+
+## Overview
+
+The dashboard generation system creates two types of alerts during the client data generation process:
+1. **Nexus Alerts** - Threshold-based alerts for economic nexus compliance
+2. **General Alerts** - Compliance, deadline, review, and filing alerts
+
+---
+
+## 1. Nexus Alerts (Threshold-Based)
+
+Nexus alerts are created during the `generateNexusMonitoringData()` process for each client-state combination.
+
+### Step 1: Calculate Revenue Ratio
+
+For each state a client operates in:
+
+```javascript
+// 1. Determine threshold amount (varies by state)
+if (['CA', 'NY', 'TX'].includes(stateCode)) {
+  thresholdAmount = 500000 + Math.floor(Math.random() * 500000); // $500K-$1M for major states
+} else if (['FL', 'IL', 'PA', 'OH'].includes(stateCode)) {
+  thresholdAmount = 200000 + Math.floor(Math.random() * 300000); // $200K-$500K for medium states
+} else {
+  thresholdAmount = 100000 + Math.floor(Math.random() * 200000); // $100K-$300K for other states
+}
+
+// 2. Generate current amount (varies by risk level)
+if (client.riskLevel === 'critical') {
+  currentAmount = Math.floor(Math.random() * thresholdAmount * 1.5); // 0-150% for critical clients
+} else if (client.riskLevel === 'high') {
+  currentAmount = Math.floor(Math.random() * thresholdAmount * 1.2); // 0-120% for high-risk clients
+} else {
+  currentAmount = Math.floor(Math.random() * thresholdAmount * 0.9); // 0-90% for lower-risk clients
+}
+
+// 3. Calculate ratio
+const ratio = currentAmount / thresholdAmount;
+```
+
+### Step 2: Qualification Strategies
+
+The system uses different qualification strategies that determine when alerts are triggered:
+
+| Strategy | Warning Threshold | Alert Threshold | Critical Threshold | Description |
+|----------|------------------|-----------------|-------------------|-------------|
+| **Conservative** | 60% | 80% | 100% | Early warning at 60% threshold, alerts at 80% |
+| **Standard** | 80% | 80% | 100% | Alerts at 80% threshold, critical at 100% |
+| **Aggressive** | 90% | 90% | 110% | Alerts at 90% threshold, critical at 110% |
+| **Compliance-Focused** | 70% | 70% | 90% | Strict monitoring with alerts at 70% threshold |
+| **Risk-Tolerant** | 100% | 100% | 120% | Minimal alerts, only at 100%+ threshold |
+
+### Step 3: Determine if Alert is Created
+
+```javascript
+// Get qualification strategy
+const strategy = this.qualificationStrategies[formData.qualificationStrategy || 'standard'];
+
+// Determine if an alert will be created for this state
+const willCreateAlert = ratio >= strategy.alertThreshold;
+
+// Generate status - but ensure it doesn't indicate threshold exceeded if no alert will be created
+let status;
+if (willCreateAlert) {
+  // If alert will be created, use normal status generation
+  status = this.generateClientStateStatus(currentAmount, thresholdAmount, client.riskLevel, ...);
+} else {
+  // If NO alert will be created, ensure status is NOT 'critical' or 'warning'
+  // Status should be 'pending', 'transit', or 'compliant' only
+  if (ratio >= (strategy.warningThreshold * 0.5)) {
+    status = 'pending'; // Cap at pending if no alert
+  } else if (ratio >= (strategy.warningThreshold * 0.2)) {
+    status = 'transit';
+  } else {
+    status = 'compliant';
+  }
+}
+```
+
+### Step 4: Create Nexus Alert (if threshold met)
+
+```javascript
+// Create nexus alert based on qualification strategy (only if willCreateAlert is true)
+if (willCreateAlert) {
+  const isExceeded = ratio >= strategy.criticalThreshold;
+  const alertType = isExceeded ? 'threshold_breach' : 'threshold_approaching';
+  const priority = isExceeded ? 'high' : 'medium';
+  const title = isExceeded 
+    ? `${client.name} - ${stateCode} Nexus Threshold Exceeded`
+    : `${client.name} - ${stateCode} Nexus Threshold Approaching`;
+  const description = isExceeded
+    ? `${client.industry} company has exceeded the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(ratio * 100).toFixed(1)}%)`
+    : `${client.industry} company is approaching the economic nexus threshold in ${stateCode}. Current revenue: $${currentAmount.toLocaleString()}, Threshold: $${thresholdAmount.toLocaleString()} (${(ratio * 100).toFixed(1)}%)`;
+  
+  const nexusAlert = await this.prisma.nexusAlert.create({
+    data: {
+      organizationId,
+      clientId: client.id,
+      stateCode,
+      alertType,        // 'threshold_breach' or 'threshold_approaching'
+      priority,         // 'high' if exceeded, 'medium' if approaching
+      status: 'open',
+      title,
+      description,
+      thresholdAmount,
+      currentAmount,
+      penaltyRisk: isExceeded ? Math.floor((currentAmount - thresholdAmount) * 0.1) : 0,
+      deadline: new Date(Date.now() + (isExceeded ? 30 : 60) * 24 * 60 * 60 * 1000), // 30 days for exceeded, 60 days for approaching
+    },
+  });
+}
+```
+
+### Nexus Alert Properties
+
+- **alertType**: 
+  - `threshold_breach` - When ratio >= criticalThreshold
+  - `threshold_approaching` - When ratio >= alertThreshold but < criticalThreshold
+
+- **priority**: 
+  - `high` - If threshold breached
+  - `medium` - If approaching threshold
+
+- **penaltyRisk**: 
+  - Calculated as 10% of excess amount if threshold exceeded
+  - Formula: `Math.floor((currentAmount - thresholdAmount) * 0.1)`
+  - Set to 0 if only approaching threshold
+
+- **deadline**: 
+  - 30 days from creation if threshold exceeded
+  - 60 days from creation if approaching threshold
+
+---
+
+## 2. General Alerts (Compliance/Deadline/Review)
+
+General alerts are created separately in `generateAlertsAndTasks()`:
+
+```javascript
+async generateAlertsAndTasks(client, organizationId, generatedData) {
+  // Create general alerts
+  const alertTypes = ['compliance', 'deadline', 'review', 'nexus', 'filing'];
+  const numAlerts = Math.floor(Math.random() * 3) + 1; // 1-3 alerts per client
+
+  for (let i = 0; i < numAlerts; i++) {
+    const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+    const stateCode = ['CA', 'TX', 'NY', 'FL', 'IL'][Math.floor(Math.random() * 5)];
+    const alert = await this.prisma.alert.create({
+      data: {
+        organizationId,
+        clientId: client.id,
+        title: `${client.name} - ${alertType} Alert`,
+        description: `${alertType} alert for ${client.industry} company requiring CPA firm attention`,
+        issue: `${alertType} issue detected for ${client.riskLevel} risk client in ${stateCode}`,
+        stateCode,
+        stateName: this.getStateName(stateCode),
+        currentAmount: Math.floor(Math.random() * 100000),
+        thresholdAmount: 100000,
+        penaltyRisk: Math.floor(Math.random() * 50000),
+        priority: client.riskLevel === 'critical' ? 'high' : client.riskLevel === 'high' ? 'medium' : 'low',
+        severity: client.riskLevel === 'critical' ? 'high' : client.riskLevel === 'high' ? 'medium' : 'low',
+        status: 'new',
+        type: alertType,
+        category: 'compliance',
+        deadline: new Date(Date.now() + (Math.floor(Math.random() * 30) + 1) * 24 * 60 * 60 * 1000),
+        detectedAt: new Date(),
+      },
+    });
+  }
+}
+```
+
+### General Alert Properties
+
+- **Types**: `compliance`, `deadline`, `review`, `nexus`, `filing`
+- **Quantity**: 1-3 alerts per client (random)
+- **Priority/Severity**: Based on client risk level
+  - Critical clients → `high`
+  - High-risk clients → `medium`
+  - Lower-risk clients → `low`
+- **Deadline**: Random 1-30 days from creation
+- **State**: Randomly assigned from major states
+
+---
+
+## Alert Creation Logic Summary
+
+### Nexus Alerts
+
+**Trigger Condition**: `currentAmount / thresholdAmount >= strategy.alertThreshold`
+
+**Decision Tree**:
+```
+1. Calculate ratio = currentAmount / thresholdAmount
+2. Get strategy from formData.qualificationStrategy
+3. Check: ratio >= strategy.alertThreshold?
+   ├─ YES → Create alert
+   │   ├─ Check: ratio >= strategy.criticalThreshold?
+   │   │   ├─ YES → alertType = 'threshold_breach', priority = 'high'
+   │   │   └─ NO  → alertType = 'threshold_approaching', priority = 'medium'
+   │   └─ Calculate penaltyRisk and deadline
+   └─ NO → No alert created, status capped at 'pending' or below
+```
+
+### General Alerts
+
+**Trigger**: Random generation (1-3 per client)
+- Not dependent on thresholds
+- Based on client risk level for priority/severity
+- Random type and state assignment
+
+---
+
+## Example Flow
+
+### Scenario
+- **Client**: TechCorp Inc.
+- **Risk Level**: `critical`
+- **Strategy**: `standard` (alerts at 80%, critical at 100%)
+- **State**: `CA` (California)
+- **Threshold**: $750,000
+- **Current Amount**: $850,000
+
+### Calculation
+1. **Ratio** = $850,000 / $750,000 = **1.13 (113%)**
+2. **willCreateAlert** = `true` (113% >= 80%)
+3. **isExceeded** = `true` (113% >= 100%)
+4. **Alert Created**:
+   - **Type**: `threshold_breach`
+   - **Priority**: `high`
+   - **Penalty Risk**: $10,000 (10% of $100,000 excess)
+   - **Deadline**: 30 days from now
+   - **Title**: "TechCorp Inc. - CA Nexus Threshold Exceeded"
+   - **Description**: "Technology company has exceeded the economic nexus threshold in CA. Current revenue: $850,000, Threshold: $750,000 (113.3%)"
+
+---
+
+## Important Points
+
+1. **Alerts Only Created When Threshold Met**: Alerts are only created when the revenue ratio meets or exceeds the strategy's `alertThreshold`. This prevents false positives.
+
+2. **Status and Alerts Synchronized**: The client state status and alert creation are synchronized. If no alert is created, the status will never be `critical` or `warning` - it will be capped at `pending`, `transit`, or `compliant`.
+
+3. **Strategy Determines Thresholds**: The user's selected qualification strategy determines when alerts trigger:
+   - **Conservative**: Alerts at 80% (earlier warnings)
+   - **Standard**: Alerts at 80% (balanced)
+   - **Aggressive**: Alerts at 90% (later warnings)
+   - **Compliance-Focused**: Alerts at 70% (earliest warnings)
+   - **Risk-Tolerant**: Alerts at 100% (only when threshold exceeded)
+
+4. **Risk Level Affects Amounts**: Client risk level determines the range of `currentAmount`:
+   - Critical clients: 0-150% of threshold (more likely to exceed)
+   - High-risk clients: 0-120% of threshold
+   - Lower-risk clients: 0-90% of threshold (less likely to exceed)
+
+5. **State-Specific Thresholds**: Major states (CA, NY, TX) have higher thresholds ($500K-$1M), making alerts less frequent but more significant when they occur.
+
+6. **Penalty Risk Calculation**: Only calculated for threshold breaches (not approaching alerts). Formula: `10% of (currentAmount - thresholdAmount)`.
+
+7. **Deadline Assignment**: 
+   - Threshold breaches: 30 days (urgent)
+   - Threshold approaching: 60 days (less urgent)
+
+---
+
+## Code Locations
+
+- **Nexus Alert Generation**: `server/src/services/enhancedDataGenerator.js` → `generateNexusMonitoringData()` (lines 825-988)
+- **General Alert Generation**: `server/src/services/enhancedDataGenerator.js` → `generateAlertsAndTasks()` (lines 990-1020)
+- **Qualification Strategies**: `server/src/services/enhancedDataGenerator.js` → Constructor (lines 17-49)
+- **Status Generation**: `server/src/services/enhancedDataGenerator.js` → `generateClientStateStatus()` (lines 597-623)
+
+---
+
+## Database Schema
+
+### NexusAlert Table
+- `id` - UUID
+- `organizationId` - UUID
+- `clientId` - UUID
+- `stateCode` - String (e.g., 'CA', 'NY')
+- `alertType` - Enum: 'threshold_breach' | 'threshold_approaching'
+- `priority` - Enum: 'low' | 'medium' | 'high'
+- `status` - Enum: 'open' | 'acknowledged' | 'resolved'
+- `title` - String
+- `description` - String
+- `thresholdAmount` - Decimal
+- `currentAmount` - Decimal
+- `penaltyRisk` - Decimal
+- `deadline` - DateTime
+- `createdAt` - DateTime
+- `updatedAt` - DateTime
+
+### Alert Table (General Alerts)
+- `id` - UUID
+- `organizationId` - UUID
+- `clientId` - UUID
+- `title` - String
+- `description` - String
+- `issue` - String
+- `stateCode` - String
+- `stateName` - String
+- `type` - Enum: 'compliance' | 'deadline' | 'review' | 'nexus' | 'filing'
+- `category` - String
+- `priority` - Enum: 'low' | 'medium' | 'high'
+- `severity` - Enum: 'low' | 'medium' | 'high'
+- `status` - Enum: 'new' | 'acknowledged' | 'resolved'
+- `currentAmount` - Decimal
+- `thresholdAmount` - Decimal
+- `penaltyRisk` - Decimal
+- `deadline` - DateTime
+- `detectedAt` - DateTime
+
+---
+
+## Summary
+
+The alert generation system ensures that:
+- Alerts are only created when actual compliance risk exists (based on thresholds)
+- Alert severity and priority match the actual risk level
+- The system respects user-selected qualification strategies
+- Client risk levels influence alert frequency and severity
+- State-specific thresholds provide realistic compliance scenarios
+- Both threshold-based (nexus) and general compliance alerts are generated for comprehensive monitoring
+
+

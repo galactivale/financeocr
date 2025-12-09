@@ -1,15 +1,47 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const { PrismaClient } = require('@prisma/client');
 
 class SchemaBasedDataGenerator {
   constructor() {
-    const token = process.env.GEMINI_API_KEY;
-    if (!token) {
-      throw new Error('GEMINI_API_KEY not found in environment variables');
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY not found in environment variables');
     }
-    this.genAI = new GoogleGenerativeAI(token);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    this.openai = new OpenAI({ apiKey });
     this.prisma = new PrismaClient();
+  }
+
+  // Helper method to call OpenAI API
+  async callOpenAI(prompt) {
+    const result = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that generates realistic business client data for CPA firms. Always respond with valid JSON only."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000,
+      response_format: { type: "json_object" }
+    });
+    const text = result.choices[0].message.content;
+    
+    // Parse JSON from response
+    try {
+      return JSON.parse(text);
+    } catch (parseError) {
+      // Fallback: try to extract JSON if not directly parseable
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error('No valid JSON found in response');
+    }
   }
 
   async generateCompleteClientData(formData, organizationId) {
@@ -17,7 +49,7 @@ class SchemaBasedDataGenerator {
     console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
 
     try {
-      console.log('✅ Gemini API key found, generating comprehensive data...');
+      console.log('✅ OpenAI API key found, generating comprehensive data...');
 
       // Generate data sequentially to avoid API rate limits and errors
       console.log('📊 Generating client data...');
@@ -163,15 +195,7 @@ class SchemaBasedDataGenerator {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-      throw new Error('No JSON found in response');
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error generating client data with AI:', error);
       return this.getFallbackClientData(formData);

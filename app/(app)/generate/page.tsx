@@ -101,6 +101,7 @@ export default function GeneratePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentStepMessage, setCurrentStepMessage] = useState("");
+  const [generationLogs, setGenerationLogs] = useState<string[]>([]);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -177,6 +178,10 @@ export default function GeneratePage() {
     }
   };
 
+  const appendGenerationLog = React.useCallback((message: string) => {
+    setGenerationLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} — ${message}`]);
+  }, []);
+
   const simulateProgress = async () => {
     const steps = [
       { progress: 10, message: "Initializing dashboard generation..." },
@@ -191,6 +196,7 @@ export default function GeneratePage() {
     for (const step of steps) {
       setGenerationProgress(step.progress);
       setCurrentStepMessage(step.message);
+      appendGenerationLog(step.message);
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate processing time
     }
   };
@@ -206,25 +212,125 @@ export default function GeneratePage() {
     setIsSubmitting(true);
     setGenerationProgress(0);
     setCurrentStepMessage("");
+    setGenerationLogs([`${new Date().toLocaleTimeString()} — Starting dashboard generation...`]);
+    
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080';
+    let responseData: any = null;
     
     try {
-      // Start progress simulation
-      const progressPromise = simulateProgress();
+      // Use SSE stream for real-time logs
+      console.log('🚀 Sending dashboard generation request with SSE:', { formData });
       
-      // Call the backend API to generate the dashboard (backend will create organization)
-      console.log('🚀 Sending dashboard generation request:', { formData });
-      const response = await apiClient.generateDashboard(formData);
+      // Create a promise that resolves when SSE stream completes
+      const ssePromise = new Promise<void>((resolve, reject) => {
+        // Make a POST request to start the SSE stream
+        fetch(`${API_BASE_URL}/api/dashboards/generate/stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ formData }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          // Read the stream
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
+          
+          if (!reader) {
+            throw new Error('No response body reader available');
+          }
+          
+          let buffer = '';
+          
+          const processStream = async () => {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                
+                if (done) {
+                  if (buffer.trim()) {
+                    // Process remaining buffer
+                    const lines = buffer.split('\n');
+                    for (const line of lines) {
+                      if (line.startsWith('data: ')) {
+                        try {
+                          const data = JSON.parse(line.substring(6));
+                          if (data.type === 'complete') {
+                            responseData = { success: data.success, data: data.data };
+                          }
+                        } catch (e) {
+                          console.warn('Failed to parse final SSE data:', e);
+                        }
+                      }
+                    }
+                  }
+                  break;
+                }
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                
+                // Keep the last incomplete line in buffer
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                  if (line.startsWith('data: ')) {
+                    try {
+                      const data = JSON.parse(line.substring(6));
+                      
+                      if (data.type === 'log' || data.type === 'info' || data.type === 'error' || data.type === 'success') {
+                        appendGenerationLog(data.message);
+                        setCurrentStepMessage(data.message);
+                      } else if (data.type === 'progress') {
+                        setGenerationProgress(data.progress);
+                        setCurrentStepMessage(data.message);
+                        appendGenerationLog(data.message);
+                      } else if (data.type === 'complete') {
+                        responseData = { success: data.success, data: data.data };
+                        resolve();
+                        return;
+                      } else if (data.type === 'error') {
+                        appendGenerationLog(`Error: ${data.message}`, 'error');
+                        reject(new Error(data.message));
+                        return;
+                      }
+                    } catch (parseError) {
+                      console.warn('Failed to parse SSE data:', parseError, line);
+                    }
+                  }
+                }
+              }
+              
+              // If we get here and haven't resolved, check if we have responseData
+              if (responseData) {
+                resolve();
+              } else {
+                reject(new Error('Stream ended without completion data'));
+              }
+            } catch (streamError) {
+              reject(streamError);
+            }
+          };
+          
+          processStream();
+        })
+        .catch(error => {
+          reject(error);
+        });
+      });
       
-      // Wait for progress to complete
-      await progressPromise;
+      await ssePromise;
       
-      console.log('📥 Dashboard generation response:', response);
-      
-      if (response.success && response.data) {
-        console.log('✅ Dashboard generation successful:', response.data);
+      if (responseData && responseData.success) {
+        console.log('✅ Dashboard generation successful:', responseData.data);
+        appendGenerationLog("✅ Dashboard generation completed successfully!");
         
         // Validate that we have the required data
-        if (!response.data?.uniqueUrl || !response.data?.dashboardUrl) {
+        if (!responseData.data?.uniqueUrl || !responseData.data?.dashboardUrl) {
           throw new Error('Invalid dashboard data received from server');
         }
         
@@ -233,9 +339,9 @@ export default function GeneratePage() {
         
         // Set dashboard session cookie with organizationId from backend
         setDashboardSession({
-          dashboardUrl: response.data.uniqueUrl!,
+          dashboardUrl: responseData.data.uniqueUrl!,
           clientName: formData.clientName,
-          organizationId: response.data.organizationId,
+          organizationId: responseData.data.organizationId,
           createdAt: Date.now()
         });
         
@@ -244,17 +350,15 @@ export default function GeneratePage() {
         
         // Wait a moment to show success message, then redirect
         setTimeout(() => {
-          if (response.data?.dashboardUrl) {
-            console.log('Redirecting to:', response.data.dashboardUrl);
-            window.location.href = response.data.dashboardUrl;
+          if (responseData.data?.dashboardUrl) {
+            console.log('Redirecting to:', responseData.data.dashboardUrl);
+            window.location.href = responseData.data.dashboardUrl;
           } else {
             console.log('Dashboard generated successfully, but no redirect URL available');
           }
         }, 1500);
-        
       } else {
-        console.error('❌ Dashboard generation failed:', response);
-        throw new Error(response.error || 'Failed to generate dashboard');
+        throw new Error(responseData?.error || 'Failed to generate dashboard');
       }
     } catch (error) {
       console.error('❌ Error generating dashboard:', error);
@@ -263,11 +367,15 @@ export default function GeneratePage() {
         stack: error instanceof Error ? error.stack : undefined,
         formData: formData
       });
+      appendGenerationLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       alert(`Error generating dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
-      setGenerationProgress(0);
-      setCurrentStepMessage("");
+      if (responseData && responseData.success) {
+        setGenerationProgress(100);
+      } else {
+        setGenerationProgress(0);
+      }
     }
   };
 
@@ -440,6 +548,48 @@ export default function GeneratePage() {
                 </div>
               </div>
             )}
+
+            {/* Generation Log Panel */}
+            <Card className="border border-white/10 bg-white/5 backdrop-blur-xl">
+              <CardBody className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-medium text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                      Generation Log
+                    </h3>
+                    <p className="text-xs text-white/60" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                      Real-time updates from the backend generation process
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="light"
+                    className="text-white/70"
+                    onPress={() => setGenerationLogs([])}
+                    isDisabled={isSubmitting || generationLogs.length === 0}
+                  >
+                    Clear
+                  </Button>
+                </div>
+                <div className="bg-black/30 border border-white/10 rounded-lg h-48 overflow-y-auto px-4 py-3 space-y-1">
+                  {generationLogs.length === 0 ? (
+                    <p className="text-xs text-white/50" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
+                      No log entries yet. Submit the form to view backend progress.
+                    </p>
+                  ) : (
+                    generationLogs.map((log, index) => (
+                      <p 
+                        key={`${log}-${index}`} 
+                        className="text-xs text-white/80 font-mono"
+                        style={{ fontFamily: 'Menlo, Monaco, Consolas, monospace' }}
+                      >
+                        {log}
+                      </p>
+                    ))
+                  )}
+                </div>
+              </CardBody>
+            </Card>
               </div>
 
           {/* Main Content */}

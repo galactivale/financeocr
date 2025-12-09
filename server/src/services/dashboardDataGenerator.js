@@ -1,9 +1,41 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 
 class DashboardDataGenerator {
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+
+  // Helper method to call OpenAI API
+  async callOpenAI(prompt) {
+    const result = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that generates realistic business client data for CPA firms. Always respond with valid JSON only."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000,
+      response_format: { type: "json_object" }
+    });
+    const text = result.choices[0].message.content;
+    
+    // Parse JSON from response
+    try {
+      return JSON.parse(text);
+    } catch (parseError) {
+      // Fallback: try to extract JSON if not directly parseable
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error('No valid JSON found in response');
+    }
   }
 
   async generateComprehensiveDashboardData(formData) {
@@ -85,12 +117,8 @@ class DashboardDataGenerator {
     Return as a JSON object with realistic business data.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing client info JSON:', error);
       return this.getFallbackClientInfo(formData);
@@ -115,12 +143,8 @@ class DashboardDataGenerator {
     Return as a JSON object with numerical data and percentages.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing key metrics JSON:', error);
       return this.getFallbackKeyMetrics(formData);
@@ -146,12 +170,8 @@ class DashboardDataGenerator {
     Return as a JSON array of state objects with realistic financial and compliance data.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing client states JSON:', error);
       return this.getFallbackClientStates(formData);
@@ -177,12 +197,8 @@ class DashboardDataGenerator {
     Return as a JSON array of alert objects with realistic data.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing nexus alerts JSON:', error);
       return this.getFallbackNexusAlerts(formData);
@@ -204,12 +220,8 @@ class DashboardDataGenerator {
     Return as a JSON array of activity objects with realistic timestamps and descriptions.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing nexus activities JSON:', error);
       return this.getFallbackNexusActivities(formData);
@@ -233,12 +245,8 @@ class DashboardDataGenerator {
     Return as a JSON array of alert objects.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing alerts JSON:', error);
       return this.getFallbackAlerts(formData);
@@ -262,12 +270,8 @@ class DashboardDataGenerator {
     Return as a JSON array of task objects with realistic priorities and due dates.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing tasks JSON:', error);
       return this.getFallbackTasks(formData);
@@ -291,12 +295,8 @@ class DashboardDataGenerator {
     Return as a JSON object with realistic analytical data.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing analytics JSON:', error);
       return this.getFallbackAnalytics(formData);
@@ -315,12 +315,8 @@ class DashboardDataGenerator {
     Return as a JSON object with realistic system health indicators.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing system health JSON:', error);
       return this.getFallbackSystemHealth(formData);
@@ -341,12 +337,8 @@ class DashboardDataGenerator {
     Return as a JSON array of report objects with realistic data.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing reports JSON:', error);
       return this.getFallbackReports(formData);
@@ -367,12 +359,8 @@ class DashboardDataGenerator {
     Return as a JSON array of communication objects with realistic content and timestamps.
     `;
 
-    const result = await this.model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
     try {
-      return JSON.parse(text);
+      return await this.callOpenAI(prompt);
     } catch (error) {
       console.error('Error parsing communications JSON:', error);
       return this.getFallbackCommunications(formData);

@@ -1,10 +1,9 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 const { PrismaClient } = require('@prisma/client');
 
 class RiskBasedDataGenerator {
   constructor() {
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     this.prisma = new PrismaClient();
   }
 
@@ -13,12 +12,12 @@ class RiskBasedDataGenerator {
     console.log('📊 Form data received:', JSON.stringify(formData, null, 2));
 
     try {
-      if (!process.env.GEMINI_API_KEY) {
-        console.log('⚠️ GEMINI_API_KEY not found, using fallback data');
+      if (!process.env.OPENAI_API_KEY) {
+        console.log('⚠️ OPENAI_API_KEY not found, using fallback data');
         return await this.generateFallbackRiskData(formData, organizationId);
       }
 
-      console.log('✅ Gemini API key found, generating risk-based client data...');
+      console.log('✅ OpenAI API key found, generating risk-based client data...');
 
       // Generate multiple clients (max 20) with different risk levels
       const clientCount = Math.min(parseInt(formData.multiStateClientCount) || 5, 20);
@@ -409,17 +408,35 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
 `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const result = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant that generates realistic business client data for CPA firms. Always respond with valid JSON only."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 4000,
+        response_format: { type: "json_object" }
+      });
+      const text = result.choices[0].message.content;
       
-      // Extract JSON from response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+      // Parse JSON from response (OpenAI returns JSON directly when response_format is json_object)
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        // Fallback: try to extract JSON if not directly parseable
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+        throw new Error('No valid JSON found in response');
       }
-      
-      throw new Error('No valid JSON found in response');
     } catch (error) {
       console.error('Error generating client data:', error);
       return this.getFallbackClientData(formData, index, riskLevel);
@@ -453,8 +470,6 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
         status = 'warning';
       } else if (percentage >= 50) {
         status = 'pending';
-      } else if (percentage >= 20) {
-        status = 'transit';
       }
       // If percentage < 20, status remains 'compliant'
 
@@ -882,7 +897,6 @@ IMPORTANT: Make this company completely unique with realistic data that matches 
         if (percentage >= 100) status = 'critical';
         else if (percentage >= 80) status = 'warning';
         else if (percentage >= 50) status = 'pending';
-        else if (percentage >= 20) status = 'transit';
 
         await this.prisma.clientState.create({
           data: {
