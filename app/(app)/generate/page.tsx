@@ -294,7 +294,7 @@ export default function GeneratePage() {
                         resolve();
                         return;
                       } else if (data.type === 'error') {
-                        appendGenerationLog(`Error: ${data.message}`, 'error');
+                        appendGenerationLog(`Error: ${data.message}`);
                         reject(new Error(data.message));
                         return;
                       }
