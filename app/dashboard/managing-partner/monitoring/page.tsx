@@ -523,82 +523,7 @@ const ManagingPartnerMonitoring = () => {
     
     const stateData: any = {};
     
-    // If no data, return empty object (states will show as grey - no activity)
-    if (!dataToUse || dataToUse.length === 0) {
-      return {};
-    }
-    
-    // Process client states data with better state mapping
-    dataToUse.forEach((clientState: any) => {
-      const stateCode = clientState.stateCode?.toUpperCase();
-      if (!stateCode) return;
-      
-      // Use currentAmount from backend data, fallback to revenue for static data
-      const revenue = clientState.currentAmount || clientState.revenue || 0;
-      const threshold = clientState.thresholdAmount || 500000;
-      
-      // ALWAYS use status from database - it's the source of truth
-      const status = clientState.status || 'compliant';
-      
-      if (!stateData[stateCode]) {
-        stateData[stateCode] = {
-          status: status,
-          revenue: revenue,
-          clients: 1,
-          alerts: 0,
-          companies: [clientState.client?.name || 'Unknown Client'],
-          thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
-          riskScore: Math.round(revenue / threshold * 100),
-          lastUpdated: clientState.lastUpdated || new Date().toISOString(),
-          hasData: true,
-          clientStatuses: [status] // Track individual client statuses
-        };
-      } else {
-        stateData[stateCode].clients += 1;
-        stateData[stateCode].revenue += revenue;
-        stateData[stateCode].companies.push(clientState.client?.name || 'Unknown Client');
-        // Calculate threshold progress based on individual client ratios, not aggregated
-        // Use the average ratio to avoid inflating progress
-        const avgRatio = stateData[stateCode].revenue / (threshold * stateData[stateCode].clients);
-        stateData[stateCode].thresholdProgress = Math.min(100, Math.round(avgRatio * 100));
-        stateData[stateCode].riskScore = Math.round(avgRatio * 100);
-        stateData[stateCode].hasData = true;
-        
-        // Track individual client status
-        if (!stateData[stateCode].clientStatuses) {
-          stateData[stateCode].clientStatuses = [];
-        }
-        stateData[stateCode].clientStatuses.push(status);
-        
-        // Determine state status based on client statuses
-        // Priority: critical > warning > compliant
-        // But preserve compliant if all clients are compliant
-        const statuses = stateData[stateCode].clientStatuses;
-        const allCompliant = statuses.every((s: string) => s === 'compliant');
-        
-        // Count status occurrences
-        const criticalCount = statuses.filter((s: string) => s === 'critical').length;
-        const warningCount = statuses.filter((s: string) => s === 'warning').length;
-        const compliantCount = statuses.filter((s: string) => s === 'compliant').length;
-        
-        if (allCompliant) {
-          stateData[stateCode].status = 'compliant';
-        } else if (criticalCount > 0) {
-          stateData[stateCode].status = 'critical';
-        } else if (warningCount > 0 && compliantCount === 0) {
-          // Only mark as warning if there are NO compliant clients
-          // If there are both warning and compliant, we'll check alerts later
-          stateData[stateCode].status = 'warning';
-        } else {
-          // Has compliant clients (even if mixed with warnings)
-          // Will be validated with alerts in final pass
-          stateData[stateCode].status = 'compliant';
-        }
-      }
-    });
-
-    // Process alerts data - USE ALERTS AS PRIMARY SOURCE (matching alerts page logic)
-    // Alerts page uses alertType to determine status - we'll do the same here
+    // Get alerts data first - we need to process alerts to create state entries for states that only have alerts
     const alertsToUse = isPersonalizedMode
       ? (personalizedNexusAlerts && personalizedNexusAlerts.length > 0 
           ? personalizedNexusAlerts 
@@ -609,6 +534,116 @@ const ManagingPartnerMonitoring = () => {
           ? nexusAlertsData.alerts 
           : []);
     
+    // FIRST: Process alerts to create state entries for states that only have alerts (especially compliance_confirmed)
+    // This ensures compliant states with only alerts (no client states) appear on the map
+    if (alertsToUse && alertsToUse.length > 0) {
+      alertsToUse.forEach((alert: any) => {
+        const stateCode = alert.stateCode?.toUpperCase();
+        if (!stateCode || stateCode === 'US') return; // Skip alerts without valid stateCode
+        
+        // Create state entry if it doesn't exist (for states that only have alerts)
+        if (!stateData[stateCode]) {
+          stateData[stateCode] = {
+            status: 'compliant',
+            revenue: alert.currentAmount || 0,
+            clients: 0, // Will be updated when we process client states
+            alerts: 0,
+            companies: [],
+            thresholdProgress: 0,
+            riskScore: 0,
+            lastUpdated: alert.createdAt || new Date().toISOString(),
+            hasData: true, // Mark as having data so it appears on map
+            clientStatuses: [],
+            threshold: alert.thresholdAmount || 500000
+          };
+        }
+        
+        // Increment alert count
+        stateData[stateCode].alerts += 1;
+      });
+    }
+    
+    // If no data at all, return empty object (states will show as grey - no activity)
+    if ((!dataToUse || dataToUse.length === 0) && (!alertsToUse || alertsToUse.length === 0)) {
+      return {};
+    }
+    
+    // SECOND: Process client states data with better state mapping
+    // This will merge with or create state entries from client states
+    if (dataToUse && dataToUse.length > 0) {
+      dataToUse.forEach((clientState: any) => {
+        const stateCode = clientState.stateCode?.toUpperCase();
+        if (!stateCode) return;
+        
+        // Use currentAmount from backend data, fallback to revenue for static data
+        const revenue = clientState.currentAmount || clientState.revenue || 0;
+        const threshold = clientState.thresholdAmount || 500000;
+        
+        // ALWAYS use status from database - it's the source of truth
+        const status = clientState.status || 'compliant';
+        
+        if (!stateData[stateCode]) {
+          // Create new state entry from client state
+          stateData[stateCode] = {
+            status: status,
+            revenue: revenue,
+            clients: 1,
+            alerts: 0, // Will be updated when we process alerts
+            companies: [clientState.client?.name || 'Unknown Client'],
+            thresholdProgress: Math.min(100, Math.round(revenue / threshold * 100)),
+            riskScore: Math.round(revenue / threshold * 100),
+            lastUpdated: clientState.lastUpdated || new Date().toISOString(),
+            hasData: true,
+            clientStatuses: [status], // Track individual client statuses
+            threshold: threshold
+          };
+        } else {
+          // Merge with existing state entry (may have been created from alerts)
+          stateData[stateCode].clients += 1;
+          stateData[stateCode].revenue += revenue;
+          stateData[stateCode].companies.push(clientState.client?.name || 'Unknown Client');
+          // Calculate threshold progress based on individual client ratios, not aggregated
+          // Use the average ratio to avoid inflating progress
+          const avgRatio = stateData[stateCode].revenue / (threshold * stateData[stateCode].clients);
+          stateData[stateCode].thresholdProgress = Math.min(100, Math.round(avgRatio * 100));
+          stateData[stateCode].riskScore = Math.round(avgRatio * 100);
+          stateData[stateCode].hasData = true;
+          
+          // Track individual client status
+          if (!stateData[stateCode].clientStatuses) {
+            stateData[stateCode].clientStatuses = [];
+          }
+          stateData[stateCode].clientStatuses.push(status);
+          
+          // Determine state status based on client statuses
+          // Priority: critical > warning > compliant
+          // But preserve compliant if all clients are compliant
+          const statuses = stateData[stateCode].clientStatuses;
+          const allCompliant = statuses.every((s: string) => s === 'compliant');
+          
+          // Count status occurrences
+          const criticalCount = statuses.filter((s: string) => s === 'critical').length;
+          const warningCount = statuses.filter((s: string) => s === 'warning').length;
+          const compliantCount = statuses.filter((s: string) => s === 'compliant').length;
+          
+          if (allCompliant) {
+            stateData[stateCode].status = 'compliant';
+          } else if (criticalCount > 0) {
+            stateData[stateCode].status = 'critical';
+          } else if (warningCount > 0 && compliantCount === 0) {
+            // Only mark as warning if there are NO compliant clients
+            // If there are both warning and compliant, we'll check alerts later
+            stateData[stateCode].status = 'warning';
+          } else {
+            // Has compliant clients (even if mixed with warnings)
+            // Will be validated with alerts in final pass
+            stateData[stateCode].status = 'compliant';
+          }
+        }
+      });
+    }
+
+    // THIRD: Process alerts again to determine status and update alert counts
     // Build alert-based status map for each state (matching alerts page logic)
     // Priority: critical > compliant (if compliance_confirmed exists) > warning
     const alertStatusMap: Record<string, { status: string; priority: number; hasComplianceConfirmed: boolean }> = {};
@@ -616,7 +651,7 @@ const ManagingPartnerMonitoring = () => {
     if (alertsToUse && alertsToUse.length > 0) {
       alertsToUse.forEach((alert: any) => {
         const stateCode = alert.stateCode?.toUpperCase();
-        if (!stateCode) return; // Skip alerts without stateCode (monitoring alerts)
+        if (!stateCode || stateCode === 'US') return; // Skip alerts without valid stateCode
         
         // Initialize state map if not exists
         if (!alertStatusMap[stateCode]) {
@@ -643,11 +678,6 @@ const ManagingPartnerMonitoring = () => {
             alertStatusMap[stateCode].status = 'warning';
             alertStatusMap[stateCode].priority = 3;
           }
-        }
-        
-        // Count alerts (for display)
-        if (stateData[stateCode]) {
-          stateData[stateCode].alerts += 1;
         }
       });
     }
