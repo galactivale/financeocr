@@ -12,7 +12,9 @@ COPY package.json package-lock.json* ./
 RUN npm ci --include=dev && \
     echo "Installing SWC dependencies explicitly..." && \
     npm install --save-dev @swc/cli @swc/core || \
-    echo "SWC CLI/Core installation skipped (may already be included)"
+    echo "SWC CLI/Core installation skipped (may already be included)" && \
+    echo "Removing incompatible SWC gnu binaries (Alpine uses musl)..." && \
+    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -39,12 +41,11 @@ RUN mkdir -p /root/.cache/next-swc && \
 
 # Explicitly install SWC binaries for Alpine Linux (musl)
 # Next.js requires platform-specific SWC binaries
+# Remove gnu version if it exists (Alpine uses musl, not glibc)
 RUN echo "Installing SWC binaries for Alpine Linux..." && \
-    npm install --save-optional @next/swc-linux-x64-musl@latest || \
-    (echo "Failed to install @next/swc-linux-x64-musl, trying alternative..." && \
-     npm install --save-optional @next/swc-linux-x64-gnu@latest || \
-     echo "SWC binary installation completed with warnings") && \
-    echo "SWC binaries installation attempted"
+    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
+    npm install --save-optional @next/swc-linux-x64-musl@latest && \
+    echo "SWC binaries installation completed"
 
 # Build the application
 # Use explicit error handling to see if build fails
