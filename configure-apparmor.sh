@@ -49,6 +49,36 @@ echo ""
 echo "🧹 Removing unknown AppArmor profiles..."
 sudo aa-remove-unknown 2>/dev/null || echo "  No unknown profiles to remove"
 
+# Check if Docker Compose is installed via snap
+echo ""
+echo "🐳 Checking Docker Compose installation..."
+if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_PATH=$(which docker-compose)
+    echo "  Docker Compose found at: $DOCKER_COMPOSE_PATH"
+    
+    if echo "$DOCKER_COMPOSE_PATH" | grep -q snap; then
+        echo "  ⚠️  Docker Compose is installed via snap"
+        echo "  Configuring AppArmor profile for snap.docker.compose..."
+        
+        # Ensure snapd.apparmor is running
+        sudo systemctl enable snapd.apparmor.service
+        sudo systemctl start snapd.apparmor.service
+        sleep 2
+        
+        # Load the AppArmor profile for docker-compose snap
+        if [ -f "/var/lib/snapd/apparmor/profiles/snap.docker.compose" ]; then
+            echo "  Found AppArmor profile, loading..."
+            sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap.docker.compose 2>/dev/null || true
+        fi
+        
+        # Try to reload all snap AppArmor profiles
+        if [ -d "/var/lib/snapd/apparmor/profiles" ]; then
+            echo "  Reloading snap AppArmor profiles..."
+            sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/* 2>/dev/null || true
+        fi
+    fi
+fi
+
 # Check Docker AppArmor profile
 echo ""
 echo "🐳 Checking Docker AppArmor configuration..."
