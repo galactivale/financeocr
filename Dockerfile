@@ -55,7 +55,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
 # Copy node_modules as fallback (needed if standalone doesn't exist)
+# Include SWC binaries to avoid runtime download
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || true
 
 USER nextjs
 
