@@ -57,15 +57,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 # Copy node_modules as fallback (needed if standalone doesn't exist)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Set environment to skip SWC download if not available
-ENV NEXT_SWC_DOWNLOAD_DISABLED=1
-
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV=production
 
 # Try standalone first, fallback to next start (production mode)
-CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; else npx next start; fi'
+# Use explicit path and ensure production mode
+CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; else cd /app && NODE_ENV=production npx next start; fi'
