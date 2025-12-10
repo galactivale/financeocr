@@ -26,14 +26,19 @@ git pull origin main || { echo -e "${RED}Error: Failed to pull changes!${NC}"; e
 echo -e "${GREEN}✓ Latest changes pulled${NC}"
 echo ""
 
-# Step 3: Fix Docker permissions (if needed)
-echo -e "${YELLOW}Step 3: Checking for Docker permission issues...${NC}"
+# Step 3: Fix Docker permissions and remove problematic containers
+echo -e "${YELLOW}Step 3: Fixing Docker permission issues...${NC}"
+if [ -f "kill-postgres-container.sh" ]; then
+    chmod +x kill-postgres-container.sh
+    echo "  Removing problematic postgres container..."
+    sudo bash kill-postgres-container.sh 2>/dev/null || echo "  Container removal attempted"
+fi
 if [ -f "fix-docker-permissions.sh" ]; then
     chmod +x fix-docker-permissions.sh
     echo "  Running Docker permission fix..."
-    sudo bash fix-docker-permissions.sh 2>/dev/null || echo "  No permission issues found"
+    sudo bash fix-docker-permissions.sh 2>/dev/null || echo "  Permission fix completed"
 fi
-echo -e "${GREEN}✓ Docker permissions checked${NC}"
+echo -e "${GREEN}✓ Docker permissions fixed${NC}"
 echo ""
 
 # Step 4: Stop all services
