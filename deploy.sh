@@ -26,13 +26,26 @@ git pull origin main || { echo -e "${RED}Error: Failed to pull changes!${NC}"; e
 echo -e "${GREEN}✓ Latest changes pulled${NC}"
 echo ""
 
-# Step 3: Fix Docker permissions and remove problematic containers
+# Step 3: Fix Docker permissions and remove ALL problematic containers
 echo -e "${YELLOW}Step 3: Fixing Docker permission issues...${NC}"
-if [ -f "kill-postgres-container.sh" ]; then
+
+# Fix AppArmor first (common cause of permission issues)
+if command -v aa-remove-unknown &> /dev/null; then
+    echo "  Fixing AppArmor..."
+    sudo aa-remove-unknown 2>/dev/null || true
+fi
+
+# Use the comprehensive kill script
+if [ -f "kill-all-containers.sh" ]; then
+    chmod +x kill-all-containers.sh
+    echo "  Removing ALL problematic containers..."
+    sudo bash kill-all-containers.sh 2>/dev/null || echo "  Container removal attempted"
+elif [ -f "kill-postgres-container.sh" ]; then
     chmod +x kill-postgres-container.sh
-    echo "  Removing problematic postgres container..."
+    echo "  Removing problematic containers..."
     sudo bash kill-postgres-container.sh 2>/dev/null || echo "  Container removal attempted"
 fi
+
 if [ -f "fix-docker-permissions.sh" ]; then
     chmod +x fix-docker-permissions.sh
     echo "  Running Docker permission fix..."
@@ -43,6 +56,12 @@ echo ""
 
 # Step 4: Stop all services gracefully with timeout
 echo -e "${YELLOW}Step 4: Stopping all services...${NC}"
+
+# Get all container IDs before stopping
+ALL_CONTAINER_IDS=$(sudo docker ps -a --filter "name=vaultcpa" --format "{{.ID}}" 2>/dev/null || echo "")
+ALL_CONTAINER_IDS="$ALL_CONTAINER_IDS $(sudo docker ps -a --filter "name=postgres" --format "{{.ID}}" 2>/dev/null || echo "")"
+ALL_CONTAINER_IDS="$ALL_CONTAINER_IDS $(sudo docker ps -a --filter "name=pgadmin" --format "{{.ID}}" 2>/dev/null || echo "")"
+
 # First try graceful shutdown
 sudo docker-compose down --timeout 30 || echo "  Graceful shutdown attempted"
 
@@ -51,7 +70,14 @@ echo "  Force removing any stuck containers..."
 sudo docker-compose down --remove-orphans --timeout 10 2>/dev/null || true
 
 # Remove containers by name to avoid orphaned containers
+echo "  Removing containers by name..."
 sudo docker rm -f vaultcpa-postgres vaultcpa-backend vaultcpa-frontend vaultcpa-pgadmin nginx 2>/dev/null || true
+
+# Remove by ID as well
+echo "$ALL_CONTAINER_IDS" | while read id; do
+    [ ! -z "$id" ] && sudo docker kill "$id" 2>/dev/null || true
+    [ ! -z "$id" ] && sudo docker rm -f "$id" 2>/dev/null || true
+done
 
 echo -e "${GREEN}✓ Services stopped${NC}"
 echo ""
