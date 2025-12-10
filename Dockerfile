@@ -60,6 +60,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 # Copy .next folder (includes static and potentially standalone)
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
+# Copy standalone output if it exists (Next.js standalone mode)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
 # Copy node_modules as fallback (needed if standalone doesn't exist)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
@@ -82,4 +86,4 @@ ENV NODE_ENV=production
 
 # Try standalone first, fallback to next start (production mode)
 # Use explicit path and ensure production mode
-CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; else cd /app && NODE_ENV=production npx next start; fi'
+CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; elif [ -f "./.next/standalone/server.js" ]; then node ./.next/standalone/server.js; else cd /app && NODE_ENV=production npx next start; fi'
