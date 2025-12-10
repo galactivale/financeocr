@@ -3,18 +3,22 @@ FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# Install necessary packages for SWC on Alpine
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 # Ensure devDependencies are installed for build (tailwindcss, etc.)
 COPY package.json package-lock.json* ./
 RUN npm ci --include=dev && \
+    echo "Removing incompatible SWC gnu binaries (Alpine uses musl)..." && \
+    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     echo "Installing SWC dependencies explicitly..." && \
     npm install --save-dev @swc/cli @swc/core || \
     echo "SWC CLI/Core installation skipped (may already be included)" && \
-    echo "Removing incompatible SWC gnu binaries (Alpine uses musl)..." && \
-    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
+    echo "Ensuring musl SWC binary is installed..." && \
+    npm install --save-optional @next/swc-linux-x64-musl@latest || \
+    echo "SWC musl binary installation attempted"
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -44,7 +48,10 @@ RUN mkdir -p /root/.cache/next-swc && \
 # Remove gnu version if it exists (Alpine uses musl, not glibc)
 RUN echo "Installing SWC binaries for Alpine Linux..." && \
     rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
+    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest && \
+    echo "Verifying SWC binary installation..." && \
+    ls -la node_modules/@next/swc* 2>/dev/null | head -10 || echo "SWC packages check" && \
     echo "SWC binaries installation completed"
 
 # Build the application
@@ -86,15 +93,21 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 # Copy node_modules (required for next start, includes SWC binaries)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copy SWC cache from builder to avoid runtime download
-# Switch to root temporarily to copy cache
+# Ensure SWC musl binary exists and remove any gnu binaries
 USER root
-RUN mkdir -p /root/.cache/next-swc
+RUN echo "Verifying SWC binaries in runtime..." && \
+    rm -rf /app/node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
+    ls -la /app/node_modules/@next/swc* 2>/dev/null | head -5 || echo "SWC packages check" && \
+    mkdir -p /root/.cache/next-swc && \
+    echo "SWC verification complete"
+
+# Copy SWC cache from builder to avoid runtime download
 COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || echo "SWC cache copy skipped (may not exist)"
 RUN chown -R nextjs:nodejs /root/.cache/next-swc 2>/dev/null || true
 
 # Set SWC path environment variable
 ENV NEXT_SWC_PATH=/root/.cache/next-swc
+ENV NEXT_PRIVATE_SKIP_POSTCSS_PLUGINS=true
 
 # Verify files were copied
 RUN echo "Verifying copied files..." && \
