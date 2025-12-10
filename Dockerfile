@@ -17,7 +17,9 @@ COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev && \
     rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    npm install --save-optional @next/swc-linux-x64-musl@latest || true
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true && \
+    # Ensure autoprefixer and postcss are installed
+    npm list autoprefixer postcss || npm install --save-dev autoprefixer postcss
 
 # Rebuild the source code only when needed
 FROM base AS builder

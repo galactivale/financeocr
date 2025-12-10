@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Optimize for Docker builds
-  swcMinify: true,
+  // Optimize for Docker builds (swcMinify is default in Next.js 15, removed)
   compress: true,
   poweredByHeader: false,
   env: {
