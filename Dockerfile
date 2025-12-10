@@ -3,7 +3,6 @@ FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -23,37 +22,34 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Set build environment to production for standalone output
-# Next.js standalone mode requires NODE_ENV=production during build
-ENV NODE_ENV=production
+# Set build environment - use development for build, production for runtime
+ENV NODE_ENV=development
 
 # Increase Node.js heap size for build
 ENV NODE_OPTIONS="--max-old-space-size=16384"
 
-# Create SWC cache directory
-RUN mkdir -p /root/.cache/next-swc
-
-# Build the application (this will download SWC binaries during build)
-RUN npm run build
-
-# Verify build output exists
-RUN ls -la /app/.next/ && \
-    echo "=== Build verification ===" && \
-    ls -la /app/.next/static/ 2>/dev/null || echo "Static folder not found" && \
-    ls -la /app/.next/standalone/ 2>/dev/null || echo "Standalone folder not found (OK if not using standalone)" && \
-    ls -la /root/.cache/next-swc/ 2>/dev/null || echo "SWC cache not found"
+# Build the application
+# Use explicit error handling to see if build fails
+RUN set -eux; \
+    echo "Starting Next.js build..."; \
+    npm run build || (echo "Build failed with exit code $?" && exit 1); \
+    echo "Build completed successfully"; \
+    echo "Checking .next folder..."; \
+    ls -la /app/.next/ || (echo "ERROR: .next folder not found after build!" && exit 1); \
+    echo "Checking .next/static folder..."; \
+    ls -la /app/.next/static/ || echo "WARNING: .next/static not found"; \
+    echo "Build verification complete"
 
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Install wget for healthcheck
+# Install wget and curl for healthcheck
 RUN apk add --no-cache wget curl
 
 RUN addgroup --system --gid 1001 nodejs
@@ -65,26 +61,17 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Copy package.json
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Copy .next folder (includes static and potentially standalone)
-# Note: COPY will fail if source doesn't exist, so we know build succeeded if this works
+# Copy .next folder - this will fail if build didn't complete
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-
-# Verify .next was copied (as root before switching to nextjs user)
-RUN ls -la /app/.next/ && \
-    echo "=== .next folder contents ===" && \
-    find /app/.next -type f -name "*.js" | head -5 || echo "No JS files found"
 
 # Copy node_modules (required for next start)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copy SWC cache from builder to avoid runtime download
-# Use root user temporarily to copy cache, then change ownership
-USER root
-COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc
-RUN chown -R nextjs:nodejs /root/.cache/next-swc || true
-
-# Set SWC path to use cached binaries
-ENV NEXT_SWC_PATH=/root/.cache/next-swc
+# Verify files were copied
+RUN echo "Verifying copied files..." && \
+    ls -la /app/.next/ && \
+    ls -la /app/.next/static/ 2>/dev/null || echo "Static folder missing" && \
+    echo "Files verified"
 
 USER nextjs
 
@@ -94,6 +81,5 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 ENV NODE_ENV=production
 
-# Use next start in production mode (standalone may not always be generated)
-# Ensure we're in the app directory and use production mode
+# Use next start in production mode
 CMD ["sh", "-c", "cd /app && NODE_ENV=production npx next start"]
