@@ -64,5 +64,5 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Try standalone first, fallback to npm start
-CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; else npm start; fi'
+# Try standalone first, fallback to next start (production mode)
+CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; else npx next start; fi'

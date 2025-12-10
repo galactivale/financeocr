@@ -9,10 +9,6 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     return config;
   },
-  // Disable static optimization for error pages to avoid Html import issues
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
 };
 
 module.exports = nextConfig;
