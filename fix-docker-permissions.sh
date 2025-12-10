@@ -8,26 +8,31 @@ echo ""
 
 # 1. Stop all containers forcefully
 echo "🛑 Stopping all containers..."
-docker stop $(docker ps -aq) 2>/dev/null || echo "Some containers may already be stopped"
+sudo docker stop $(sudo docker ps -aq) 2>/dev/null || echo "Some containers may already be stopped"
 
-# 2. Remove the problematic container
-echo "🗑️  Removing problematic containers..."
-docker rm -f a2b34f48bdfb 2>/dev/null || echo "Container may not exist"
-docker rm -f b0558ba4943e 2>/dev/null || echo "Container may not exist"
+# 2. Remove problematic postgres containers (all variations)
+echo "🗑️  Removing problematic postgres containers..."
+sudo docker rm -f a2b34f48bdfb 2>/dev/null || echo "Container a2b34f48bdfb may not exist"
+sudo docker rm -f $(sudo docker ps -a --filter "name=vaultcpa-postgres" --format "{{.ID}}") 2>/dev/null || echo "No postgres containers found"
+sudo docker rm -f $(sudo docker ps -a --filter "name=postgres" --format "{{.ID}}") 2>/dev/null || echo "No postgres containers found"
 
 # 3. Clean up docker-compose
 echo "🧹 Cleaning up docker-compose..."
-docker-compose down 2>/dev/null || echo "docker-compose down completed"
+sudo docker-compose down 2>/dev/null || echo "docker-compose down completed"
 
 # 4. Remove orphaned containers
 echo "🧹 Removing orphaned containers..."
-docker container prune -f
+sudo docker container prune -f
 
-# 5. Restart Docker service (if needed)
+# 5. Remove any containers in "Created" state
+echo "🧹 Removing containers in Created state..."
+sudo docker ps -a --filter "status=created" --format "{{.ID}}" | xargs -r sudo docker rm -f 2>/dev/null || echo "No created containers to remove"
+
+# 6. Restart Docker service (if needed)
 echo "🔄 Checking Docker service..."
 sudo systemctl restart docker 2>/dev/null || echo "Docker service restart attempted"
 
 echo ""
 echo "✅ Cleanup complete. You can now run:"
-echo "   docker-compose up -d"
+echo "   sudo docker-compose up -d"
 
