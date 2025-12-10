@@ -39,6 +39,13 @@ RUN mkdir -p /root/.cache/next-swc
 # Build the application (this will download SWC binaries during build)
 RUN npm run build
 
+# Verify build output exists
+RUN ls -la /app/.next/ && \
+    echo "=== Build verification ===" && \
+    ls -la /app/.next/static/ 2>/dev/null || echo "Static folder not found" && \
+    ls -la /app/.next/standalone/ 2>/dev/null || echo "Standalone folder not found (OK if not using standalone)" && \
+    ls -la /root/.cache/next-swc/ 2>/dev/null || echo "SWC cache not found"
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
@@ -59,7 +66,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 # Copy .next folder (includes static and potentially standalone)
+# Note: COPY will fail if source doesn't exist, so we know build succeeded if this works
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+
+# Verify .next was copied (as root before switching to nextjs user)
+RUN ls -la /app/.next/ && \
+    echo "=== .next folder contents ===" && \
+    find /app/.next -type f -name "*.js" | head -5 || echo "No JS files found"
 
 # Copy node_modules (required for next start)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
