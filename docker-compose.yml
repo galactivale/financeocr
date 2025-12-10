@@ -68,8 +68,6 @@ services:
     networks:
       - vaultcpa-network
     depends_on:
-      postgres:
-        condition: service_healthy
       backend:
         condition: service_healthy
     restart: unless-stopped
