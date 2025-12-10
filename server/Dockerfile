@@ -32,6 +32,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
+# Create logs directory with proper permissions BEFORE switching user
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs && chmod 755 /app/logs
+
 # Copy built application
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/src ./src
@@ -40,6 +43,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 
 # Copy Prisma generated files
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+
+# Ensure logs directory ownership is correct
+RUN chown -R nodejs:nodejs /app/logs || true
 
 USER nodejs
 
