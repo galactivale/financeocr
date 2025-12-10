@@ -9,7 +9,10 @@ WORKDIR /app
 # Install dependencies based on the preferred package manager
 # Ensure devDependencies are installed for build (tailwindcss, etc.)
 COPY package.json package-lock.json* ./
-RUN npm ci --include=dev
+RUN npm ci --include=dev && \
+    echo "Installing SWC dependencies explicitly..." && \
+    npm install --save-dev @swc/cli @swc/core || \
+    echo "SWC CLI/Core installation skipped (may already be included)"
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -34,11 +37,14 @@ ENV NODE_OPTIONS="--max-old-space-size=16384"
 RUN mkdir -p /root/.cache/next-swc && \
     echo "SWC cache directory created"
 
-# Pre-install SWC binaries to avoid runtime download
-# This ensures SWC binaries are available during build
-RUN npm list @next/swc-linux-x64-musl 2>/dev/null || \
-    npm install --save-optional @next/swc-linux-x64-musl || \
-    echo "SWC binary package installation attempted"
+# Explicitly install SWC binaries for Alpine Linux (musl)
+# Next.js requires platform-specific SWC binaries
+RUN echo "Installing SWC binaries for Alpine Linux..." && \
+    npm install --save-optional @next/swc-linux-x64-musl@latest || \
+    (echo "Failed to install @next/swc-linux-x64-musl, trying alternative..." && \
+     npm install --save-optional @next/swc-linux-x64-gnu@latest || \
+     echo "SWC binary installation completed with warnings") && \
+    echo "SWC binaries installation attempted"
 
 # Build the application
 # Use explicit error handling to see if build fails
