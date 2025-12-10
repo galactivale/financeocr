@@ -45,8 +45,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      backend:
-        condition: service_started
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3080/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
@@ -103,6 +101,11 @@ services:
   nginx:
     image: nginx:alpine
     container_name: nginx
+    depends_on:
+    backend:
+      condition: service_healthy
+    frontend:
+      condition: service_started
     ports:
       - "80:80"
       - "443:443"
