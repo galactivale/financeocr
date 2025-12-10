@@ -158,4 +158,11 @@ volumes:
 networks:
   vaultcpa-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: vaultcpa-br0
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
