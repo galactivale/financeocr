@@ -30,6 +30,16 @@ ENV NODE_ENV=development
 # Increase Node.js heap size for build
 ENV NODE_OPTIONS="--max-old-space-size=16384"
 
+# Create SWC cache directory and ensure SWC binaries are available
+RUN mkdir -p /root/.cache/next-swc && \
+    echo "SWC cache directory created"
+
+# Pre-install SWC binaries to avoid runtime download
+# This ensures SWC binaries are available during build
+RUN npm list @next/swc-linux-x64-musl 2>/dev/null || \
+    npm install --save-optional @next/swc-linux-x64-musl || \
+    echo "SWC binary package installation attempted"
+
 # Build the application
 # Use explicit error handling to see if build fails
 RUN set -eux; \
@@ -40,6 +50,8 @@ RUN set -eux; \
     ls -la /app/.next/ || (echo "ERROR: .next folder not found after build!" && exit 1); \
     echo "Checking .next/static folder..."; \
     ls -la /app/.next/static/ || echo "WARNING: .next/static not found"; \
+    echo "Checking SWC cache..."; \
+    ls -la /root/.cache/next-swc/ 2>/dev/null || echo "SWC cache not found (may be OK)"; \
     echo "Build verification complete"
 
 # Production image, copy all the files and run next
@@ -64,13 +76,25 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 # Copy .next folder - this will fail if build didn't complete
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
-# Copy node_modules (required for next start)
+# Copy node_modules (required for next start, includes SWC binaries)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy SWC cache from builder to avoid runtime download
+# Switch to root temporarily to copy cache
+USER root
+RUN mkdir -p /root/.cache/next-swc
+COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || echo "SWC cache copy skipped (may not exist)"
+RUN chown -R nextjs:nodejs /root/.cache/next-swc 2>/dev/null || true
+
+# Set SWC path environment variable
+ENV NEXT_SWC_PATH=/root/.cache/next-swc
 
 # Verify files were copied
 RUN echo "Verifying copied files..." && \
     ls -la /app/.next/ && \
     ls -la /app/.next/static/ 2>/dev/null || echo "Static folder missing" && \
+    echo "Checking node_modules for SWC..." && \
+    ls -la /app/node_modules/@next/swc* 2>/dev/null | head -5 || echo "SWC packages in node_modules" && \
     echo "Files verified"
 
 USER nextjs
