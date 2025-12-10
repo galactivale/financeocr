@@ -32,7 +32,10 @@ ENV NODE_ENV=development
 # Increase Node.js heap size for build
 ENV NODE_OPTIONS="--max-old-space-size=16384"
 
-# Build the application
+# Create SWC cache directory
+RUN mkdir -p /root/.cache/next-swc
+
+# Build the application (this will download SWC binaries during build)
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -41,6 +44,9 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Install wget for healthcheck
+RUN apk add --no-cache wget curl
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -56,6 +62,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
 # Copy node_modules as fallback (needed if standalone doesn't exist)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy SWC cache from builder to avoid runtime download
+# Use root user temporarily to copy cache, then change ownership
+USER root
+COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc
+RUN chown -R nextjs:nodejs /root/.cache/next-swc || true
+
+# Set SWC path to use cached binaries
+ENV NEXT_SWC_PATH=/root/.cache/next-swc
 
 USER nextjs
 
