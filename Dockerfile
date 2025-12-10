@@ -48,16 +48,13 @@ RUN adduser --system --uid 1001 nextjs
 # Copy public folder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy package.json first
+# Copy package.json
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Try to copy standalone output (may not exist if build failed)
-# Use wildcard to avoid build failure if directory doesn't exist
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone* ./ 2>/dev/null || true
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copy .next folder and node_modules as fallback if standalone doesn't exist
+# Copy .next folder (includes static and potentially standalone)
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+
+# Copy node_modules as fallback (needed if standalone doesn't exist)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
