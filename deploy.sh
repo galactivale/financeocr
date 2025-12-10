@@ -26,12 +26,19 @@ git pull origin main || { echo -e "${RED}Error: Failed to pull changes!${NC}"; e
 echo -e "${GREEN}✓ Latest changes pulled${NC}"
 echo ""
 
-# Step 3: Fix Docker permissions and remove ALL problematic containers
-echo -e "${YELLOW}Step 3: Fixing Docker permission issues...${NC}"
+# Step 3: Configure AppArmor and fix Docker permissions
+echo -e "${YELLOW}Step 3: Configuring AppArmor and fixing Docker permissions...${NC}"
 
-# Fix AppArmor first (common cause of permission issues)
+# Configure AppArmor properly
+if [ -f "configure-apparmor.sh" ]; then
+    chmod +x configure-apparmor.sh
+    echo "  Configuring AppArmor..."
+    sudo bash configure-apparmor.sh 2>/dev/null || echo "  AppArmor configuration attempted"
+fi
+
+# Fix AppArmor (remove unknown profiles)
 if command -v aa-remove-unknown &> /dev/null; then
-    echo "  Fixing AppArmor..."
+    echo "  Removing unknown AppArmor profiles..."
     sudo aa-remove-unknown 2>/dev/null || true
 fi
 
