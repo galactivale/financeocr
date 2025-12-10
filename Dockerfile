@@ -68,16 +68,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Copy public folder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy package.json and install only production dependencies
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/package-lock.json* ./package-lock.json
-
-# Install only production dependencies
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev && \
-    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
-
-# Copy .next folder
+# Copy standalone output from Next.js build
+# The standalone output includes node_modules and server.js
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
