@@ -1,0 +1,40 @@
+# Docker Compose for local development
+# Usage: docker-compose -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  # Frontend Next.js App (Development)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Use BuildKit for better caching
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: vaultcpa-frontend-dev
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3080
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for hot reload (if using dev mode)
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - vaultcpa-network
+    restart: unless-stopped
+    # Enable BuildKit cache
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - vaultcpa-frontend:latest
+
+networks:
+  vaultcpa-network:
+    driver: bridge
+

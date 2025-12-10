@@ -1,24 +1,23 @@
-# Multi-stage build for Next.js frontend
+# syntax=docker/dockerfile:1.4
+
+# Multi-stage build for Next.js frontend - Optimized for local builds
 FROM node:18-alpine AS base
+
+# Install system dependencies once
+RUN apk add --no-cache libc6-compat python3 make g++ wget curl
 
 # Install dependencies only when needed
 FROM base AS deps
-# Install necessary packages for SWC on Alpine
-RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-# Ensure devDependencies are installed for build (tailwindcss, etc.)
+# Copy only package files first for better caching
 COPY package.json package-lock.json* ./
-RUN npm ci --include=dev && \
-    echo "Removing incompatible SWC gnu binaries (Alpine uses musl)..." && \
+
+# Install dependencies with BuildKit cache mount for faster rebuilds
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --include=dev && \
     rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    echo "Installing SWC dependencies explicitly..." && \
-    npm install --save-dev @swc/cli @swc/core || \
-    echo "SWC CLI/Core installation skipped (may already be included)" && \
-    echo "Ensuring musl SWC binary is installed..." && \
-    npm install --save-optional @next/swc-linux-x64-musl@latest || \
-    echo "SWC musl binary installation attempted"
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -27,103 +26,75 @@ WORKDIR /app
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy application files
+# Copy package.json for build
+COPY package.json ./
+
+# Copy application files (this layer will be invalidated on code changes)
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-ENV NEXT_TELEMETRY_DISABLED 1
+# Next.js telemetry
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Set build environment - use development for build, production for runtime
-ENV NODE_ENV=development
+# Build environment - use production for optimized builds
+ENV NODE_ENV=production
 
 # Increase Node.js heap size for build
-ENV NODE_OPTIONS="--max-old-space-size=16384"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Create SWC cache directory and ensure SWC binaries are available
-RUN mkdir -p /root/.cache/next-swc && \
-    echo "SWC cache directory created"
+# Create SWC cache directory
+RUN mkdir -p /root/.cache/next-swc
 
-# Explicitly install SWC binaries for Alpine Linux (musl)
-# Next.js requires platform-specific SWC binaries
-# Remove gnu version if it exists (Alpine uses musl, not glibc)
-RUN echo "Installing SWC binaries for Alpine Linux..." && \
-    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    npm install --save-optional @next/swc-linux-x64-musl@latest && \
-    echo "Verifying SWC binary installation..." && \
-    ls -la node_modules/@next/swc* 2>/dev/null | head -10 || echo "SWC packages check" && \
-    echo "SWC binaries installation completed"
+# Ensure SWC musl binary exists
+RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
-# Build the application
-# Use explicit error handling to see if build fails
-RUN set -eux; \
-    echo "Starting Next.js build..."; \
-    npm run build || (echo "Build failed with exit code $?" && exit 1); \
-    echo "Build completed successfully"; \
-    echo "Checking .next folder..."; \
-    ls -la /app/.next/ || (echo "ERROR: .next folder not found after build!" && exit 1); \
-    echo "Checking .next/static folder..."; \
-    ls -la /app/.next/static/ || echo "WARNING: .next/static not found"; \
-    echo "Checking SWC cache..."; \
-    ls -la /root/.cache/next-swc/ 2>/dev/null || echo "SWC cache not found (may be OK)"; \
-    echo "Build verification complete"
+# Build the application with BuildKit cache mount
+RUN --mount=type=cache,target=/root/.cache/next-swc \
+    --mount=type=cache,target=/app/.next/cache \
+    npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_SWC_PATH=/root/.cache/next-swc
+ENV NEXT_PRIVATE_SKIP_POSTCSS_PLUGINS=true
 
-# Install wget and curl for healthcheck
-RUN apk add --no-cache wget curl
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 # Copy public folder
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy package.json
+# Copy package.json and install only production dependencies
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/package-lock.json* ./package-lock.json
 
-# Copy .next folder - this will fail if build didn't complete
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+# Install only production dependencies
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --omit=dev && \
+    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
 
-# Copy node_modules (required for next start, includes SWC binaries)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+# Copy .next folder
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Ensure SWC musl binary exists and remove any gnu binaries
+# Copy SWC cache if it exists
 USER root
-RUN echo "Verifying SWC binaries in runtime..." && \
-    rm -rf /app/node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    ls -la /app/node_modules/@next/swc* 2>/dev/null | head -5 || echo "SWC packages check" && \
-    mkdir -p /root/.cache/next-swc && \
-    echo "SWC verification complete"
+RUN mkdir -p /root/.cache/next-swc && \
+    rm -rf /app/node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
 
-# Copy SWC cache from builder to avoid runtime download
-COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || echo "SWC cache copy skipped (may not exist)"
+COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || true
 RUN chown -R nextjs:nodejs /root/.cache/next-swc 2>/dev/null || true
-
-# Set SWC path environment variable
-ENV NEXT_SWC_PATH=/root/.cache/next-swc
-ENV NEXT_PRIVATE_SKIP_POSTCSS_PLUGINS=true
-
-# Verify files were copied
-RUN echo "Verifying copied files..." && \
-    ls -la /app/.next/ && \
-    ls -la /app/.next/static/ 2>/dev/null || echo "Static folder missing" && \
-    echo "Checking node_modules for SWC..." && \
-    ls -la /app/node_modules/@next/swc* 2>/dev/null | head -5 || echo "SWC packages in node_modules" && \
-    echo "Files verified"
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Use next start in production mode
-CMD ["sh", "-c", "cd /app && NODE_ENV=production npx next start"]
+# Use the standalone server
+CMD ["node", "server.js"]

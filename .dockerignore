@@ -100,6 +100,12 @@ Dockerfile*
 docker-compose*
 .dockerignore
 
+# Build artifacts (will be generated in container)
+.next
+out
+dist
+build
+
 # Documentation
 README.md
 *.md
