@@ -26,8 +26,9 @@ COPY . .
 # Learn more here: https://nextjs.org/telemetry
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Set build environment (not production yet - we need devDependencies for build)
-ENV NODE_ENV=development
+# Set build environment to production for standalone output
+# Next.js standalone mode requires NODE_ENV=production during build
+ENV NODE_ENV=production
 
 # Increase Node.js heap size for build
 ENV NODE_OPTIONS="--max-old-space-size=16384"
@@ -60,11 +61,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 # Copy .next folder (includes static and potentially standalone)
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
-# Copy standalone output if it exists (Next.js standalone mode)
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Copy node_modules as fallback (needed if standalone doesn't exist)
+# Copy node_modules (required for next start)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Copy SWC cache from builder to avoid runtime download
@@ -84,6 +81,6 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 ENV NODE_ENV=production
 
-# Try standalone first, fallback to next start (production mode)
-# Use explicit path and ensure production mode
-CMD sh -c 'if [ -f "./server.js" ]; then node ./server.js; elif [ -f "./.next/standalone/server.js" ]; then node ./.next/standalone/server.js; else cd /app && NODE_ENV=production npx next start; fi'
+# Use next start in production mode (standalone may not always be generated)
+# Ensure we're in the app directory and use production mode
+CMD ["sh", "-c", "cd /app && NODE_ENV=production npx next start"]
