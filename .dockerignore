@@ -97,8 +97,12 @@ Thumbs.db
 
 # Docker
 Dockerfile*
-docker-compose*
+docker-compose*.yml
+docker-compose*.yaml
 .dockerignore
+# But keep docker-compose.yml and docker-compose.dev.yml
+!docker-compose.yml
+!docker-compose.dev.yml
 
 # Build artifacts (will be generated in container)
 .next

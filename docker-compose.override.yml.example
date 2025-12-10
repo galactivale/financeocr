@@ -1,0 +1,17 @@
+# Example override file for local development
+# Copy this to docker-compose.override.yml if needed
+# This file is automatically ignored by git
+
+version: '3.8'
+
+services:
+  postgres:
+    # Override restart policy for development
+    restart: on-failure
+    # Add logging for debugging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+

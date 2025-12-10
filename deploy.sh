@@ -41,17 +41,40 @@ fi
 echo -e "${GREEN}✓ Docker permissions fixed${NC}"
 echo ""
 
-# Step 4: Stop all services
+# Step 4: Stop all services gracefully with timeout
 echo -e "${YELLOW}Step 4: Stopping all services...${NC}"
-sudo docker-compose down || echo "  Some services may already be stopped"
+# First try graceful shutdown
+sudo docker-compose down --timeout 30 || echo "  Graceful shutdown attempted"
+
+# Force remove any stuck containers
+echo "  Force removing any stuck containers..."
+sudo docker-compose down --remove-orphans --timeout 10 2>/dev/null || true
+
+# Remove containers by name to avoid orphaned containers
+sudo docker rm -f vaultcpa-postgres vaultcpa-backend vaultcpa-frontend vaultcpa-pgadmin nginx 2>/dev/null || true
+
 echo -e "${GREEN}✓ Services stopped${NC}"
 echo ""
 
-# Step 5: Remove problematic containers
+# Step 5: Remove problematic containers and orphaned resources
 echo -e "${YELLOW}Step 5: Cleaning up problematic containers...${NC}"
+
+# Remove all containers with our naming pattern
+echo "  Removing containers by name pattern..."
+sudo docker ps -a --filter "name=vaultcpa" --format "{{.ID}}" | xargs -r sudo docker rm -f 2>/dev/null || true
+sudo docker ps -a --filter "name=postgres" --format "{{.ID}}" | xargs -r sudo docker rm -f 2>/dev/null || true
+
+# Remove containers in problematic states
+echo "  Removing containers in problematic states..."
+sudo docker ps -a --filter "status=created" --format "{{.ID}}" | xargs -r sudo docker rm -f 2>/dev/null || true
+sudo docker ps -a --filter "status=exited" --format "{{.ID}}" | xargs -r sudo docker rm -f 2>/dev/null || true
+
+# Remove orphaned containers
+sudo docker container prune -f
+
 if [ -f "force-remove-containers.sh" ]; then
     chmod +x force-remove-containers.sh
-    sudo bash force-remove-containers.sh 2>/dev/null || echo "  No problematic containers found"
+    sudo bash force-remove-containers.sh 2>/dev/null || echo "  Force removal attempted"
 fi
 echo -e "${GREEN}✓ Containers cleaned${NC}"
 echo ""
@@ -68,9 +91,14 @@ sudo docker-compose build --no-cache || { echo -e "${RED}Error: Build failed!${N
 echo -e "${GREEN}✓ Services built${NC}"
 echo ""
 
-# Step 8: Start all services
+# Step 8: Start all services with proper cleanup
 echo -e "${YELLOW}Step 8: Starting all services...${NC}"
-sudo docker-compose up -d || { echo -e "${RED}Error: Failed to start services!${NC}"; exit 1; }
+
+# Validate docker-compose file first
+sudo docker-compose config > /dev/null || { echo -e "${RED}Error: docker-compose.yml is invalid!${NC}"; exit 1; }
+
+# Start services with remove-orphans to prevent stuck containers
+sudo docker-compose up -d --remove-orphans --force-recreate || { echo -e "${RED}Error: Failed to start services!${NC}"; exit 1; }
 echo -e "${GREEN}✓ Services started${NC}"
 echo ""
 
