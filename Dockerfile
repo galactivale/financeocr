@@ -56,8 +56,8 @@ RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
 # CRITICAL: Reinstall autoprefixer and postcss in builder stage to ensure they're available
 # This is necessary because node_modules might not have them properly linked
 RUN npm install --save-dev autoprefixer postcss tailwindcss && \
-    npm list autoprefixer postcss || (echo "ERROR: autoprefixer/postcss installation failed!" && exit 1) && \
-    ls -la node_modules/autoprefixer || (echo "ERROR: autoprefixer directory not found!" && exit 1)
+    (npm list autoprefixer postcss && echo "✓ autoprefixer and postcss verified via npm list") || (echo "ERROR: autoprefixer/postcss installation failed!" && exit 1) && \
+    (node -e "require('autoprefixer'); console.log('✓ autoprefixer can be required')" && echo "✓ autoprefixer module is accessible") || (echo "ERROR: autoprefixer cannot be required!" && exit 1)
 
 # Verify components directory and icon files are present
 RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \
