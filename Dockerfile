@@ -14,15 +14,15 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies with BuildKit cache mount for faster rebuilds
+# CRITICAL: autoprefixer MUST be installed here in deps stage
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev && \
     rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    npm install --save-optional @next/swc-linux-x64-musl@latest || true
-
-# Ensure autoprefixer and postcss are installed (required for Next.js build)
-# Install separately to ensure it completes successfully
-RUN npm install --save-dev autoprefixer postcss tailwindcss && \
-    npm list autoprefixer postcss || (echo "ERROR: autoprefixer/postcss not installed!" && exit 1)
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true && \
+    # Verify autoprefixer is installed in deps stage
+    npm list autoprefixer --depth=0 && \
+    ls -la node_modules/autoprefixer/package.json && \
+    echo "✓ autoprefixer installed in deps stage"
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -53,13 +53,15 @@ RUN mkdir -p /root/.cache/next-swc
 RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
-# CRITICAL: Ensure autoprefixer is properly installed and accessible
-# Reinstall to ensure it's in the correct location for Next.js to find
-RUN npm install --save-dev autoprefixer postcss tailwindcss && \
+# CRITICAL: Verify autoprefixer is accessible from deps stage
+# Don't reinstall - use what's already in node_modules from deps
+RUN echo "Verifying autoprefixer from deps stage..." && \
+    ls -la node_modules/autoprefixer/package.json && \
     npm ls autoprefixer --depth=0 && \
-    echo "✓ autoprefixer installed at: $(npm root)/autoprefixer" && \
-    ls -la node_modules/autoprefixer/package.json 2>/dev/null && \
-    echo "✓ autoprefixer package.json found"
+    echo "✓ autoprefixer verified from deps stage" || \
+    (echo "ERROR: autoprefixer not found! Reinstalling..." && \
+     npm install --save-dev autoprefixer postcss tailwindcss && \
+     npm ls autoprefixer --depth=0)
 
 # Verify components directory and icon files are present
 RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \
