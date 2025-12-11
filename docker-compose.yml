@@ -71,6 +71,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # Enable BuildKit for cache mounts
+      x-bake:
+        cache-from:
+          - type=local,src=/tmp/.buildx-cache
+        cache-to:
+          - type=local,dest=/tmp/.buildx-cache
     container_name: vaultcpa-frontend
     environment:
       NODE_ENV: production
