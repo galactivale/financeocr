@@ -59,6 +59,12 @@ RUN npm install --save-dev autoprefixer postcss tailwindcss && \
     npm list autoprefixer postcss || (echo "ERROR: autoprefixer/postcss installation failed!" && exit 1) && \
     ls -la node_modules/autoprefixer || (echo "ERROR: autoprefixer directory not found!" && exit 1)
 
+# Verify components directory and icon files are present
+RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \
+    ls -la components/icons/profile/user-icon.tsx || (echo "ERROR: user-icon.tsx not found!" && exit 1) && \
+    ls -la components/icons/profile/document-text-icon.tsx || (echo "ERROR: document-text-icon.tsx not found!" && exit 1) && \
+    ls -la tsconfig.json || (echo "ERROR: tsconfig.json not found!" && exit 1)
+
 # Build the application with BuildKit cache mount
 RUN --mount=type=cache,target=/root/.cache/next-swc \
     --mount=type=cache,target=/app/.next/cache \
