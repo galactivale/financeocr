@@ -251,7 +251,6 @@ export default function GeneratePage() {
   const handleDeleteAllData = async () => {
     try {
       setIsDeleting(true);
-      setCurrentStepMessage("Deleting all data...");
       
       console.log('🗑️ Starting complete database wipe...');
       
@@ -263,9 +262,6 @@ export default function GeneratePage() {
         
         // Refresh dashboards to reflect the deletion
         await refreshDashboards();
-        
-        // Show success message
-        setCurrentStepMessage("All data deleted successfully!");
         
         // Reset form
         setFormData({
@@ -281,11 +277,6 @@ export default function GeneratePage() {
         // Hide confirmation dialog
         setShowDeleteConfirm(false);
         
-        // Show success message for a few seconds
-        setTimeout(() => {
-          setCurrentStepMessage("");
-        }, 3000);
-        
       } else {
         console.error('❌ Database wipe failed:', response.error);
         throw new Error(response.error || 'Failed to delete all data');
@@ -295,7 +286,6 @@ export default function GeneratePage() {
       alert(`Error deleting all data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsDeleting(false);
-      setCurrentStepMessage("");
     }
   };
 
