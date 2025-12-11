@@ -1,0 +1,106 @@
+# Dockerfile without BuildKit-specific features
+# Use this if your server doesn't support BuildKit
+
+# Multi-stage build for Next.js frontend
+FROM node:18-alpine AS base
+
+# Install system dependencies once
+RUN apk add --no-cache libc6-compat python3 make g++ wget curl
+
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
+
+# Copy only package files first for better caching
+COPY package.json package-lock.json* ./
+
+# Install dependencies (without BuildKit cache mount)
+RUN npm ci --include=dev && \
+    rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true
+
+# Ensure autoprefixer and postcss are installed
+RUN npm install --save-dev autoprefixer postcss tailwindcss && \
+    npm list autoprefixer postcss || (echo "ERROR: autoprefixer/postcss not installed!" && exit 1)
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package.json and lock file
+COPY package.json package-lock.json* ./
+
+# Copy application files
+COPY . .
+
+# Next.js telemetry
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build environment - use production for optimized builds
+ENV NODE_ENV=production
+
+# Increase Node.js heap size for build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+# Create SWC cache directory
+RUN mkdir -p /root/.cache/next-swc
+
+# Ensure SWC musl binary exists
+RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true
+
+# CRITICAL: Reinstall autoprefixer and postcss in builder stage
+RUN npm install --save-dev autoprefixer@latest postcss@latest tailwindcss@latest && \
+    echo "Verifying autoprefixer installation..." && \
+    npm list autoprefixer || (echo "ERROR: autoprefixer not in npm list!" && npm install --save-dev autoprefixer && npm list autoprefixer) && \
+    echo "✓ autoprefixer installed successfully"
+
+# Verify components directory and icon files are present
+RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \
+    ls -la components/icons/profile/user-icon.tsx || (echo "ERROR: user-icon.tsx not found!" && exit 1) && \
+    ls -la components/icons/profile/document-text-icon.tsx || (echo "ERROR: document-text-icon.tsx not found!" && exit 1) && \
+    ls -la tsconfig.json || (echo "ERROR: tsconfig.json not found!" && exit 1)
+
+# Build the application (without BuildKit cache mount)
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_SWC_PATH=/root/.cache/next-swc
+ENV NEXT_PRIVATE_SKIP_POSTCSS_PLUGINS=true
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy public folder
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy standalone output from Next.js build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy SWC cache if it exists
+USER root
+RUN mkdir -p /root/.cache/next-swc && \
+    rm -rf /app/node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
+
+COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || true
+RUN chown -R nextjs:nodejs /root/.cache/next-swc 2>/dev/null || true
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Use the standalone server with fallback
+CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; else echo 'ERROR: server.js not found! Build may have failed.' && exit 1; fi"]
+
