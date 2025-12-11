@@ -49,10 +49,10 @@ RUN mkdir -p /root/.cache/next-swc
 RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
-# Install postcss and tailwindcss (autoprefixer is optional - Next.js 15 handles it)
-# Only install autoprefixer if postcss.config.js requires it
-RUN npm install --save-dev postcss tailwindcss && \
-    echo "✓ postcss and tailwindcss installed"
+# Install postcss, tailwindcss, and autoprefixer
+# Even though postcss.config.js doesn't reference it, Next.js still requires it
+RUN npm install --save-dev postcss tailwindcss autoprefixer && \
+    echo "✓ postcss, tailwindcss, and autoprefixer installed"
 
 # Verify components directory and icon files are present
 RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \
