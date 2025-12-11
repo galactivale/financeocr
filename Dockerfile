@@ -21,7 +21,8 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Ensure autoprefixer and postcss are installed (required for Next.js build)
 # Install separately to ensure it completes successfully
-RUN npm install --save-dev autoprefixer postcss tailwindcss
+RUN npm install --save-dev autoprefixer postcss tailwindcss && \
+    npm list autoprefixer postcss || (echo "ERROR: autoprefixer/postcss not installed!" && exit 1)
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -51,6 +52,9 @@ RUN mkdir -p /root/.cache/next-swc
 # Ensure SWC musl binary exists
 RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true
+
+# Verify autoprefixer is available before building
+RUN npm list autoprefixer || (echo "ERROR: autoprefixer not found in node_modules!" && npm install --save-dev autoprefixer)
 
 # Build the application with BuildKit cache mount
 RUN --mount=type=cache,target=/root/.cache/next-swc \
