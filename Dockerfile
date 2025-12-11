@@ -31,8 +31,8 @@ WORKDIR /app
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy package.json for build
-COPY package.json ./
+# Copy package.json and lock file
+COPY package.json package-lock.json* ./
 
 # Copy application files (this layer will be invalidated on code changes)
 COPY . .
@@ -53,8 +53,11 @@ RUN mkdir -p /root/.cache/next-swc
 RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
-# Verify autoprefixer is available before building
-RUN npm list autoprefixer || (echo "ERROR: autoprefixer not found in node_modules!" && npm install --save-dev autoprefixer)
+# CRITICAL: Reinstall autoprefixer and postcss in builder stage to ensure they're available
+# This is necessary because node_modules might not have them properly linked
+RUN npm install --save-dev autoprefixer postcss tailwindcss && \
+    npm list autoprefixer postcss || (echo "ERROR: autoprefixer/postcss installation failed!" && exit 1) && \
+    ls -la node_modules/autoprefixer || (echo "ERROR: autoprefixer directory not found!" && exit 1)
 
 # Build the application with BuildKit cache mount
 RUN --mount=type=cache,target=/root/.cache/next-swc \
