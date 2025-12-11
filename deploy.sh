@@ -26,8 +26,16 @@ git pull origin main || { echo -e "${RED}Error: Failed to pull changes!${NC}"; e
 echo -e "${GREEN}✓ Latest changes pulled${NC}"
 echo ""
 
-# Step 3: Configure AppArmor and fix Docker permissions
-echo -e "${YELLOW}Step 3: Configuring AppArmor and fixing Docker permissions...${NC}"
+# Step 3: Fix Docker iptables and network issues
+echo -e "${YELLOW}Step 3: Fixing Docker iptables and network...${NC}"
+if [ -f "fix-docker-iptables-complete.sh" ]; then
+    chmod +x fix-docker-iptables-complete.sh
+    echo "  Running complete iptables fix..."
+    sudo bash fix-docker-iptables-complete.sh 2>/dev/null || echo "  iptables fix attempted"
+fi
+
+# Step 3b: Configure AppArmor and fix Docker permissions
+echo -e "${YELLOW}Step 3b: Configuring AppArmor and fixing Docker permissions...${NC}"
 
 # Configure AppArmor properly
 if [ -f "configure-apparmor.sh" ]; then
