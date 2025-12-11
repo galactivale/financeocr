@@ -4,10 +4,10 @@ import React, { useState } from "react";
 import { Button, Input, Select, SelectItem, Textarea, Progress, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 import { CheckCircleIcon } from "@/components/icons/profile/check-circle-icon";
 import { UserIcon } from "@/components/icons/profile/user-icon";
-import { MapPinIcon } from "@/components/icons/profile/map-pin-icon";
 import { DocumentTextIcon } from "@/components/icons/profile/document-text-icon";
 import { ClockIcon } from "@/components/icons/profile/clock-icon";
 import { ChartBarIcon } from "@/components/icons/profile/chart-bar-icon";
+import { GlobeAltIcon } from "@/components/icons/profile/globe-alt-icon";
 import { ExclamationTriangleIcon } from "@/components/icons/profile/exclamation-triangle-icon";
 import { ArrowLeftIcon } from "@/components/icons/profile/arrow-left-icon";
 import { TrashIcon } from "@/components/icons/accounts/trash-icon";
@@ -108,7 +108,7 @@ export default function GeneratePage() {
 
   const steps = [
     { id: 1, title: "Client Information", description: "Basic client details", icon: UserIcon },
-    { id: 2, title: "Locations & Pain Points", description: "States and challenges", icon: MapPinIcon },
+    { id: 2, title: "Locations & Pain Points", description: "States and challenges", icon: GlobeAltIcon },
     { id: 3, title: "Industry & Strategy", description: "Industry and qualification", icon: ChartBarIcon },
     { id: 4, title: "Notes & Review", description: "Additional notes and submit", icon: DocumentTextIcon },
   ] as const;
