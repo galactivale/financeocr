@@ -14,15 +14,11 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies with BuildKit cache mount for faster rebuilds
-# CRITICAL: autoprefixer MUST be installed here in deps stage
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev && \
     rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true && \
-    # Verify autoprefixer is installed in deps stage
-    npm list autoprefixer --depth=0 && \
-    ls -la node_modules/autoprefixer/package.json && \
-    echo "✓ autoprefixer installed in deps stage"
+    echo "✓ Dependencies installed"
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -33,9 +29,6 @@ COPY package.json package-lock.json* ./
 
 # Copy node_modules from deps stage (preserve all files including symlinks)
 COPY --from=deps --chown=root:root /app/node_modules ./node_modules
-
-# Verify autoprefixer was copied
-RUN ls -la node_modules/autoprefixer/package.json 2>/dev/null || echo "WARNING: autoprefixer not found after copy"
 
 # Copy application files (this layer will be invalidated on code changes)
 COPY . .
@@ -56,14 +49,10 @@ RUN mkdir -p /root/.cache/next-swc
 RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
-# CRITICAL: Ensure autoprefixer is available for Next.js build
-# Install it and verify it can be resolved (more reliable than file check)
-RUN npm install --save-dev autoprefixer postcss tailwindcss && \
-    echo "Verifying autoprefixer installation..." && \
-    (npm ls autoprefixer --depth=0 2>/dev/null || \
-     find node_modules -name "autoprefixer" -type d -maxdepth 2 2>/dev/null | head -1 || \
-     node -e "console.log(require.resolve('autoprefixer'))" 2>/dev/null) && \
-    echo "✓ autoprefixer installed and verifiable"
+# Install postcss and tailwindcss (autoprefixer is optional - Next.js 15 handles it)
+# Only install autoprefixer if postcss.config.js requires it
+RUN npm install --save-dev postcss tailwindcss && \
+    echo "✓ postcss and tailwindcss installed"
 
 # Verify components directory and icon files are present
 RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \

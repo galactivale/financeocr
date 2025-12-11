@@ -1,0 +1,9 @@
+// Alternative postcss.config.js without autoprefixer
+// Next.js 15 has built-in autoprefixer support, so we can skip it
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    // autoprefixer removed - Next.js handles it automatically
+  },
+}
+
