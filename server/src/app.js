@@ -81,7 +81,7 @@ const corsOptions = {
     }
     
     // Check environment variable for additional origins
-    const envOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [];
+    const envOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : [];
     if (envOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -93,9 +93,28 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Content-Length', 'Content-Type'],
   maxAge: 86400, // 24 hours
+  // Prevent duplicate headers - only add if not already present
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
-app.use(cors(corsOptions));
+// Apply CORS - but only if not already set (to avoid duplicates from nginx)
+// For local development, always apply CORS
+// For production behind nginx, nginx handles CORS, so we skip it
+app.use((req, res, next) => {
+  // Check if we're behind a proxy (nginx adds X-Forwarded-* headers)
+  const isProxied = req.headers['x-forwarded-for'] || req.headers['x-forwarded-proto'];
+  
+  // In local development (no proxy), always apply CORS
+  // In production (behind nginx), skip CORS to avoid duplicates
+  if (!isProxied) {
+    // Direct access (local dev) - apply CORS
+    cors(corsOptions)(req, res, next);
+  } else {
+    // Behind proxy (production) - skip CORS, nginx handles it
+    next();
+  }
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
