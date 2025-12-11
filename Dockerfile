@@ -34,18 +34,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 
 # Copy application files (this layer will be invalidated on code changes)
-# Copy tsconfig and other config files first
-COPY tsconfig.json next.config.js postcss.config.js tailwind.config.js* ./
-# Copy components directory to ensure icons are included
-COPY components ./components
-# Copy app directory
-COPY app ./app
-# Copy all other necessary files
-COPY public ./public
-COPY lib ./lib
-COPY contexts ./contexts
-COPY styles ./styles
-COPY *.json ./
+COPY . .
 
 # Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
