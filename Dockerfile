@@ -108,5 +108,6 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Use the standalone server
-CMD ["node", "server.js"]
+# Use the standalone server with fallback
+# Check if server.js exists, otherwise use next start
+CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; else echo 'ERROR: server.js not found! Build may have failed.' && exit 1; fi"]
