@@ -91,8 +91,14 @@ USER root
 RUN mkdir -p /root/.cache/next-swc && \
     rm -rf /app/node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true
 
-COPY --from=builder /root/.cache/next-swc /root/.cache/next-swc 2>/dev/null || true
-RUN chown -R nextjs:nodejs /root/.cache/next-swc 2>/dev/null || true
+# Copy SWC cache if it exists (use RUN to handle optional copy)
+RUN --mount=from=builder,source=/root/.cache/next-swc,target=/tmp/swc-cache \
+    if [ -d /tmp/swc-cache ]; then \
+        cp -r /tmp/swc-cache /root/.cache/next-swc && \
+        chown -R nextjs:nodejs /root/.cache/next-swc; \
+    else \
+        echo "SWC cache not found, skipping..."; \
+    fi || true
 
 USER nextjs
 
