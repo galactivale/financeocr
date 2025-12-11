@@ -31,6 +31,11 @@ COPY package.json package-lock.json* ./
 COPY --from=deps --chown=root:root /app/node_modules ./node_modules
 
 # Copy application files (this layer will be invalidated on code changes)
+# Copy tsconfig first to ensure path aliases work
+COPY tsconfig.json ./
+# Copy components directory explicitly to ensure icons are included
+COPY components ./components
+# Copy rest of application files
 COPY . .
 
 # Next.js telemetry
