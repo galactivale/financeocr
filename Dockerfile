@@ -28,11 +28,11 @@ RUN npm install --save-dev autoprefixer postcss tailwindcss && \
 FROM base AS builder
 WORKDIR /app
 
+# Copy package.json and lock file FIRST
+COPY package.json package-lock.json* ./
+
 # Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-
-# Copy package.json and lock file
-COPY package.json package-lock.json* ./
 
 # Copy application files (this layer will be invalidated on code changes)
 COPY . .
@@ -53,13 +53,13 @@ RUN mkdir -p /root/.cache/next-swc
 RUN rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
     npm install --save-optional @next/swc-linux-x64-musl@latest || true
 
-# CRITICAL: Reinstall autoprefixer and postcss in builder stage to ensure they're available
-# Install them and verify they can be required (more reliable than npm list)
+# CRITICAL: Ensure autoprefixer is properly installed and accessible
+# Reinstall to ensure it's in the correct location for Next.js to find
 RUN npm install --save-dev autoprefixer postcss tailwindcss && \
-    echo "Verifying autoprefixer installation..." && \
-    (test -d node_modules/autoprefixer || test -f node_modules/.bin/autoprefixer || node -e "require('autoprefixer')" 2>/dev/null) && \
-    echo "✓ autoprefixer verified" || \
-    (echo "WARNING: autoprefixer verification failed, but continuing build..." && npm list autoprefixer 2>&1 || true)
+    npm ls autoprefixer --depth=0 && \
+    echo "✓ autoprefixer installed at: $(npm root)/autoprefixer" && \
+    ls -la node_modules/autoprefixer/package.json 2>/dev/null && \
+    echo "✓ autoprefixer package.json found"
 
 # Verify components directory and icon files are present
 RUN ls -la components/icons/profile/check-circle-icon.tsx || (echo "ERROR: check-circle-icon.tsx not found!" && exit 1) && \
