@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Input, Select, SelectItem, Textarea, Progress, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
+import { Button, Input, Select, SelectItem, Textarea, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 import { CheckCircleIcon } from "@/components/icons/profile/check-circle-icon";
 import { UserIcon } from "@/components/icons/profile/user-icon";
 import { DocumentTextIcon } from "@/components/icons/profile/document-text-icon";
@@ -99,9 +99,6 @@ export default function GeneratePage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
-  const [currentStepMessage, setCurrentStepMessage] = useState("");
-  const [generationLogs, setGenerationLogs] = useState<string[]>([]);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -178,28 +175,6 @@ export default function GeneratePage() {
     }
   };
 
-  const appendGenerationLog = React.useCallback((message: string) => {
-    setGenerationLogs((prev) => [...prev, `${new Date().toLocaleTimeString()} — ${message}`]);
-  }, []);
-
-  const simulateProgress = async () => {
-    const steps = [
-      { progress: 10, message: "Initializing dashboard generation..." },
-      { progress: 25, message: "Creating unique client profiles..." },
-      { progress: 40, message: "Generating nexus monitoring data..." },
-      { progress: 60, message: "Setting up client relationships..." },
-      { progress: 80, message: "Configuring alerts and tasks..." },
-      { progress: 95, message: "Finalizing dashboard setup..." },
-      { progress: 100, message: "Dashboard generated successfully!" }
-    ];
-
-    for (const step of steps) {
-      setGenerationProgress(step.progress);
-      setCurrentStepMessage(step.message);
-      appendGenerationLog(step.message);
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate processing time
-    }
-  };
 
   const showSuccessMessage = () => {
     setShowSuccessToast(true);
@@ -210,124 +185,29 @@ export default function GeneratePage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    setGenerationProgress(0);
-    setCurrentStepMessage("");
-    setGenerationLogs([`${new Date().toLocaleTimeString()} — Starting dashboard generation...`]);
     
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080';
-    let responseData: any = null;
     
     try {
-      // Use SSE stream for real-time logs
-      console.log('🚀 Sending dashboard generation request with SSE:', { formData });
+      console.log('🚀 Sending dashboard generation request:', { formData });
       
-      // Create a promise that resolves when SSE stream completes
-      const ssePromise = new Promise<void>((resolve, reject) => {
-        // Make a POST request to start the SSE stream
-        fetch(`${API_BASE_URL}/api/dashboards/generate/stream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ formData }),
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          
-          // Read the stream
-          const reader = response.body?.getReader();
-          const decoder = new TextDecoder();
-          
-          if (!reader) {
-            throw new Error('No response body reader available');
-          }
-          
-          let buffer = '';
-          
-          const processStream = async () => {
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                
-                if (done) {
-                  if (buffer.trim()) {
-                    // Process remaining buffer
-                    const lines = buffer.split('\n');
-                    for (const line of lines) {
-                      if (line.startsWith('data: ')) {
-                        try {
-                          const data = JSON.parse(line.substring(6));
-                          if (data.type === 'complete') {
-                            responseData = { success: data.success, data: data.data };
-                          }
-                        } catch (e) {
-                          console.warn('Failed to parse final SSE data:', e);
-                        }
-                      }
-                    }
-                  }
-                  break;
-                }
-                
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                
-                // Keep the last incomplete line in buffer
-                buffer = lines.pop() || '';
-                
-                for (const line of lines) {
-                  if (line.startsWith('data: ')) {
-                    try {
-                      const data = JSON.parse(line.substring(6));
-                      
-                      if (data.type === 'log' || data.type === 'info' || data.type === 'error' || data.type === 'success') {
-                        appendGenerationLog(data.message);
-                        setCurrentStepMessage(data.message);
-                      } else if (data.type === 'progress') {
-                        setGenerationProgress(data.progress);
-                        setCurrentStepMessage(data.message);
-                        appendGenerationLog(data.message);
-                      } else if (data.type === 'complete') {
-                        responseData = { success: data.success, data: data.data };
-                        resolve();
-                        return;
-                      } else if (data.type === 'error') {
-                        appendGenerationLog(`Error: ${data.message}`);
-                        reject(new Error(data.message));
-                        return;
-                      }
-                    } catch (parseError) {
-                      console.warn('Failed to parse SSE data:', parseError, line);
-                    }
-                  }
-                }
-              }
-              
-              // If we get here and haven't resolved, check if we have responseData
-              if (responseData) {
-                resolve();
-              } else {
-                reject(new Error('Stream ended without completion data'));
-              }
-            } catch (streamError) {
-              reject(streamError);
-            }
-          };
-          
-          processStream();
-        })
-        .catch(error => {
-          reject(error);
-        });
+      const response = await fetch(`${API_BASE_URL}/api/dashboards/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ formData }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error! status: ${response.status}` }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
       
-      await ssePromise;
-      
-      if (responseData && responseData.success) {
+      if (responseData.success && responseData.data) {
         console.log('✅ Dashboard generation successful:', responseData.data);
-        appendGenerationLog("✅ Dashboard generation completed successfully!");
         
         // Validate that we have the required data
         if (!responseData.data?.uniqueUrl || !responseData.data?.dashboardUrl) {
@@ -339,7 +219,7 @@ export default function GeneratePage() {
         
         // Set dashboard session cookie with organizationId from backend
         setDashboardSession({
-          dashboardUrl: responseData.data.uniqueUrl!,
+          dashboardUrl: responseData.data.uniqueUrl,
           clientName: formData.clientName,
           organizationId: responseData.data.organizationId,
           createdAt: Date.now()
@@ -358,24 +238,13 @@ export default function GeneratePage() {
           }
         }, 1500);
       } else {
-        throw new Error(responseData?.error || 'Failed to generate dashboard');
+        throw new Error(responseData.error || 'Failed to generate dashboard');
       }
     } catch (error) {
       console.error('❌ Error generating dashboard:', error);
-      console.error('📋 Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        formData: formData
-      });
-      appendGenerationLog(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       alert(`Error generating dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
-      if (responseData && responseData.success) {
-        setGenerationProgress(100);
-      } else {
-        setGenerationProgress(0);
-      }
     }
   };
 
@@ -457,33 +326,6 @@ export default function GeneratePage() {
               </Button>
             </div>
             
-            {/* Generation Progress - Show when generating */}
-            {isSubmitting && (
-              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    Generating Dashboard
-                  </h3>
-                  <div className="text-sm text-white/70" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    {generationProgress}%
-                  </div>
-                </div>
-                
-                <Progress 
-                  value={generationProgress} 
-                  className="mb-4"
-                  color="primary"
-                  size="md"
-                />
-                
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <p className="text-sm text-white/80" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                    {currentStepMessage}
-                  </p>
-                </div>
-              </div>
-            )}
             
             {/* Success Toast */}
             {showSuccessToast && (
@@ -549,47 +391,6 @@ export default function GeneratePage() {
               </div>
             )}
 
-            {/* Generation Log Panel */}
-            <Card className="border border-white/10 bg-white/5 backdrop-blur-xl">
-              <CardBody className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-medium text-white" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                      Generation Log
-                    </h3>
-                    <p className="text-xs text-white/60" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                      Real-time updates from the backend generation process
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="light"
-                    className="text-white/70"
-                    onPress={() => setGenerationLogs([])}
-                    isDisabled={isSubmitting || generationLogs.length === 0}
-                  >
-                    Clear
-                  </Button>
-                </div>
-                <div className="bg-black/30 border border-white/10 rounded-lg h-48 overflow-y-auto px-4 py-3 space-y-1">
-                  {generationLogs.length === 0 ? (
-                    <p className="text-xs text-white/50" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
-                      No log entries yet. Submit the form to view backend progress.
-                    </p>
-                  ) : (
-                    generationLogs.map((log, index) => (
-                      <p 
-                        key={`${log}-${index}`} 
-                        className="text-xs text-white/80 font-mono"
-                        style={{ fontFamily: 'Menlo, Monaco, Consolas, monospace' }}
-                      >
-                        {log}
-                      </p>
-                    ))
-                  )}
-                </div>
-              </CardBody>
-            </Card>
               </div>
 
           {/* Main Content */}

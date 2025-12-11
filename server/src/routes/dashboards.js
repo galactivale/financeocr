@@ -133,40 +133,33 @@ function calculateTotalPenaltyExposure(clients) {
 }
 
 // Generate comprehensive dashboard data using enhanced approach
-// logCallback: optional function to emit log messages (for SSE streaming)
-async function generateDashboardData(formData, organizationId, logCallback = null) {
-  const log = (message) => {
-    console.log(message);
-    if (logCallback) logCallback(message);
-  };
-  
-  log('🤖 Starting risk-based dashboard data generation...');
-  log('📊 Form data received');
+async function generateDashboardData(formData, organizationId) {
+  console.log('🤖 Starting risk-based dashboard data generation...');
+  console.log('📊 Form data received');
   
   try {
-    log('🔑 Checking OpenAI API key...');
+    console.log('🔑 Checking OpenAI API key...');
     if (!process.env.OPENAI_API_KEY) {
-      log('⚠️ OPENAI_API_KEY not found, will use fallback data generation');
+      console.log('⚠️ OPENAI_API_KEY not found, will use fallback data generation');
     } else {
-      log('✅ OpenAI API key found');
+      console.log('✅ OpenAI API key found');
     }
     
-    log('🚀 Initializing enhanced data generator...');
+    console.log('🚀 Initializing enhanced data generator...');
     // Always use 'standard' strategy internally (qualification strategy removed)
     const enhancedGenerator = new EnhancedDataGenerator('standard');
     
-    log('📊 Generating complete client portfolio with relationships...');
-    const generatedData = await enhancedGenerator.generateCompleteDashboardData(formData, organizationId, logCallback);
+    console.log('📊 Generating complete client portfolio with relationships...');
+    const generatedData = await enhancedGenerator.generateCompleteDashboardData(formData, organizationId);
     
-    log('✅ Enhanced data generation completed');
-    log('📊 Generated data summary');
+    console.log('✅ Enhanced data generation completed');
+    console.log('📊 Generated data summary');
     
     return generatedData;
     
   } catch (error) {
     const errorMsg = `❌ Error generating schema-based data: ${error.message}`;
     console.error(errorMsg);
-    if (logCallback) logCallback(errorMsg);
     throw error;
   }
 }
@@ -587,211 +580,6 @@ router.get('/test-openai', async (req, res) => {
       status: error.status,
       statusText: error.statusText
     });
-  }
-});
-
-// POST /api/dashboards/generate/stream - SSE endpoint for real-time logs
-router.post('/generate/stream', async (req, res) => {
-  console.log('🚀 Dashboard generation request received (SSE)');
-  console.log('📥 Request body:', JSON.stringify(req.body, null, 2));
-  
-  // Set SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  // Helper function to send SSE events
-  const sendLog = (message, type = 'log') => {
-    const data = JSON.stringify({ type, message, timestamp: new Date().toISOString() });
-    res.write(`data: ${data}\n\n`);
-  };
-  
-  // Helper function to send progress updates
-  const sendProgress = (progress, message) => {
-    const data = JSON.stringify({ type: 'progress', progress, message, timestamp: new Date().toISOString() });
-    res.write(`data: ${data}\n\n`);
-  };
-  
-  try {
-    sendLog('Starting dashboard generation...', 'info');
-    
-    const schema = await validateDatabaseSchema();
-    if (!schema.ok) {
-      sendLog('Database schema validation failed. Aborting generation.', 'error');
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Database schema not ready', details: schema.issues })}\n\n`);
-      res.end();
-      return;
-    }
-
-    const { formData } = req.body;
-
-    if (!formData) {
-      sendLog('Missing required fields: formData is required', 'error');
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Missing required fields: formData is required' })}\n\n`);
-      res.end();
-      return;
-    }
-
-    // Create a new organization for this dashboard
-    sendLog('🏢 Creating new organization for dashboard generation...', 'info');
-    
-    const orgSlug = `org-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    
-    // Prepare organization data - only include absolutely required fields
-    const orgData = {
-      slug: orgSlug,
-      name: `${formData.clientName} Dashboard Organization`
-    };
-    
-    let newOrganization;
-    try {
-      newOrganization = await prisma.organization.create({
-        data: orgData
-      });
-      sendLog(`✅ Organization created: ${newOrganization.name}`, 'success');
-    } catch (orgError) {
-      sendLog(`❌ Error creating organization: ${orgError.message}`, 'error');
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Failed to create organization', details: orgError.message })}\n\n`);
-      res.end();
-      return;
-    }
-
-    // Get the organization ID from the created organization
-    const finalOrganizationId = newOrganization.id;
-    sendLog(`✅ Organization created: ${newOrganization.name}`, 'success');
-    
-    sendLog('📊 Generating risk-based dashboard data...', 'info');
-    let generatedData;
-    try {
-      // Pass logCallback to stream logs via SSE
-      generatedData = await generateDashboardData(formData, finalOrganizationId, sendLog);
-    } catch (err) {
-      if (err && (err.code?.startsWith('P') || (err.name && err.name.toLowerCase().includes('prisma')))) {
-        sendLog(`❌ Prisma error during generation: ${err.message}`, 'error');
-        res.write(`data: ${JSON.stringify({ type: 'error', message: 'Database error during generation', details: err.message, code: err.code })}\n\n`);
-        res.end();
-        return;
-      }
-      sendLog(`❌ Error during generation: ${err.message}`, 'error');
-      res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`);
-      res.end();
-      return;
-    }
-    
-    await ensureCompliantVisualizationStates(finalOrganizationId, generatedData, formData);
-    
-    sendLog('📊 Validating generated data structure...', 'info');
-    
-    const clients = generatedData.data?.clients || generatedData.clients;
-    if (!generatedData || !clients || clients.length === 0) {
-      sendLog('❌ No clients generated or invalid data structure', 'error');
-      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Failed to generate client data', details: 'No clients were created during the generation process' })}\n\n`);
-      res.end();
-      return;
-    }
-    
-    sendLog(`✅ Generated ${clients.length} clients successfully`, 'success');
-    sendLog('💾 Creating dashboard reference...', 'info');
-    
-    // Calculate portfolio metrics
-    const totalClients = clients.length;
-    const riskDistribution = generatedData.riskDistribution || calculateRiskDistribution(clients);
-    const totalPenaltyExposure = generatedData.totalPenaltyExposure || calculateTotalPenaltyExposure(clients);
-    const totalRevenue = clients.reduce((sum, c) => {
-      // Use the helper function to clean and validate revenue values
-      const cleanRevenue = cleanRevenueValue(c.annualRevenue);
-      return sum + cleanRevenue;
-    }, 0);
-    const averageQualityScore = totalClients > 0 ? Math.round(clients.reduce((sum, c) => sum + (c.qualityScore || 0), 0) / totalClients) : 0;
-
-    const generatedDashboard = await prisma.generatedDashboard.create({
-      data: {
-            organizationId: finalOrganizationId,
-        clientName: formData.clientName,
-            uniqueUrl: generateUniqueUrl(formData.clientName),
-            clientInfo: {
-              name: formData.clientName,
-              industry: formData.primaryIndustry || 'Technology',
-              totalClients: totalClients,
-              riskDistribution: riskDistribution,
-              totalPenaltyExposure: totalPenaltyExposure
-            },
-            keyMetrics: {
-              totalRevenue: totalRevenue,
-              complianceScore: averageQualityScore,
-              riskScore: (riskDistribution.critical || 0) * 25 + (riskDistribution.high || 0) * 15 + (riskDistribution.medium || 0) * 5,
-              statesMonitored: formData.priorityStates.length,
-              alertsActive: (generatedData.data?.nexusAlerts?.length || 0) + (generatedData.data?.alerts?.length || 0),
-              tasksCompleted: generatedData.data?.tasks?.filter(t => t.status === 'completed').length || 0
-            },
-            statesMonitored: formData.priorityStates,
-            personalizedData: {
-              clientCount: totalClients,
-              riskDistribution: riskDistribution,
-              totalPenaltyExposure: totalPenaltyExposure,
-              clientIds: clients.map(c => c.id),
-              generatedAt: new Date().toISOString()
-            },
-            // Store comprehensive generated data
-            generatedClients: generatedData.data?.clients || clients,
-            generatedAlerts: generatedData.data?.alerts || [],
-            generatedTasks: generatedData.data?.tasks || [],
-            generatedAnalytics: {
-              riskDistribution,
-              totalPenaltyExposure,
-              totalRevenue,
-              averageQualityScore
-            },
-            generatedClientStates: generatedData.data?.clientStates || [],
-            generatedNexusAlerts: generatedData.data?.nexusAlerts || [],
-            generatedNexusActivities: generatedData.data?.nexusActivities || [],
-            generatedSystemHealth: {
-              totalRecords: generatedData.summary?.totalRecords || 0,
-              dataCompleteness: '100%',
-              lastGenerated: new Date().toISOString()
-            },
-            generatedReports: [],
-            generatedCommunications: generatedData.data?.communications || [],
-            generatedDecisions: generatedData.data?.decisionTables || [],
-            lastUpdated: new Date()
-          }
-        });
-
-    sendLog(`✅ Dashboard stored in database with ID: ${generatedDashboard.id}`, 'success');
-
-    // Generate all dashboard URLs for different roles
-    const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
-    
-    const response = {
-      success: true,
-          data: {
-        id: generatedDashboard.id,
-        clientName: generatedDashboard.clientName,
-        uniqueUrl: generatedDashboard.uniqueUrl,
-        dashboardUrl: dashboardUrls.main,
-        dashboardUrls: dashboardUrls, // Include all role-specific URLs
-        clientInfo: generatedDashboard.clientInfo,
-        keyMetrics: generatedDashboard.keyMetrics,
-        statesMonitored: generatedDashboard.statesMonitored,
-        personalizedData: generatedDashboard.personalizedData,
-        lastUpdated: generatedDashboard.lastUpdated,
-        organizationId: finalOrganizationId // Include the created organization ID
-      }
-    };
-
-    sendLog('🎉 Dashboard generation completed successfully', 'success');
-    sendLog(`✅ Dashboard URL: ${response.data.dashboardUrl}`, 'success');
-    
-    // Send final response via SSE with success flag
-    res.write(`data: ${JSON.stringify({ type: 'complete', success: true, data: response.data })}\n\n`);
-    res.end();
-    
-  } catch (error) {
-    sendLog(`❌ Error generating dashboard: ${error.message}`, 'error');
-    res.write(`data: ${JSON.stringify({ type: 'error', message: error.message, details: error.stack })}\n\n`);
-    res.end();
   }
 });
 

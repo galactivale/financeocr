@@ -72,25 +72,20 @@ class EnhancedDataGenerator {
     }
   }
 
-  async generateCompleteDashboardData(formData, organizationId, logCallback = null) {
-    const log = (message) => {
-      console.log(message);
-      if (logCallback) logCallback(message);
-    };
-    
-    log('🚀 Starting complete dashboard data generation...');
-    log('📊 Form data received');
+  async generateCompleteDashboardData(formData, organizationId) {
+    console.log('🚀 Starting complete dashboard data generation...');
+    console.log('📊 Form data received');
 
     try {
       // First, ensure the Organization record exists
       const organization = await this.ensureOrganizationExists(organizationId, formData);
 
-      log('✅ OpenAI API key found, generating complete dashboard data...');
+      console.log('✅ OpenAI API key found, generating complete dashboard data...');
 
       // Always generate exactly 10 clients for demo
       const clientCount = TOTAL_CLIENTS;
-      log(`📊 Generating ${clientCount} clients with complete data relationships...`);
-      log(`   Strategy: standard (fixed)`);
+      console.log(`📊 Generating ${clientCount} clients with complete data relationships...`);
+      console.log(`   Strategy: standard (fixed)`);
 
       const generatedData = {
         clients: [],
@@ -116,12 +111,12 @@ class EnhancedDataGenerator {
 
       // Get priority states from form data
       const priorityStates = formData.priorityStates || ['CA', 'NY', 'TX', 'FL', 'IL'];
-      log(`   Priority States: ${priorityStates.join(', ')}`);
+      console.log(`   Priority States: ${priorityStates.join(', ')}`);
 
       // GUARANTEE: Reserve the first priority state to always be compliant
       // This ensures at least one state always shows as compliant on the map
       const guaranteedCompliantState = priorityStates[0];
-      log(`✅ Guaranteeing state "${guaranteedCompliantState}" will always have at least one compliant client`);
+      console.log(`✅ Guaranteeing state "${guaranteedCompliantState}" will always have at least one compliant client`);
       
       // Track which client will get the guaranteed compliant state
       let guaranteedCompliantAssigned = false;
@@ -137,7 +132,7 @@ class EnhancedDataGenerator {
       // Generate clients with complete relationships
       for (let i = 0; i < clientCount; i++) {
         const riskLevel = RISK_DISTRIBUTION[i];
-        log(`📝 Generating client ${i + 1}/${clientCount} (${riskLevel} risk)...`);
+        console.log(`📝 Generating client ${i + 1}/${clientCount} (${riskLevel} risk)...`);
         
         try {
           const clientData = await this.generateUniqueClient(formData, i);
@@ -166,7 +161,7 @@ class EnhancedDataGenerator {
           // Ensure it's a clean integer
           clientData.annualRevenue = Math.round(revenue);
           
-          log(`✅ Client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
+          console.log(`✅ Client ${i + 1} generated: ${clientData.name}, Revenue: $${clientData.annualRevenue.toLocaleString()}`);
           
           const client = await this.createClientWithRelationships(clientData, organizationId);
           
@@ -249,7 +244,7 @@ class EnhancedDataGenerator {
               }
             });
             
-            log(`📝 Creating state: ${sanitizedStateData.stateCode} ${sanitizedStateData.stateName}`);
+            console.log(`📝 Creating state: ${sanitizedStateData.stateCode} ${sanitizedStateData.stateName}`);
             
             try {
               // Check if state already exists for this client+stateCode combination
@@ -475,7 +470,7 @@ class EnhancedDataGenerator {
           // Generate other related data (business profiles, contacts, etc.)
           await this.generateClientRelatedData(client, organizationId, generatedData, formData, organization, TARGET_ALERTS.TOTAL);
           
-          log(`✅ Client ${i + 1} and related data created successfully`);
+          console.log(`✅ Client ${i + 1} and related data created successfully`);
         } catch (error) {
           console.error(`❌ Error generating client ${i + 1}:`, error);
           // Fail fast on Prisma errors to avoid wasting AI credits
