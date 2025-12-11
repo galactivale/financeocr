@@ -17,9 +17,11 @@ COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev && \
     rm -rf node_modules/@next/swc-linux-x64-gnu 2>/dev/null || true && \
-    npm install --save-optional @next/swc-linux-x64-musl@latest || true && \
-    # Ensure autoprefixer and postcss are installed (required for Next.js build)
-    npm install --save-dev autoprefixer postcss tailwindcss || true
+    npm install --save-optional @next/swc-linux-x64-musl@latest || true
+
+# Ensure autoprefixer and postcss are installed (required for Next.js build)
+# Install separately to ensure it completes successfully
+RUN npm install --save-dev autoprefixer postcss tailwindcss
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -32,7 +34,18 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 
 # Copy application files (this layer will be invalidated on code changes)
-COPY . .
+# Copy tsconfig and other config files first
+COPY tsconfig.json next.config.js postcss.config.js tailwind.config.js* ./
+# Copy components directory to ensure icons are included
+COPY components ./components
+# Copy app directory
+COPY app ./app
+# Copy all other necessary files
+COPY public ./public
+COPY lib ./lib
+COPY contexts ./contexts
+COPY styles ./styles
+COPY *.json ./
 
 # Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
