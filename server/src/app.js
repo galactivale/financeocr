@@ -45,9 +45,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://ray.st"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "data:", "https://ray.st"],
+      connectSrc: ["'self'", "https:"],
     },
   },
 }));
@@ -88,7 +90,9 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'Content-Type'],
+  maxAge: 86400, // 24 hours
 };
 
 app.use(cors(corsOptions));
