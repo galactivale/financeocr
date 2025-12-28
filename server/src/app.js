@@ -26,6 +26,8 @@ const enhancedClientRoutes = require('./routes/enhanced-clients');
 const enhancedSystemRoutes = require('./routes/enhanced-system');
 const enhancedNexusRoutes = require('./routes/enhanced-nexus');
 const riskPortfolioRoutes = require('./routes/risk-portfolio');
+const doctrineRulesRoutes = require('./routes/doctrine-rules');
+const nexusMemosRoutes = require('./routes/nexus-memos');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -142,6 +144,9 @@ app.get('/health', (req, res) => {
 });
 
 // API routes (no authentication required for demo)
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/f13a3136-6c29-48a7-9d78-4874aa5a8376',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:145',message:'Registering API routes',data:{routes:['/api/organizations','/api/users','/api/clients','/api/alerts','/api/tasks','/api/documents','/api/decisions','/api/compliance','/api/integrations','/api/analytics','/api/nexus','/api/consultations','/api/communications','/api/dashboards','/api/personalized-dashboard','/api/enhanced-clients','/api/enhanced-system','/api/enhanced-nexus','/api/risk-portfolio','/api/doctrine-rules']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+// #endregion
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/clients', clientRoutes);
@@ -161,6 +166,11 @@ app.use('/api/enhanced-clients', enhancedClientRoutes);
 app.use('/api/enhanced-system', enhancedSystemRoutes);
 app.use('/api/enhanced-nexus', enhancedNexusRoutes);
 app.use('/api/risk-portfolio', riskPortfolioRoutes);
+app.use('/api/doctrine-rules', doctrineRulesRoutes);
+app.use('/api/nexus-memos', nexusMemosRoutes);
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/f13a3136-6c29-48a7-9d78-4874aa5a8376',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:167',message:'Checking for nexus-memos route',data:{hasNexusMemosRoute:true,registeredRoutes:['/api/organizations','/api/users','/api/clients','/api/alerts','/api/tasks','/api/documents','/api/decisions','/api/compliance','/api/integrations','/api/analytics','/api/nexus','/api/consultations','/api/communications','/api/dashboards','/api/personalized-dashboard','/api/enhanced-clients','/api/enhanced-system','/api/enhanced-nexus','/api/risk-portfolio','/api/doctrine-rules','/api/nexus-memos']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+// #endregion
 
 // API documentation endpoint
 app.get('/api', (req, res) => {

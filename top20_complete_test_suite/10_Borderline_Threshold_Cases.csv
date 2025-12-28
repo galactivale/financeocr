@@ -1,0 +1,17 @@
+State,Type,Threshold,Actual,Percentage,Days_Over,Status,Risk_Level,Action_Required
+CA,Sales Tax,500000,495000,99.0%,0,Below Threshold,Low,Monitor
+CA,Sales Tax,500000,502000,100.4%,92,Above Threshold,High,Register
+TX,Sales Tax,500000,498500,99.7%,0,Below Threshold,Medium,Monitor closely
+TX,Income Tax,500000,512000,102.4%,180,Above Threshold,High,File return
+FL,Sales Tax,100000,99000,99.0%,0,Below Threshold,Low,Monitor
+FL,Sales Tax,100000,101000,101.0%,45,Above Threshold,Medium,Register
+NY,Sales Tax,300000,295000,98.3%,0,Below Threshold,Low,Monitor
+NY,Economic Nexus,300000,302500,100.8%,120,Above Threshold,High,Register
+WA,B&O Tax,285000,284999,99.9996%,0,Below Threshold,Low,Verify calculation
+WA,B&O Tax,285000,285001,100.0004%,1,Above Threshold,High,File immediately
+CO,Sales Tax,100000,99999,99.999%,0,Below Threshold,Medium,Review transactions
+MA,Sales Tax,100000,100001,100.001%,1,Above Threshold,High,Register
+IL,Income Tax,100000,99000,99.0%,0,Below Threshold,Low,Monitor
+IL,Income Tax,100000,101000,101.0%,30,Above Threshold,High,File
+GA,Sales Tax,100000,99950,99.95%,0,Below Threshold,Medium,Review Q4
+GA,Sales Tax,100000,100050,100.05%,15,Above Threshold,High,Register

@@ -1,0 +1,11 @@
+State,Revenue,Format
+CA,"$285,000.00","Standard with $ and commas"
+TX,"310000.00","No currency symbol"
+FL,"145,000","No decimal"
+IL,"205000","No commas or decimal"
+GA,"172K","K abbreviation"
+NY,"$189.5K","Decimal K with $"
+WA,"123,000.00 USD","Currency suffix"
+MA,"89000.0000","Four decimals"
+CO,"156,000.00","Standard two decimals"
+AZ,"$134,000.000","Three decimals with $" 

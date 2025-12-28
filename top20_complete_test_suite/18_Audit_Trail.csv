@@ -1,0 +1,5 @@
+Timestamp,User,Action,Entity,Field,Old_Value,New_Value,Reason
+2024-12-31 09:15:23,jsmith@firm.com,UPDATE,Client-001,State Revenue,284500,285000,Q4 adjustment logged
+2024-12-31 10:30:12,partner@firm.com,APPROVE,Nexus Memo,CA-2024-001,Pending,Approved,Partner review completed
+2024-12-31 14:20:18,jsmith@firm.com,CORRECT,Client-001,TX Revenue,309000,310000,Found missing invoice
+2024-12-31 23:59:59,system,BACKUP,Database,null,null,Automated nightly backup

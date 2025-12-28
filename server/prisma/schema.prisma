@@ -70,6 +70,7 @@ model Organization {
   reports                 Report[]
   apiKeys                 ApiKey[]
   webhooks                Webhook[]
+  doctrineRules           DoctrineRule[]
 
   @@map("organizations")
 }
@@ -181,6 +182,7 @@ model Client {
   advisoryDocuments       AdvisoryDocument[]
   riskFactors             RiskFactor[]
   activityFeed            ActivityFeed[]
+  doctrineRules           DoctrineRule[]
 
   @@index([slug])
   @@map("clients")
@@ -1169,4 +1171,89 @@ model WebhookDelivery {
   webhook        Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
   
   @@map("webhook_deliveries")
+}
+
+model DoctrineRule {
+  id                String                  @id @default(uuid())
+  name              String
+  state             String?
+  taxType           String?                 @map("tax_type")
+  activityPattern   Json?                   @map("activity_pattern")
+  posture           String?
+  decision          String?
+  scope             String                  // 'client', 'office', 'firm'
+  clientId          String?                 @map("client_id")
+  officeId          String?                 @map("office_id")
+  organizationId    String                  @map("organization_id")
+  status            String                  @default("draft") // 'draft', 'pending_approval', 'active', 'disabled', 'rejected'
+  version           Int                     @default(1)
+  rationaleInternal String?                 @map("rationale_internal")
+  reviewDueAt       DateTime?               @map("review_due_at")
+  createdBy         String?                 @map("created_by")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+  
+  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client            Client?                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  approvals         DoctrineApproval[]
+  impactMetrics     DoctrineImpactMetrics?
+  versionEvents     DoctrineVersionEvent[]
+  
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([scope])
+  @@index([status])
+  @@index([state])
+  @@index([taxType])
+  @@map("doctrine_rules")
+}
+
+model DoctrineApproval {
+  id            String       @id @default(uuid())
+  ruleId        String       @map("rule_id")
+  approverId    String       @map("approver_id")
+  approverRole  String?      @map("approver_role")
+  approvedAt    DateTime     @default(now()) @map("approved_at")
+  action        String       // 'approve', 'reject'
+  comment       String?
+  createdAt     DateTime     @default(now()) @map("created_at")
+  
+  rule          DoctrineRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  @@index([ruleId])
+  @@index([approverId])
+  @@map("doctrine_approvals")
+}
+
+model DoctrineImpactMetrics {
+  id                    String       @id @default(uuid())
+  ruleId                String       @unique @map("rule_id")
+  totalClientsAffected  Int          @default(0) @map("total_clients_affected")
+  totalMemosGenerated   Int          @default(0) @map("total_memos_generated")
+  totalRevenueCovered   Decimal      @default(0) @map("total_revenue_covered")
+  lastAppliedAt         DateTime?     @map("last_applied_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+  
+  rule                  DoctrineRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  @@map("doctrine_impact_metrics")
+}
+
+model DoctrineVersionEvent {
+  id              String       @id @default(uuid())
+  ruleId          String       @map("rule_id")
+  fromVersion     Int?         @map("from_version")
+  toVersion       Int          @map("to_version")
+  actionType      String       @map("action_type") // 'create', 'update', 'disable', 'rollback'
+  actorId         String?      @map("actor_id")
+  timestamp       DateTime     @default(now())
+  reason          String?
+  previousSnapshot Json?       @map("previous_snapshot")
+  newSnapshot     Json         @map("new_snapshot")
+  
+  rule            DoctrineRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  
+  @@index([ruleId])
+  @@index([timestamp])
+  @@map("doctrine_version_events")
 }

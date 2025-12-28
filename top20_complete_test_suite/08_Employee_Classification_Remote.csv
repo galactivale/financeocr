@@ -1,0 +1,11 @@
+Employee_ID,Full_Name,Work_State,Home_State,Employee_Type,Status,Start_Date,End_Date,Department,Role,Hours_2024,W2_Box1,Activities,Nexus_Notes
+EMP-1001,John A. Smith,CA,CA,W-2,Active,2020-03-15,,Engineering,Senior Developer,2080,125000,"Development, Code Reviews","CA HQ - Creates nexus"
+EMP-1002,Maria L. Garcia,TX,TX,W-2,Active,2019-08-22,,Sales,Account Executive,2080,110000,"Client Meetings, Demos","TX office - Creates nexus"
+EMP-1003,Robert Chen,FL,FL,W-2,Active,2021-01-10,,Support,Support Engineer,2080,95000,"Troubleshooting, Training","Remote FL - Creates nexus"
+EMP-2001,Consulting Group LLC,NY,NY,1099,Active,2023-02-01,,Marketing,Strategy Consultant,500,75000,"Marketing Strategy","1099 contractor - Evaluate nexus"
+EMP-2002,Tech Support Co.,GA,GA,1099,Active,2022-08-15,,IT,Remote Support,1200,60000,"Support, Maintenance","1099 - May create nexus"
+EMP-3001,Jane K. Wilson,CO,CO,W-2,Active,2023-11-30,,Admin,Executive Assistant,1040,65000,"Scheduling, Admin","Part-time remote - Check nexus"
+EMP-3002,Mike Johnson,AZ,AZ,W-2,Terminated,2022-04-05,2024-08-15,Customer Service,Service Rep,900,55000,"Customer Support","Terminated mid-year"
+EMP-4001,Design Studio Inc.,WA,WA,1099,Active,2024-01-10,,Design,UX Designer,300,45000,"UI/UX Design","1099 contractor"
+EMP-5001,Sarah Williams,IL,IL,W-2,Leave of Absence,2021-06-18,2024-12-31,Operations,Manager,1560,105000,"Process Improvement","On leave - Nexus may remain"
+EMP-6001,David Miller,MA,MA,W-2,Active,2020-11-05,,Finance,Controller,2080,135000,"Accounting, Reporting","Remote MA - Creates nexus"

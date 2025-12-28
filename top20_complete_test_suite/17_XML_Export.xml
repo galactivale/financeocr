@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<RevenueReport>
+  <Header><Client>Advanced Manufacturing</Client><Date>2024-12-31</Date></Header>
+  <States>
+    <State><Code>CA</Code><Revenue>285000</Revenue></State>
+    <State><Code>TX</Code><Revenue>310000</Revenue></State>
+    <State><Code>FL</Code><Revenue>145000</Revenue></State>
+  </States>
+</RevenueReport>

@@ -1283,6 +1283,261 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Nexus Memos API methods
+  async processNexusFiles(data: {
+    uploadId: string;
+    mappings: Array<{
+      columnIndex: number;
+      mappedField: string;
+    }>;
+    headerRowIndex: number;
+  }): Promise<ApiResponse<{
+    normalizedData: any;
+    alerts: any[];
+    memos: any;
+  }>> {
+    return this.request('/api/nexus-memos/process', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async detectSheets(file: File, fileType: string): Promise<ApiResponse<{
+    sheets: Array<{
+      name: string;
+      rowCount: number;
+      columnCount: number;
+      richnessScore: number;
+    }>;
+  }>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fileType', fileType);
+    
+    return this.request('/api/nexus-memos/detect-sheets', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async detectHeader(file: File, fileType: string, sheetName?: string): Promise<ApiResponse<{
+    headerRowIndex: number;
+    confidence: number;
+    headers: string[];
+    dataStartRow: number;
+    sampleRows: any[][];
+  }>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('fileType', fileType);
+    if (sheetName) formData.append('sheetName', sheetName);
+    
+    return this.request('/api/nexus-memos/detect-header', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async suggestMappings(data: {
+    uploadId: string;
+    headers: string[];
+    documentType?: string;
+    sampleData?: any[][];
+  }): Promise<ApiResponse<{
+    mappings: Array<{
+      columnIndex: number;
+      columnName: string;
+      suggestedField: string;
+      confidence: number;
+      alternatives: string[];
+    }>;
+  }>> {
+    return this.request('/api/nexus-memos/suggest-mappings', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Doctrine Rules API methods
+  async createDoctrineRule(data: {
+    name: string;
+    state?: string;
+    taxType?: string;
+    activityPattern?: any;
+    posture?: string;
+    decision?: string;
+    scope: 'client' | 'office' | 'firm';
+    clientId?: string;
+    officeId?: string;
+    organizationId: string;
+    rationaleInternal?: string;
+    reviewDueAt?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request('/api/doctrine-rules', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async listDoctrineRules(params?: {
+    organizationId?: string;
+    clientId?: string;
+    scope?: string;
+    status?: string;
+    state?: string;
+    taxType?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{
+    rules: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+    if (params?.clientId) queryParams.append('clientId', params.clientId);
+    if (params?.scope) queryParams.append('scope', params.scope);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.state) queryParams.append('state', params.state);
+    if (params?.taxType) queryParams.append('taxType', params.taxType);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const query = queryParams.toString();
+    return this.request(`/api/doctrine-rules${query ? `?${query}` : ''}`);
+  }
+
+  async getDoctrineRule(id: string, version?: number): Promise<ApiResponse<any>> {
+    const query = version ? `?version=${version}` : '';
+    return this.request(`/api/doctrine-rules/${id}${query}`);
+  }
+
+  async approveDoctrineRule(id: string, comment?: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/doctrine-rules/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  async rejectDoctrineRule(id: string, comment?: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/doctrine-rules/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  async dryRunDoctrineRule(data: {
+    organizationId: string;
+    state?: string;
+    taxType?: string;
+    activityPattern?: any;
+    posture?: string;
+    decision?: string;
+    scope: 'client' | 'office' | 'firm';
+    clientId?: string;
+    officeId?: string;
+  }): Promise<ApiResponse<{
+    impact: {
+      clientsAffected: number;
+      clientIds: string[];
+      totalRevenue: number;
+      estimatedMemos: number;
+      riskLevel: string;
+      preview: any[];
+    };
+  }>> {
+    return this.request('/api/doctrine-rules/dry-run', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async rollbackDoctrineRule(id: string, targetVersion: number, reason?: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/doctrine-rules/${id}/rollback`, {
+      method: 'POST',
+      body: JSON.stringify({ targetVersion, reason }),
+    });
+  }
+
+  async disableDoctrineRule(id: string, reason?: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/doctrine-rules/${id}/disable`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async getPendingDoctrineRules(params?: {
+    organizationId?: string;
+    scope?: string;
+    taxType?: string;
+    state?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{
+    rules: any[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+    if (params?.scope) queryParams.append('scope', params.scope);
+    if (params?.taxType) queryParams.append('taxType', params.taxType);
+    if (params?.state) queryParams.append('state', params.state);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const query = queryParams.toString();
+    return this.request(`/api/doctrine-rules/pending${query ? `?${query}` : ''}`);
+  }
+
+  async getDoctrineImpactDashboard(params?: {
+    organizationId?: string;
+    scope?: string;
+    taxType?: string;
+    dateRange?: string;
+  }): Promise<ApiResponse<{
+    metrics: {
+      totalActiveRules: number;
+      totalClientsAffected: number;
+      totalMemosGenerated: number;
+      totalRevenueCovered: number;
+    };
+    rules: any[];
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.organizationId) queryParams.append('organizationId', params.organizationId);
+    if (params?.scope) queryParams.append('scope', params.scope);
+    if (params?.taxType) queryParams.append('taxType', params.taxType);
+    if (params?.dateRange) queryParams.append('dateRange', params.dateRange);
+    
+    const query = queryParams.toString();
+    return this.request(`/api/doctrine-rules/impact${query ? `?${query}` : ''}`);
+  }
+
+  async getDoctrineRuleVersions(id: string): Promise<ApiResponse<{
+    history: any[];
+  }>> {
+    return this.request(`/api/doctrine-rules/${id}/versions`);
+  }
+
+  async getDoctrineRuleBlastRadius(id: string): Promise<ApiResponse<{
+    ruleId: string;
+    ruleName: string;
+    scope: string;
+    affectedClients: number;
+    clients: any[];
+  }>> {
+    return this.request(`/api/doctrine-rules/${id}/blast-radius`);
+  }
 }
 
 // Create singleton instance

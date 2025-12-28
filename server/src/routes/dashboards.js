@@ -738,7 +738,12 @@ router.post('/generate', async (req, res) => {
       }
     });
 
-    console.log('✅ Dashboard stored in database with ID:', generatedDashboard.id);
+    console.log('✅ Dashboard stored in database:', {
+      id: generatedDashboard.id,
+      uniqueUrl: generatedDashboard.uniqueUrl,
+      clientName: generatedDashboard.clientName,
+      createdAt: generatedDashboard.createdAt
+    });
 
     // Generate all dashboard URLs for different roles
     const dashboardUrls = generateDashboardUrls(formData.clientName, generatedDashboard.uniqueUrl);
@@ -818,6 +823,19 @@ router.get('/:url', async (req, res) => {
   try {
     const { url } = req.params;
     console.log('🔍 Fetching dashboard for URL:', url);
+    console.log('📋 Request details:', {
+      url: url,
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      timestamp: new Date().toISOString()
+    });
+
+    // First, check if this is the 'all' route (shouldn't happen due to route order, but just in case)
+    if (url === 'all') {
+      console.log('⚠️ Route conflict detected - "all" matched as URL parameter');
+      return res.status(404).json({ error: 'Dashboard not found' });
+    }
 
     const dashboard = await prisma.generatedDashboard.findUnique({
       where: { 
@@ -835,8 +853,36 @@ router.get('/:url', async (req, res) => {
     });
 
     if (!dashboard) {
-      return res.status(404).json({ error: 'Dashboard not found' });
+      console.log('❌ Dashboard not found for URL:', url);
+      // Try to find any dashboard with a similar URL for debugging
+      const urlPrefix = url.substring(0, 10);
+      const similarDashboards = await prisma.generatedDashboard.findMany({
+        where: {
+          uniqueUrl: {
+            startsWith: urlPrefix
+          }
+        },
+        select: {
+          uniqueUrl: true,
+          clientName: true,
+          createdAt: true
+        },
+        take: 5
+      });
+      console.log('🔍 Similar dashboards found:', similarDashboards);
+      return res.status(404).json({ 
+        error: 'Dashboard not found',
+        requestedUrl: url,
+        similarUrls: similarDashboards.map(d => d.uniqueUrl)
+      });
     }
+
+    console.log('✅ Dashboard found:', {
+      id: dashboard.id,
+      uniqueUrl: dashboard.uniqueUrl,
+      clientName: dashboard.clientName,
+      createdAt: dashboard.createdAt
+    });
 
     res.json({
       success: true,

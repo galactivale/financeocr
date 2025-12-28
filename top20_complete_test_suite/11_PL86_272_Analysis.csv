@@ -1,0 +1,11 @@
+State,Activity_Type,Employee_Count,Sales_Revenue,Solicitation_Only,Protected_Activities,Unprotected_Activities,Risk_Assessment,Nexus_Created
+CA,In-state sales rep,2,285000,No,"Sales meetings, order taking","Installation, training, repairs",High,Yes
+TX,Remote employees only,0,310000,Yes,"Phone solicitation, email","None",Low,No (Protected)
+FL,Contractor on-site,1,145000,No,"Solicitation","Installation, maintenance",Medium,Yes
+IL,Trade show attendance,0,205000,Yes,"Display at trade show","Taking orders on-site",Medium,Maybe
+GA,Website only,0,172000,Yes,"Online advertising","None",Low,No (Protected)
+NY,Office with inventory,5,189000,No,"Sales office","Inventory storage, shipping",High,Yes
+WA,Remote tech support,3,123000,No,"Phone support","Remote troubleshooting",Medium,Yes
+MA,Independent reps,0,89000,Yes,"Commissioned sales","No physical presence",Low,No (Protected)
+CO,Warehouse,2,156000,No,"Sales office","Inventory, fulfillment",High,Yes
+AZ,Service technicians,4,134000,No,"Solicitation","Repairs, maintenance",High,Yes

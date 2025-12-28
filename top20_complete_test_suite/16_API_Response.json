@@ -1,0 +1,31 @@
+{
+  "status": "success",
+  "generated": "2024-12-31T23:59:59Z",
+  "revenue_by_state": [
+    {
+      "state": "CA",
+      "revenue": 285000,
+      "transactions": 145
+    },
+    {
+      "state": "TX",
+      "revenue": 310000,
+      "transactions": 189
+    },
+    {
+      "state": "FL",
+      "revenue": 145000,
+      "transactions": 92
+    },
+    {
+      "state": "IL",
+      "revenue": 205000,
+      "transactions": 123
+    },
+    {
+      "state": "GA",
+      "revenue": 172000,
+      "transactions": 105
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+Transaction_ID,Date,From_Entity,From_State,To_Entity,To_State,Type,Description,Amount,GL_Account,Elimination_Required,Consolidated_Treatment
+ICT-001,2024-01-15,Mfg Corp - CA,CA,Tech Solutions - TX,TX,Product Sale,"Widget shipment",125000,40000,Yes,Eliminate
+ICT-002,2024-02-01,Mfg Corp - CA,CA,Tech Solutions - TX,TX,Management Fee,"Quarterly management",25000,40100,Yes,Eliminate
+ICT-003,2024-03-10,Tech Solutions - TX,TX,Sales LLC - FL,FL,License,"Software license",75000,40600,Yes,Eliminate
+ICT-004,2024-04-05,Sales LLC - FL,FL,Mfg Corp - CA,CA,Royalty,"IP royalty",15000,40300,Yes,Eliminate
+ICT-005,2024-05-20,Holdings - DE,DE,Mfg Corp - CA,CA,Allocation,"Corporate overhead",50000,49900,No,Consolidate
+ICT-006,2024-06-15,Holdings - DE,DE,Tech Solutions - TX,TX,Allocation,"Corporate overhead",30000,49900,No,Consolidate
+ICT-007,2024-07-10,EU Parent - NL,NL,Holdings - DE,DE,Funding,"Equity injection",200000,30000,No,Consolidate
+ICT-008,2024-08-05,Mfg Corp - CA,CA,Asia Subsidiary - SG,SG,Technology,"Tech transfer",85000,40500,Yes,Eliminate
+ICT-009,2024-09-12,Tech Solutions - TX,TX,Canada Branch - ON,ON,Service,"Support services",45000,40100,Yes,Eliminate
+ICT-010,2024-10-18,Sales LLC - FL,FL,Mexico JV - MX,MX,Commission,"Sales commission",32000,40200,Yes,Eliminate
+ICT-011,2024-11-22,Mfg Corp - CA,CA,R&D Subsidiary - MA,MA,R&D Charge,"Research funding",68000,40700,Yes,Capitalize
+ICT-012,2024-12-15,All Entities,MULTI,Holdings - DE,DE,Year-End,"True-up adjustment",-15000,49900,Yes,Eliminate

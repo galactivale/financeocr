@@ -1,0 +1,20 @@
+Transaction Search Results
+Date Range: 01/01/2024 to 12/31/2024
+Search: "Revenue by Ship-to Location"
+Columns: Date, Document No, Customer, Ship-to, Item, Qty, Amount, Tax Code, Subsidiary
+
+Transaction Date,Doc Number,Customer Name,Ship Location,Item/Service,Quantity,Amount,Currency,Tax Code,Subsidiary,Department
+01/15/2024,INV-10045,Acme Corporation,California,Tech Widget Pro,10,"12,500.00",USD,CA-STANDARD,West Operations,Sales
+02/03/2024,INV-10089,Global Industries Inc,Texas,Annual Service Contract,1,"8,750.00",USD,TX-STANDARD,West Operations,Service
+03/22/2024,INV-10123,Retail Chain LLC,Florida,Installation Package,5,"23,450.00",USD,FL-STANDARD,South Operations,Install
+04/10/2024,INV-10167,Midwest Distributors,Illinois,Tech Widget Standard,25,"31,250.00",USD,IL-STANDARD,Midwest Operations,Sales
+05/05/2024,INV-10201,West Coast Services,California,Annual Maintenance,12,"56,890.00",USD,CA-STANDARD,West Operations,Service
+06/18/2024,INV-10245,Southern Retailers Inc,Georgia,On-site Training,8,"15,670.00",USD,GA-STANDARD,South Operations,Training
+07/09/2024,INV-10289,Northeast Partners,New York,Premium Support Plan,3,"34,560.00",USD,NY-STANDARD,NE Operations,Service
+08/24/2024,INV-10323,Texas Manufacturing,Texas,Custom Software License,1,"67,890.00",USD,TX-EXEMPT,West Operations,Software
+09/12/2024,INV-10367,Florida Services Group,Florida,Consulting Hours,40,"45,670.00",USD,FL-STANDARD,South Operations,Consulting
+10/30/2024,INV-10401,Mountain States LLC,Colorado,Basic Widget Package,100,"12,340.00",USD,CO-STANDARD,West Operations,Sales
+11/15/2024,INV-10445,Pacific Northwest Corp,Washington,Advanced Training,6,"23,450.00",USD,WA-STANDARD,West Operations,Training
+12/03/2024,INV-10489,Desert Industries,Arizona,Remote Support,15,"9,870.00",USD,AZ-STANDARD,West Operations,Service
+12/15/2024,CM-10523,Acme Corporation,California,Credit Memo (Return),-2,"-2,500.00",USD,CA-STANDARD,West Operations,Sales
+12/20/2024,INV-10567,Global Industries Inc,Texas,Rush Service,1,"1,250.00",USD,TX-STANDARD,West Operations,Service
