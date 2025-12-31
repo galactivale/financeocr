@@ -343,6 +343,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       documentClassification,
       headerDetection,
       previewData,
+      // Include all data rows for alert generation (not just preview)
+      allData: csvData,
       fileBuffer: file.buffer.toString('base64')
     };
 
@@ -498,6 +500,49 @@ router.post('/suggest-mappings', async (req, res) => {
   }
 });
 
+// Data Validation endpoint - comprehensive autonomous validation pipeline
+router.post('/validate-data', async (req, res) => {
+  log('VALIDATE_DATA', '=== DATA VALIDATION REQUEST ===');
+  
+  try {
+    const { files, options } = req.body;
+    
+    log('VALIDATE_DATA', 'Request received', {
+      fileCount: files?.length || 0,
+      options
+    });
+
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No files provided for validation'
+      });
+    }
+
+    // Use the DataValidationEngine
+    const { DataValidationEngine } = require('../services/data-validation');
+    const engine = new DataValidationEngine(options || {});
+    
+    const result = await engine.validate(files);
+    
+    log('VALIDATE_DATA', '=== VALIDATION COMPLETE ===', {
+      stages: result.stages?.length || 0,
+      issues: result.issues?.length || 0,
+      mappings: result.mappings?.length || 0,
+      summary: result.summary
+    });
+
+    res.json({
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    log('VALIDATE_DATA', 'ERROR', { message: error.message, stack: error.stack });
+    console.error('Validation error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Process endpoint
 router.post('/process', async (req, res) => {
   try {
@@ -518,5 +563,167 @@ router.post('/process', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// Generate Alerts endpoint - uses NexusAlertEngine
+router.post('/generate-alerts', async (req, res) => {
+  log('GENERATE_ALERTS', '=== ALERT GENERATION REQUEST ===');
+  
+  try {
+    const { normalizedData, config } = req.body;
+    
+    log('GENERATE_ALERTS', 'Request received', {
+      dataRows: normalizedData?.length || 0,
+      config: config
+    });
+
+    if (!normalizedData || !Array.isArray(normalizedData)) {
+      log('GENERATE_ALERTS', 'ERROR: No normalized data provided');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Normalized data array is required' 
+      });
+    }
+
+    // Try to use the NexusAlertEngine
+    let alerts = [];
+    let summary = {};
+    
+    try {
+      const { NexusAlertEngine } = require('../services/nexus-alert-engine');
+      
+      const engine = new NexusAlertEngine({
+        firmId: config?.firmId || 'default',
+        riskPosture: config?.riskPosture || 'standard',
+        enabledModules: config?.enabledModules || {
+          sales: true,
+          income: true,
+          payroll: true,
+          franchise: true
+        }
+      });
+
+      log('GENERATE_ALERTS', 'NexusAlertEngine initialized');
+
+      const result = await engine.processDocument(normalizedData, config?.documentType);
+      
+      alerts = result.alerts;
+      summary = result.summary;
+      
+      log('GENERATE_ALERTS', 'Detection complete', {
+        totalAlerts: alerts.length,
+        summary: summary
+      });
+    } catch (engineError) {
+      log('GENERATE_ALERTS', 'NexusAlertEngine error, using fallback', { 
+        error: engineError.message 
+      });
+      
+      // Fallback: Generate basic alerts from data
+      alerts = generateFallbackAlerts(normalizedData);
+      summary = {
+        total: alerts.length,
+        bySeverity: { HIGH: 0, MEDIUM: 0, LOW: 0 },
+        byType: {}
+      };
+      
+      alerts.forEach(a => {
+        summary.bySeverity[a.severity] = (summary.bySeverity[a.severity] || 0) + 1;
+        summary.byType[a.type] = (summary.byType[a.type] || 0) + 1;
+      });
+    }
+
+    log('GENERATE_ALERTS', '=== ALERT GENERATION COMPLETE ===', {
+      alertCount: alerts.length
+    });
+
+    res.json({
+      success: true,
+      alerts,
+      summary
+    });
+  } catch (error) {
+    log('GENERATE_ALERTS', 'ERROR', { message: error.message, stack: error.stack });
+    console.error('Generate alerts error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Fallback alert generation when engine fails
+function generateFallbackAlerts(normalizedData) {
+  const alerts = [];
+  const stateData = {};
+  
+  // Group data by state
+  for (const row of normalizedData) {
+    const state = row.state || row.ship_state || row.customer_state || row.location;
+    if (!state) continue;
+    
+    const stateCode = String(state).toUpperCase().trim().substring(0, 2);
+    if (!stateData[stateCode]) {
+      stateData[stateCode] = { revenue: 0, count: 0 };
+    }
+    
+    const revenue = parseFloat(String(row.revenue || row.amount || row.sales || row.total || 0).replace(/[$,]/g, ''));
+    if (!isNaN(revenue)) {
+      stateData[stateCode].revenue += revenue;
+      stateData[stateCode].count++;
+    }
+  }
+  
+  // Generate alerts based on thresholds
+  const thresholds = {
+    CA: 500000, TX: 500000, NY: 500000, FL: 100000,
+    IL: 100000, GA: 100000, NC: 100000, PA: 100000
+  };
+  
+  for (const [state, data] of Object.entries(stateData)) {
+    const threshold = thresholds[state] || 100000;
+    const percentage = (data.revenue / threshold) * 100;
+    
+    if (data.revenue >= threshold) {
+      alerts.push({
+        id: `SALES_${state}_${Date.now()}`,
+        type: 'SALES_NEXUS',
+        subtype: 'ECONOMIC_NEXUS',
+        state: state,
+        stateName: state,
+        severity: 'HIGH',
+        title: `${state} Sales Tax Economic Nexus Triggered`,
+        description: `Revenue of $${data.revenue.toLocaleString()} exceeds ${state}'s threshold of $${threshold.toLocaleString()}`,
+        facts: {
+          threshold,
+          actualRevenue: data.revenue,
+          percentageOver: percentage.toFixed(1)
+        },
+        recommendation: `Register for sales tax collection in ${state}`,
+        judgmentRequired: false,
+        requiresAction: true,
+        createdDate: new Date().toISOString()
+      });
+    } else if (percentage >= 80) {
+      alerts.push({
+        id: `SALES_APPROACHING_${state}_${Date.now()}`,
+        type: 'SALES_NEXUS',
+        subtype: 'ECONOMIC_NEXUS_APPROACHING',
+        state: state,
+        stateName: state,
+        severity: 'MEDIUM',
+        title: `${state} Sales Tax Threshold Approaching`,
+        description: `Revenue of $${data.revenue.toLocaleString()} is ${percentage.toFixed(1)}% of ${state}'s threshold`,
+        facts: {
+          threshold,
+          actualRevenue: data.revenue,
+          percentageOfThreshold: percentage.toFixed(1)
+        },
+        recommendation: `Monitor sales activity in ${state}`,
+        judgmentRequired: false,
+        requiresAction: false,
+        createdDate: new Date().toISOString()
+      });
+    }
+  }
+  
+  return alerts;
+}
 
 module.exports = router;

@@ -4,40 +4,31 @@ import { useRouter } from "next/navigation";
 import { Card, CardBody, Progress, Button } from "@nextui-org/react";
 import {
   Upload,
-  FileText,
-  Map,
+  Shield,
   AlertTriangle,
   FileCheck,
   CheckCircle2
 } from "lucide-react";
 import UploadStep from "./components/UploadStep";
-import SheetSelectionStep from "./components/SheetSelectionStep";
-import HeaderDetectionStep from "./components/HeaderDetectionStep";
-import ColumnMappingStep from "./components/ColumnMappingStep";
+import DataValidationStep from "./components/DataValidationStep";
 import AlertsStep from "./components/AlertsStep";
 import MemosStep from "./components/MemosStep";
 import { usePersonalizedDashboard } from "@/contexts/PersonalizedDashboardContext";
 import { normalizeOrgId } from "@/lib/utils";
 
+// Simplified 4-step flow
 const STEPS = [
-  { id: 1, label: "Upload", icon: Upload },
-  { id: 2, label: "Sheet Selection", icon: FileText },
-  { id: 3, label: "Header Detection", icon: Map },
-  { id: 4, label: "Column Mapping", icon: Map },
-  { id: 5, label: "Alerts", icon: AlertTriangle },
-  { id: 6, label: "Memos", icon: FileCheck }
+  { id: 1, label: "Upload", description: "Upload your data files", icon: Upload },
+  { id: 2, label: "Validation", description: "Automated data validation", icon: Shield },
+  { id: 3, label: "Review Alerts", description: "Review nexus alerts", icon: AlertTriangle },
+  { id: 4, label: "Generate Memos", description: "Generate compliance memos", icon: FileCheck }
 ];
 
 export default function NewNexusMemoPage() {
   const router = useRouter();
   const { organizationId } = usePersonalizedDashboard();
   const [currentStep, setCurrentStep] = useState(1);
-  const [uploadData, setUploadData] = useState<any[]>([]);
-  const [fileObjects, setFileObjects] = useState<Record<string, File>>({});
-  const [selectedSheets, setSelectedSheets] = useState<Record<string, string>>({});
-  const [headerDetection, setHeaderDetection] = useState<Record<string, any>>({});
-  const [columnMappings, setColumnMappings] = useState<Record<string, any>>({});
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [stepData, setStepData] = useState<Record<string, any>>({});
 
   useEffect(() => {
     // Store organizationId in sessionStorage for components
@@ -47,13 +38,21 @@ export default function NewNexusMemoPage() {
         sessionStorage.setItem('organizationId', normalizedId);
       }
     }
-  }, [organizationId]);
+    
+    // Clear previous session data on fresh start
+    sessionStorage.removeItem('nexusUploadData');
+    sessionStorage.removeItem('nexusColumnMappings');
+    sessionStorage.removeItem('nexusValidationResult');
+    sessionStorage.removeItem('nexusAlerts');
+  }, []);
 
   const handleNext = (data?: any) => {
     if (data) {
-      // Store data from each step
+      setStepData(prev => ({ ...prev, [`step${currentStep}`]: data }));
+      
+      // Store uploaded files data
       if (data.uploadResults) {
-        setUploadData(data.uploadResults);
+        sessionStorage.setItem('nexusUploadData', JSON.stringify(data.uploadResults));
         // Store File objects in window for later use
         if (typeof window !== 'undefined') {
           const filesRecord: Record<string, File> = {};
@@ -63,28 +62,16 @@ export default function NewNexusMemoPage() {
             }
           });
           (window as any).__nexusFiles = filesRecord;
-          setFileObjects(filesRecord);
         }
-        sessionStorage.setItem('nexusUploadData', JSON.stringify(data.uploadResults));
       }
       
-      if (data.selectedSheets) {
-        setSelectedSheets(data.selectedSheets);
-        sessionStorage.setItem('nexusSelectedSheets', JSON.stringify(data.selectedSheets));
+      // Store validation results
+      if (data.validatedData) {
+        sessionStorage.setItem('nexusValidationResult', JSON.stringify(data.validatedData));
       }
       
-      if (data.headerDetection) {
-        setHeaderDetection(data.headerDetection);
-        sessionStorage.setItem('nexusHeaderDetection', JSON.stringify(data.headerDetection));
-      }
-      
-      if (data.mappings) {
-        setColumnMappings(data.mappings);
-        sessionStorage.setItem('nexusColumnMappings', JSON.stringify(data.mappings));
-      }
-      
+      // Store alerts
       if (data.alerts) {
-        setAlerts(data.alerts);
         sessionStorage.setItem('nexusAlerts', JSON.stringify(data.alerts));
       }
     }
@@ -92,7 +79,7 @@ export default function NewNexusMemoPage() {
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Final step - redirect or show success
+      // Final step - redirect to memos list
       router.push('/dashboard/managing-partner/nexus-memos');
     }
   };
@@ -110,14 +97,10 @@ export default function NewNexusMemoPage() {
       case 1:
         return <UploadStep onNext={handleNext} onBack={handleBack} />;
       case 2:
-        return <SheetSelectionStep onNext={handleNext} onBack={handleBack} />;
+        return <DataValidationStep onNext={handleNext} onBack={handleBack} />;
       case 3:
-        return <HeaderDetectionStep onNext={handleNext} onBack={handleBack} />;
-      case 4:
-        return <ColumnMappingStep onNext={handleNext} onBack={handleBack} />;
-      case 5:
         return <AlertsStep onNext={handleNext} onBack={handleBack} />;
-      case 6:
+      case 4:
         return <MemosStep onNext={handleNext} onBack={handleBack} />;
       default:
         return null;
@@ -129,11 +112,11 @@ export default function NewNexusMemoPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">New Nexus Memo</h1>
-          <p className="text-gray-400">Process financial documents and generate compliance memos</p>
+          <h1 className="text-3xl font-bold text-white mb-2">New Nexus Analysis</h1>
+          <p className="text-gray-400">Upload financial data for automated nexus detection and memo generation</p>
         </div>
 
-        {/* Progress Steps */}
+        {/* Progress Steps - Streamlined */}
         <Card className="bg-white/5 border border-white/10 mb-6">
           <CardBody className="p-6">
             <div className="flex items-center justify-between">
@@ -146,35 +129,39 @@ export default function NewNexusMemoPage() {
                   <React.Fragment key={step.id}>
                     <div className="flex items-center">
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                        className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
                           isActive
-                            ? 'bg-blue-500 text-white scale-110'
+                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white scale-110 shadow-lg shadow-blue-500/30'
                             : isCompleted
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
                             : 'bg-white/10 text-gray-400'
                         }`}
                       >
                         {isCompleted ? (
-                          <CheckCircle2 className="w-6 h-6" />
+                          <CheckCircle2 className="w-7 h-7" />
                         ) : (
-                          <Icon className="w-6 h-6" />
+                          <Icon className="w-7 h-7" />
                         )}
                       </div>
-                      <div className="ml-3">
-                        <p className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-400'}`}>
+                      <div className="ml-4">
+                        <p className={`text-sm font-semibold ${isActive ? 'text-white' : isCompleted ? 'text-green-400' : 'text-gray-400'}`}>
                           {step.label}
                         </p>
                         <p className={`text-xs ${isActive ? 'text-blue-400' : 'text-gray-500'}`}>
-                          Step {step.id} of {STEPS.length}
+                          {step.description}
                         </p>
                       </div>
                     </div>
                     {index < STEPS.length - 1 && (
-                      <div
-                        className={`flex-1 h-1 mx-4 rounded ${
-                          isCompleted ? 'bg-green-500' : 'bg-white/10'
-                        }`}
-                      />
+                      <div className="flex-1 mx-6 relative">
+                        <div className="h-1 bg-white/10 rounded-full">
+                          <div 
+                            className={`h-1 rounded-full transition-all duration-500 ${
+                              isCompleted ? 'bg-gradient-to-r from-green-500 to-green-400 w-full' : 'w-0'
+                            }`}
+                          />
+                        </div>
+                      </div>
                     )}
                   </React.Fragment>
                 );
@@ -193,5 +180,3 @@ export default function NewNexusMemoPage() {
     </div>
   );
 }
-
-

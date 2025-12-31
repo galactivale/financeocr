@@ -28,7 +28,8 @@ import {
   History,
   Clock,
   PieChart,
-  LineChart
+  LineChart,
+  FileSpreadsheet
 } from "lucide-react";
 import { CollapseItems } from "./collapse-items";
 import { SidebarItem } from "./sidebar-item";
@@ -118,6 +119,12 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
                 icon={<ClipboardCheck />}
                 href="/dashboard/managing-partner/compliance"
               />
+              <SidebarItem
+                isActive={pathname.startsWith("/dashboard/managing-partner/nexus-memos")}
+                title="Nexus Memos"
+                icon={<FileSpreadsheet />}
+                href="/dashboard/managing-partner/nexus-memos/new"
+              />
             </SidebarMenu>
 
             <SidebarItem
@@ -166,6 +173,12 @@ export const DynamicSidebar = ({ userRole }: DynamicSidebarProps) => {
             </SidebarMenu>
 
             <SidebarMenu title="Tools">
+              <SidebarItem
+                isActive={pathname.startsWith("/dashboard/managing-partner/nexus-memos")}
+                title="Nexus Memos"
+                icon={<FileSpreadsheet />}
+                href="/dashboard/managing-partner/nexus-memos/new"
+              />
               <SidebarItem
                 isActive={pathname === "/dashboard/tax-manager/communications"}
                 title="Messages"

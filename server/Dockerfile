@@ -3,7 +3,9 @@ FROM node:18-bullseye-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN rm -f /etc/apt/sources.list.d/debian.sources 2>/dev/null || true && \
+    echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy package files
@@ -26,7 +28,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Install wget for healthcheck
-RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
+RUN rm -f /etc/apt/sources.list.d/debian.sources 2>/dev/null || true && \
+    echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs

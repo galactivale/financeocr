@@ -8,7 +8,7 @@ import {
   Chip,
   Checkbox,
   Progress,
-  Alert,
+  Alert as NextUIAlert,
   Tooltip,
   Badge
 } from "@nextui-org/react";
@@ -19,21 +19,30 @@ import {
   Filter,
   Save,
   ArrowRight,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import DoctrineScopeSelector from "./DoctrineScopeSelector";
 
-interface Alert {
+interface NexusAlert {
   id: string;
   type: string;
-  severity: "RED" | "ORANGE" | "YELLOW";
-  stateCode: string;
-  message: string;
+  subtype?: string;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO" | "RED" | "ORANGE" | "YELLOW";
+  state?: string;
+  stateCode?: string;
+  stateName?: string;
+  title?: string;
+  message?: string;
+  description?: string;
   threshold?: number;
   currentAmount?: number;
   percentage?: number;
+  facts?: any;
+  recommendation?: string;
   judgmentRequired: boolean;
+  requiresAction?: boolean;
   known: boolean;
   appliedDoctrineRuleId?: string;
   doctrineRuleVersion?: number;
@@ -45,34 +54,275 @@ interface AlertsStepProps {
 }
 
 export default function AlertsStep({ onNext, onBack }: AlertsStepProps) {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts, setAlerts] = useState<NexusAlert[]>([]);
   const [filter, setFilter] = useState<"all" | "red" | "orange" | "judgment">("all");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedAlertForDoctrine, setSelectedAlertForDoctrine] = useState<Alert | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState("Initializing alert detection...");
+  const [selectedAlertForDoctrine, setSelectedAlertForDoctrine] = useState<NexusAlert | null>(null);
   const [showDoctrineModal, setShowDoctrineModal] = useState(false);
   const [organizationId, setOrganizationId] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load alerts from sessionStorage or API
-    const stored = sessionStorage.getItem('nexusAlerts');
     const orgId = sessionStorage.getItem('organizationId');
     const cId = sessionStorage.getItem('clientId');
     
     if (orgId) setOrganizationId(orgId);
     if (cId) setClientId(cId);
     
-    if (stored) {
+    // Check if we already have alerts
+    const storedAlerts = sessionStorage.getItem('nexusAlerts');
+    if (storedAlerts) {
       try {
-        const parsed = JSON.parse(stored);
-        setAlerts(parsed);
+        const parsed = JSON.parse(storedAlerts);
+        if (parsed && parsed.length > 0) {
+          setAlerts(parsed);
+          setIsLoading(false);
+          return;
+        }
       } catch (e) {
         console.error('Error parsing stored alerts:', e);
       }
     }
     
-    setIsLoading(false);
+    // Generate alerts from mapped data
+    generateAlerts();
   }, []);
+
+  const generateAlerts = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Get mapped data from sessionStorage
+      const mappingsStr = sessionStorage.getItem('nexusColumnMappings');
+      const uploadDataStr = sessionStorage.getItem('nexusUploadData');
+      
+      console.log('[ALERTS] Generating alerts...');
+      console.log('[ALERTS] Mappings:', mappingsStr);
+      console.log('[ALERTS] Upload data:', uploadDataStr);
+      
+      if (!mappingsStr || !uploadDataStr) {
+        setLoadingMessage("No data available for alert generation");
+        setIsLoading(false);
+        return;
+      }
+      
+      const mappings = JSON.parse(mappingsStr);
+      const uploadData = JSON.parse(uploadDataStr);
+      
+      // Normalize data based on mappings
+      setLoadingMessage("Normalizing data...");
+      const normalizedData = normalizeDataWithMappings(uploadData, mappings);
+      
+      console.log('[ALERTS] Normalized data:', normalizedData.slice(0, 5));
+      
+      // Call backend to generate alerts
+      setLoadingMessage("Running nexus detection engine...");
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3080'}/api/nexus-memos/generate-alerts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          normalizedData,
+          config: {
+            riskPosture: 'standard',
+            enabledModules: {
+              sales: true,
+              income: true,
+              payroll: true,
+              franchise: true
+            }
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to generate alerts: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('[ALERTS] Backend response:', result);
+      
+      if (result.success && result.alerts) {
+        // Transform alerts to our format
+        const transformedAlerts: NexusAlert[] = result.alerts.map((alert: any) => ({
+          id: alert.id,
+          type: alert.type,
+          subtype: alert.subtype,
+          severity: mapSeverity(alert.severity),
+          state: alert.state,
+          stateCode: alert.state,
+          stateName: alert.stateName,
+          title: alert.title,
+          message: alert.title || alert.description,
+          description: alert.description,
+          threshold: alert.facts?.threshold,
+          currentAmount: alert.facts?.actualRevenue || alert.facts?.actualIncome,
+          percentage: alert.facts?.percentageOver ? parseFloat(alert.facts.percentageOver) : undefined,
+          facts: alert.facts,
+          recommendation: alert.recommendation,
+          judgmentRequired: alert.judgmentRequired || false,
+          requiresAction: alert.requiresAction || false,
+          known: false
+        }));
+        
+        setAlerts(transformedAlerts);
+        sessionStorage.setItem('nexusAlerts', JSON.stringify(transformedAlerts));
+        
+        console.log('[ALERTS] Generated alerts:', transformedAlerts.length);
+      } else {
+        // No alerts or error
+        setAlerts([]);
+      }
+    } catch (err: any) {
+      console.error('[ALERTS] Error generating alerts:', err);
+      setError(err.message || 'Failed to generate alerts');
+      
+      // Fallback: generate sample alerts for demo
+      const sampleAlerts = generateSampleAlerts();
+      setAlerts(sampleAlerts);
+      sessionStorage.setItem('nexusAlerts', JSON.stringify(sampleAlerts));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Normalize data based on column mappings
+  const normalizeDataWithMappings = (uploadData: any[], mappings: Record<string, any>) => {
+    const normalized: any[] = [];
+    
+    console.log('[ALERTS] normalizeDataWithMappings called');
+    console.log('[ALERTS] Upload data files:', uploadData.length);
+    console.log('[ALERTS] Mappings:', JSON.stringify(mappings, null, 2));
+    
+    for (const fileData of uploadData) {
+      const fileId = fileData.uploadId;
+      const fileMapping = mappings[fileId] || {};
+      // Use allData if available (full dataset), fallback to previewData
+      const dataRows = fileData.allData || fileData.previewData || [];
+      const headerDetection = fileData.headerDetection || fileData.metadata?.headerDetection;
+      const dataStartRow = headerDetection?.dataStartRow || 1;
+      const headers = headerDetection?.headers || [];
+      
+      console.log('[ALERTS] Processing file:', fileId);
+      console.log('[ALERTS] File mapping:', fileMapping);
+      console.log('[ALERTS] Data rows available:', dataRows.length);
+      console.log('[ALERTS] Data start row:', dataStartRow);
+      console.log('[ALERTS] Headers:', headers);
+      
+      // Skip header row, process data rows
+      for (let i = dataStartRow; i < dataRows.length; i++) {
+        const row = dataRows[i];
+        if (!Array.isArray(row)) continue;
+        
+        const normalizedRow: any = {};
+        
+        // Map columns based on explicit mappings first
+        Object.entries(fileMapping).forEach(([colIndex, fieldName]) => {
+          const idx = parseInt(colIndex);
+          if (!isNaN(idx) && row[idx] !== undefined && row[idx] !== null && row[idx] !== '') {
+            normalizedRow[fieldName as string] = row[idx];
+          }
+        });
+        
+        // Also include by header name for fields not already mapped
+        headers.forEach((header: string, idx: number) => {
+          if (row[idx] !== undefined && row[idx] !== null && row[idx] !== '') {
+            const normalizedHeader = header.toLowerCase().replace(/\s+/g, '_');
+            // Don't overwrite explicit mappings
+            if (!normalizedRow[normalizedHeader]) {
+              normalizedRow[normalizedHeader] = row[idx];
+            }
+          }
+        });
+        
+        if (Object.keys(normalizedRow).length > 0) {
+          normalized.push(normalizedRow);
+        }
+      }
+    }
+    
+    console.log('[ALERTS] Total normalized rows:', normalized.length);
+    if (normalized.length > 0) {
+      console.log('[ALERTS] Sample normalized row:', normalized[0]);
+    }
+    
+    return normalized;
+  };
+
+  // Map backend severity to UI severity
+  const mapSeverity = (severity: string): "RED" | "ORANGE" | "YELLOW" => {
+    switch (severity?.toUpperCase()) {
+      case 'CRITICAL':
+      case 'HIGH':
+        return 'RED';
+      case 'MEDIUM':
+        return 'ORANGE';
+      case 'LOW':
+      case 'INFO':
+      default:
+        return 'YELLOW';
+    }
+  };
+
+  // Generate sample alerts for demo/fallback
+  const generateSampleAlerts = (): NexusAlert[] => {
+    return [
+      {
+        id: 'sample-1',
+        type: 'SALES_NEXUS',
+        subtype: 'ECONOMIC_NEXUS',
+        severity: 'RED',
+        stateCode: 'CA',
+        stateName: 'California',
+        title: 'CA Sales Tax Economic Nexus Triggered',
+        message: 'Revenue exceeds California economic nexus threshold',
+        threshold: 500000,
+        currentAmount: 650000,
+        percentage: 130,
+        judgmentRequired: false,
+        requiresAction: true,
+        known: false,
+        recommendation: 'Register for sales tax collection in California'
+      },
+      {
+        id: 'sample-2',
+        type: 'INCOME_NEXUS',
+        subtype: 'PL86_272_JUDGMENT_REQUIRED',
+        severity: 'ORANGE',
+        stateCode: 'TX',
+        stateName: 'Texas',
+        title: 'TX Franchise Tax Review Required',
+        message: 'Texas franchise tax may apply based on revenue',
+        threshold: 1230000,
+        currentAmount: 980000,
+        percentage: 79.7,
+        judgmentRequired: true,
+        requiresAction: false,
+        known: false,
+        recommendation: 'Review Texas margin tax requirements'
+      },
+      {
+        id: 'sample-3',
+        type: 'SALES_NEXUS',
+        subtype: 'ECONOMIC_NEXUS_APPROACHING',
+        severity: 'YELLOW',
+        stateCode: 'FL',
+        stateName: 'Florida',
+        title: 'FL Sales Tax Threshold Approaching',
+        message: 'Revenue is approaching Florida economic nexus threshold',
+        threshold: 100000,
+        currentAmount: 85000,
+        percentage: 85,
+        judgmentRequired: false,
+        requiresAction: false,
+        known: false,
+        recommendation: 'Monitor sales activity in Florida'
+      }
+    ];
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -121,7 +371,7 @@ export default function AlertsStep({ onNext, onBack }: AlertsStepProps) {
     sessionStorage.setItem('nexusAlerts', JSON.stringify(updated));
   };
 
-  const handleCreateDoctrineRule = (alert: Alert) => {
+  const handleCreateDoctrineRule = (alert: NexusAlert) => {
     setSelectedAlertForDoctrine(alert);
     setShowDoctrineModal(true);
   };

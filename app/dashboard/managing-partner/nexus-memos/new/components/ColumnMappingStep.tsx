@@ -203,8 +203,23 @@ export default function ColumnMappingStep({ onNext, onBack }: ColumnMappingStepP
   };
 
   const handleContinue = () => {
-    sessionStorage.setItem('nexusColumnMappings', JSON.stringify(mappings));
-    onNext({ mappings });
+    // Convert mappings to the format expected by AlertsStep
+    // From: { uploadId: [{ columnIndex, mappedField, ... }] }
+    // To: { uploadId: { "columnIndex": "fieldName" } }
+    const simplifiedMappings: Record<string, Record<string, string>> = {};
+    
+    for (const [uploadId, fileMappings] of Object.entries(mappings)) {
+      simplifiedMappings[uploadId] = {};
+      for (const mapping of fileMappings) {
+        if (mapping.mappedField) {
+          simplifiedMappings[uploadId][String(mapping.columnIndex)] = mapping.mappedField;
+        }
+      }
+    }
+    
+    console.log('[COLUMN_MAPPING] Saving mappings:', simplifiedMappings);
+    sessionStorage.setItem('nexusColumnMappings', JSON.stringify(simplifiedMappings));
+    onNext({ mappings: simplifiedMappings });
   };
 
   const requiredFields = ['state', 'revenue'];
