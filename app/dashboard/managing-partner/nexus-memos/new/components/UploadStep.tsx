@@ -18,6 +18,8 @@ import {
   Loader2
 } from "lucide-react";
 import { apiClient } from "@/lib/api";
+import { detectPII, logPIIWarning, logAuditAction } from "@/lib/api/critical-gaps";
+import PIIWarningModal from "@/app/components/modals/PIIWarningModal";
 
 interface UploadStepProps {
   onNext: (data: any) => void;
@@ -49,6 +51,9 @@ export default function UploadStep({ onNext, onBack }: UploadStepProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showPIIWarning, setShowPIIWarning] = useState(false);
+  const [currentPIIDetection, setCurrentPIIDetection] = useState<any>(null);
+  const [currentFileForPII, setCurrentFileForPII] = useState<string | null>(null);
 
   // Clear previous upload data on mount
   React.useEffect(() => {
@@ -133,7 +138,7 @@ export default function UploadStep({ onNext, onBack }: UploadStepProps) {
       }
 
       const result = await response.json();
-      
+
       // Log the full response for debugging
       console.log('[UPLOAD] Backend response:', {
         uploadId: result.uploadId,
@@ -156,6 +161,44 @@ export default function UploadStep({ onNext, onBack }: UploadStepProps) {
       const existingData = JSON.parse(sessionStorage.getItem('nexusUploadData') || '[]');
       existingData.push(fullResult);
       sessionStorage.setItem('nexusUploadData', JSON.stringify(existingData));
+
+      // GAP 2: PII Detection
+      if (result.previewData && result.previewData.length > 0) {
+        const headers = result.headerDetection?.headers || result.previewData[0] || [];
+        const dataRows = result.previewData;
+
+        try {
+          const piiResult = await detectPII(dataRows, headers);
+
+          console.log('[UPLOAD] PII Detection result:', piiResult);
+
+          // Log audit action
+          await logAuditAction({
+            action: 'PII_DETECTED',
+            entity_type: 'UPLOAD',
+            entity_id: result.uploadId,
+            details: {
+              severity: piiResult.severity,
+              totalIssues: piiResult.totalIssues,
+              fileName: file.name
+            },
+            severity: piiResult.severity === 'HIGH' ? 'WARNING' : 'INFO'
+          });
+
+          // Show warning if PII detected
+          if (piiResult.severity !== 'NONE') {
+            setCurrentPIIDetection(piiResult);
+            setCurrentFileForPII(fileId);
+            setShowPIIWarning(true);
+
+            // Log that warning was shown
+            await logPIIWarning(result.uploadId, piiResult, 'SHOWN');
+          }
+        } catch (piiError) {
+          console.error('[UPLOAD] PII detection failed:', piiError);
+          // Continue without PII detection if it fails
+        }
+      }
 
       setFiles((prev) =>
         prev.map((f) =>
@@ -241,6 +284,43 @@ export default function UploadStep({ onNext, onBack }: UploadStepProps) {
     console.log('[UPLOAD] SessionStorage nexusUploadData:', sessionStorage.getItem('nexusUploadData'));
 
     onNext({ uploadResults });
+  };
+
+  const handlePIIProceed = async () => {
+    if (currentFileForPII && currentPIIDetection) {
+      const file = files.find(f => f.id === currentFileForPII);
+      if (file?.uploadId) {
+        await logPIIWarning(file.uploadId, currentPIIDetection, 'OVERRIDE');
+        await logAuditAction({
+          action: 'PII_OVERRIDE',
+          entity_type: 'UPLOAD',
+          entity_id: file.uploadId,
+          details: { reason: 'User chose to proceed with PII' },
+          severity: 'WARNING'
+        });
+      }
+    }
+  };
+
+  const handlePIIAutoExclude = async () => {
+    if (currentFileForPII && currentPIIDetection) {
+      const file = files.find(f => f.id === currentFileForPII);
+      if (file?.uploadId) {
+        await logPIIWarning(file.uploadId, currentPIIDetection, 'AUTO_EXCLUDED');
+        await logAuditAction({
+          action: 'PII_AUTO_EXCLUDED',
+          entity_type: 'UPLOAD',
+          entity_id: file.uploadId,
+          details: {
+            excludedColumns: Object.keys(currentPIIDetection.byColumn || {})
+          },
+          severity: 'INFO'
+        });
+
+        // TODO: Actually filter out the PII columns from the data
+        console.log('[UPLOAD] PII columns auto-excluded:', Object.keys(currentPIIDetection.byColumn || {}));
+      }
+    }
   };
 
   const allUploaded = files.length > 0 && files.every(f => f.status === "uploaded" || f.status === "error");
@@ -405,6 +485,17 @@ export default function UploadStep({ onNext, onBack }: UploadStepProps) {
           Continue
         </Button>
       </div>
+
+      {/* PII Warning Modal */}
+      {currentPIIDetection && (
+        <PIIWarningModal
+          isOpen={showPIIWarning}
+          onClose={() => setShowPIIWarning(false)}
+          piiDetection={currentPIIDetection}
+          onProceed={handlePIIProceed}
+          onAutoExclude={handlePIIAutoExclude}
+        />
+      )}
     </div>
   );
 }

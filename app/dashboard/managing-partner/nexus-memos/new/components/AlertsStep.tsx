@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import DoctrineScopeSelector from "./DoctrineScopeSelector";
+import StatuteOverrideModal, { StatuteOverrideData } from "@/app/components/modals/StatuteOverrideModal";
+import { createStatuteOverride, logAuditAction } from "@/lib/api/critical-gaps";
 
 interface NexusAlert {
   id: string;
@@ -63,6 +65,7 @@ export default function AlertsStep({ onNext, onBack }: AlertsStepProps) {
   const [organizationId, setOrganizationId] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [showStatuteOverrideModal, setShowStatuteOverrideModal] = useState(false);
 
   useEffect(() => {
     const orgId = sessionStorage.getItem('organizationId');
@@ -424,6 +427,43 @@ export default function AlertsStep({ onNext, onBack }: AlertsStepProps) {
     }
   };
 
+  const handleStatuteOverrideSave = async (data: StatuteOverrideData) => {
+    try {
+      const userId = sessionStorage.getItem('userId') || 'current-user';
+
+      const override = await createStatuteOverride({
+        ...data,
+        organizationId,
+        enteredBy: userId
+      });
+
+      console.log('[ALERTS] Statute override created:', override);
+
+      // GAP 3: Log audit action
+      await logAuditAction({
+        action: 'STATUTE_OVERRIDE_CREATED',
+        entity_type: 'STATUTE_OVERRIDE',
+        entity_id: override.id || 'unknown',
+        details: {
+          stateCode: data.stateCode,
+          taxType: data.taxType,
+          changeType: data.changeType,
+          effectiveDate: data.effectiveDate
+        },
+        severity: 'INFO',
+        organizationId
+      });
+
+      alert(`Statute override for ${data.stateCode} ${data.taxType} has been recorded and is pending validation.`);
+
+      setShowStatuteOverrideModal(false);
+    } catch (error: any) {
+      console.error('Failed to save statute override:', error);
+      alert(`Failed to save statute override: ${error.message}`);
+      throw error;
+    }
+  };
+
   const handleContinue = () => {
     // Store updated alerts
     sessionStorage.setItem('nexusAlerts', JSON.stringify(alerts));
@@ -508,41 +548,53 @@ export default function AlertsStep({ onNext, onBack }: AlertsStepProps) {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center space-x-2">
-        <Filter className="w-4 h-4 text-gray-400" />
-        <span className="text-sm text-gray-400">Filter:</span>
+      {/* Filters and Statute Override Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Filter className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-400">Filter:</span>
+          <Button
+            size="sm"
+            variant={filter === "all" ? "solid" : "flat"}
+            color={filter === "all" ? "primary" : "default"}
+            onPress={() => setFilter("all")}
+          >
+            All
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === "red" ? "solid" : "flat"}
+            color={filter === "red" ? "danger" : "default"}
+            onPress={() => setFilter("red")}
+          >
+            Critical ({redCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === "orange" ? "solid" : "flat"}
+            color={filter === "orange" ? "warning" : "default"}
+            onPress={() => setFilter("orange")}
+          >
+            Warnings ({orangeCount})
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === "judgment" ? "solid" : "flat"}
+            color={filter === "judgment" ? "warning" : "default"}
+            onPress={() => setFilter("judgment")}
+          >
+            Judgment Required ({judgmentCount})
+          </Button>
+        </div>
+
+        {/* GAP 1: Statute Override Entry */}
         <Button
-          size="sm"
-          variant={filter === "all" ? "solid" : "flat"}
-          color={filter === "all" ? "primary" : "default"}
-          onPress={() => setFilter("all")}
+          color="secondary"
+          variant="flat"
+          startContent={<Save className="w-4 h-4" />}
+          onPress={() => setShowStatuteOverrideModal(true)}
         >
-          All
-        </Button>
-        <Button
-          size="sm"
-          variant={filter === "red" ? "solid" : "flat"}
-          color={filter === "red" ? "danger" : "default"}
-          onPress={() => setFilter("red")}
-        >
-          Critical ({redCount})
-        </Button>
-        <Button
-          size="sm"
-          variant={filter === "orange" ? "solid" : "flat"}
-          color={filter === "orange" ? "warning" : "default"}
-          onPress={() => setFilter("orange")}
-        >
-          Warnings ({orangeCount})
-        </Button>
-        <Button
-          size="sm"
-          variant={filter === "judgment" ? "solid" : "flat"}
-          color={filter === "judgment" ? "warning" : "default"}
-          onPress={() => setFilter("judgment")}
-        >
-          Judgment Required ({judgmentCount})
+          Enter Statute Override
         </Button>
       </div>
 
@@ -712,6 +764,14 @@ export default function AlertsStep({ onNext, onBack }: AlertsStepProps) {
           clientId={clientId}
         />
       )}
+
+      {/* GAP 1: Statute Override Modal */}
+      <StatuteOverrideModal
+        isOpen={showStatuteOverrideModal}
+        onClose={() => setShowStatuteOverrideModal(false)}
+        onSave={handleStatuteOverrideSave}
+        organizationId={organizationId}
+      />
     </div>
   );
 }

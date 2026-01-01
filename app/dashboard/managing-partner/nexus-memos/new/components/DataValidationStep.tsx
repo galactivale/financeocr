@@ -41,6 +41,7 @@ import {
   Check,
   X
 } from "lucide-react";
+import { createApprovalRequirement, submitApproval, logAuditAction } from "@/lib/api/critical-gaps";
 
 interface DataValidationStepProps {
   onNext: (data: any) => void;
@@ -123,6 +124,8 @@ export default function DataValidationStep({ onNext, onBack, initialData }: Data
   const [canProceed, setCanProceed] = useState(false);
   const [autoResolved, setAutoResolved] = useState(0);
   const [manualRequired, setManualRequired] = useState(0);
+  const [approvalConfirmed, setApprovalConfirmed] = useState(false);
+  const [approvalId, setApprovalId] = useState<string | null>(null);
 
   // Start pipeline on mount
   useEffect(() => {
@@ -262,7 +265,13 @@ export default function DataValidationStep({ onNext, onBack, initialData }: Data
     ));
   };
 
-  const handleProceed = () => {
+  const handleProceed = async () => {
+    // GAP 5: Check approval confirmation
+    if (!approvalConfirmed) {
+      alert("Please confirm that you have reviewed and approved the data mappings");
+      return;
+    }
+
     // Save validated data to sessionStorage
     const validatedData = {
       mappings: columnMappings.reduce((acc, m) => {
@@ -277,10 +286,10 @@ export default function DataValidationStep({ onNext, onBack, initialData }: Data
     const uploadDataStr = sessionStorage.getItem('nexusUploadData');
     if (uploadDataStr) {
       const uploadData = JSON.parse(uploadDataStr);
-      
+
       // Create mapping format expected by AlertsStep
       const mappingsForAlerts: Record<string, Record<string, string>> = {};
-      
+
       for (const file of uploadData) {
         const fileMapping: Record<string, string> = {};
         columnMappings.forEach((m, idx) => {
@@ -293,6 +302,33 @@ export default function DataValidationStep({ onNext, onBack, initialData }: Data
 
       sessionStorage.setItem('nexusColumnMappings', JSON.stringify(mappingsForAlerts));
       sessionStorage.setItem('nexusValidationResult', JSON.stringify(validatedData));
+
+      // GAP 5: Submit approval if created
+      if (approvalId) {
+        try {
+          const userId = sessionStorage.getItem('userId') || 'current-user';
+          await submitApproval({
+            approvalId,
+            userId,
+            notes: `Approved ${columnMappings.length} column mappings and ${stateNormalizations.length} state normalizations`
+          });
+
+          // GAP 3: Log approval action
+          await logAuditAction({
+            action: 'NORMALIZATION_APPROVED',
+            entity_type: 'UPLOAD',
+            entity_id: uploadData[0]?.uploadId || 'unknown',
+            details: {
+              mappingsCount: columnMappings.length,
+              normalizationsCount: stateNormalizations.length,
+              approvalId
+            },
+            severity: 'INFO'
+          });
+        } catch (error) {
+          console.error('Failed to submit approval:', error);
+        }
+      }
     }
 
     onNext({ validatedData });
@@ -691,6 +727,46 @@ export default function DataValidationStep({ onNext, onBack, initialData }: Data
         </ModalContent>
       </Modal>
 
+      {/* GAP 5: Approval Confirmation */}
+      {!isRunning && canProceed && (
+        <Card className="bg-blue-500/10 border border-blue-500/30">
+          <CardBody className="p-6">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-white mb-3">Data Validation Approval Required</h4>
+                <p className="text-sm text-gray-300 mb-4">
+                  Before proceeding to nexus analysis, please confirm that you have reviewed and approved:
+                </p>
+                <ul className="text-sm text-gray-300 space-y-1 mb-4 ml-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3 h-3 text-blue-400" />
+                    {columnMappings.length} column mapping(s)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3 h-3 text-blue-400" />
+                    {stateNormalizations.filter(n => n.original !== n.normalized).length} state normalization(s)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3 h-3 text-blue-400" />
+                    {validationSummary?.validRows || 0} valid data row(s)
+                  </li>
+                </ul>
+                <Checkbox
+                  isSelected={approvalConfirmed}
+                  onValueChange={setApprovalConfirmed}
+                  classNames={{
+                    label: "text-white font-medium"
+                  }}
+                >
+                  I have reviewed and approve these data mappings and normalizations
+                </Checkbox>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       {/* Navigation */}
       <div className="flex justify-between pt-4">
         <Button variant="flat" onPress={onBack}>
@@ -705,10 +781,10 @@ export default function DataValidationStep({ onNext, onBack, initialData }: Data
           <Button
             color="primary"
             onPress={handleProceed}
-            isDisabled={isRunning || !canProceed}
+            isDisabled={isRunning || !canProceed || !approvalConfirmed}
             endContent={<ChevronRight className="w-4 h-4" />}
           >
-            {canProceed ? "Continue to Analysis" : "Resolve Issues to Continue"}
+            {canProceed ? (approvalConfirmed ? "Continue to Analysis" : "Approval Required") : "Resolve Issues to Continue"}
           </Button>
         </div>
       </div>
