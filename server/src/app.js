@@ -28,6 +28,11 @@ const enhancedNexusRoutes = require('./routes/enhanced-nexus');
 const riskPortfolioRoutes = require('./routes/risk-portfolio');
 const doctrineRulesRoutes = require('./routes/doctrine-rules');
 const nexusMemosRoutes = require('./routes/nexus-memos');
+const piiRoutes = require('./routes/pii');
+const auditRoutes = require('./routes/audit');
+const approvalsRoutes = require('./routes/approvals');
+const statutesRoutes = require('./routes/statutes');
+const memosRoutes = require('./routes/memos');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -168,6 +173,11 @@ app.use('/api/enhanced-nexus', enhancedNexusRoutes);
 app.use('/api/risk-portfolio', riskPortfolioRoutes);
 app.use('/api/doctrine-rules', doctrineRulesRoutes);
 app.use('/api/nexus-memos', nexusMemosRoutes);
+app.use('/api/pii', piiRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/approvals', approvalsRoutes);
+app.use('/api/statutes', statutesRoutes);
+app.use('/api/memos', memosRoutes);
 // #region agent log
 fetch('http://127.0.0.1:7242/ingest/f13a3136-6c29-48a7-9d78-4874aa5a8376',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:167',message:'Checking for nexus-memos route',data:{hasNexusMemosRoute:true,registeredRoutes:['/api/organizations','/api/users','/api/clients','/api/alerts','/api/tasks','/api/documents','/api/decisions','/api/compliance','/api/integrations','/api/analytics','/api/nexus','/api/consultations','/api/communications','/api/dashboards','/api/personalized-dashboard','/api/enhanced-clients','/api/enhanced-system','/api/enhanced-nexus','/api/risk-portfolio','/api/doctrine-rules','/api/nexus-memos']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
 // #endregion

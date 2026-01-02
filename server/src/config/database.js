@@ -1,5 +1,14 @@
 const { PrismaClient } = require('@prisma/client');
+const { Pool } = require('pg');
 const logger = require('../utils/logger');
+
+// Create PostgreSQL pool for direct queries (used by critical gaps utilities)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
 
 // Create Prisma client instance
 const prisma = new PrismaClient({
@@ -158,6 +167,7 @@ function buildSortCondition(sortBy, sortOrder = 'asc') {
 
 module.exports = {
   prisma,
+  pool,
   connectDatabase,
   disconnectDatabase,
   checkDatabaseHealth,
