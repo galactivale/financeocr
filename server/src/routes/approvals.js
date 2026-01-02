@@ -6,6 +6,7 @@ const { logAuditAction } = require('../utils/audit-logger');
 /**
  * POST /api/approvals/requirements
  * Create an approval requirement
+ * Note: Using existing schema which has action_type instead of entity_type
  */
 router.post('/requirements', async (req, res) => {
   try {
@@ -18,40 +19,35 @@ router.post('/requirements', async (req, res) => {
       clientId
     } = req.body;
 
-    if (!entity_type || !entity_id || !approval_type || !required_role || !organizationId) {
+    if (!approval_type || !required_role || !organizationId) {
       return res.status(400).json({
-        error: 'entity_type, entity_id, approval_type, required_role, and organizationId are required'
+        error: 'approval_type, required_role, and organizationId are required'
       });
     }
 
+    // Use the existing schema which has action_type, not entity_type
     const query = `
       INSERT INTO approval_requirements (
         organization_id,
-        entity_type,
-        entity_id,
-        approval_type,
+        action_type,
         required_role,
-        client_id,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      ) VALUES ($1, $2, $3, NOW())
       RETURNING *
     `;
 
     const values = [
       organizationId,
-      entity_type,
-      entity_id,
-      approval_type,
-      required_role,
-      clientId || null
+      approval_type,  // Maps to action_type in the DB
+      required_role
     ];
 
     const result = await pool.query(query, values);
 
     // Log audit action
     await logAuditAction('APPROVAL_CREATED', {
-      entity_type,
-      entity_id,
+      entity_type: entity_type || 'GENERAL',
+      entity_id: entity_id || result.rows[0].id,
       organizationId,
       details: {
         approval_type,
@@ -75,7 +71,7 @@ router.post('/requirements', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { approvalId, userId, notes } = req.body;
+    const { approvalId, userId, notes, entity_type, entity_id } = req.body;
 
     if (!approvalId || !userId) {
       return res.status(400).json({
@@ -98,7 +94,7 @@ router.post('/', async (req, res) => {
 
     const requirement = requirementResult.rows[0];
 
-    // Create the approval
+    // Create the approval - use provided entity_type/entity_id or defaults
     const approvalQuery = `
       INSERT INTO approvals (
         organization_id,
@@ -108,7 +104,7 @@ router.post('/', async (req, res) => {
         required_role,
         approved_by,
         approved_at,
-        notes,
+        approval_notes,
         status
       ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, 'APPROVED')
       RETURNING *
@@ -116,9 +112,9 @@ router.post('/', async (req, res) => {
 
     const approvalValues = [
       requirement.organization_id,
-      requirement.entity_type,
-      requirement.entity_id,
-      requirement.approval_type,
+      entity_type || 'APPROVAL_REQUIREMENT',
+      entity_id || approvalId,
+      requirement.action_type,  // Maps from action_type in requirement
       requirement.required_role,
       userId,
       notes || null
@@ -126,20 +122,14 @@ router.post('/', async (req, res) => {
 
     const approvalResult = await pool.query(approvalQuery, approvalValues);
 
-    // Update the requirement status
-    await pool.query(
-      `UPDATE approval_requirements SET status = 'APPROVED' WHERE id = $1`,
-      [approvalId]
-    );
-
     // Log audit action
     await logAuditAction('APPROVAL_SUBMITTED', {
-      entity_type: requirement.entity_type,
-      entity_id: requirement.entity_id,
+      entity_type: entity_type || 'APPROVAL_REQUIREMENT',
+      entity_id: entity_id || approvalId,
       organizationId: requirement.organization_id,
       userId,
       details: {
-        approval_type: requirement.approval_type,
+        approval_type: requirement.action_type,
         notes
       }
     });
@@ -218,17 +208,11 @@ router.get('/pending', async (req, res) => {
       });
     }
 
+    // Simplified query using actual schema - approval_requirements doesn't have status field
     const query = `
-      SELECT ar.*,
-        COALESCE(
-          (SELECT COUNT(*) FROM approvals a
-           WHERE a.entity_type = ar.entity_type
-           AND a.entity_id = ar.entity_id
-           AND a.status = 'APPROVED'), 0
-        ) as approval_count
+      SELECT ar.*
       FROM approval_requirements ar
       WHERE ar.organization_id = $1
-      AND ar.status = 'PENDING'
       ORDER BY ar.created_at DESC
     `;
 

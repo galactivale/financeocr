@@ -62,7 +62,7 @@ router.post('/', async (req, res) => {
       memoType || 'INITIAL',
       JSON.stringify(sections),
       conclusion || null,
-      recommendations ? JSON.stringify(recommendations) : null,
+      recommendations && Array.isArray(recommendations) ? recommendations : null,
       statuteVersions ? JSON.stringify(statuteVersions) : null,
       isSupplemental || false,
       supersedes_memo_id || null
