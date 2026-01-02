@@ -20,7 +20,7 @@ export interface PIIDetection {
 
 export async function detectPII(fileData: any[], headers: string[]): Promise<PIIDetection> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/detect-pii`, {
+    const response = await fetch(`${API_URL}/api/pii/detect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileData, headers })
@@ -39,7 +39,7 @@ export async function detectPII(fileData: any[], headers: string[]): Promise<PII
 
 export async function logPIIWarning(uploadId: string, piiDetection: PIIDetection, action: 'SHOWN' | 'OVERRIDE' | 'AUTO_EXCLUDED'): Promise<void> {
   try {
-    await fetch(`${API_URL}/api/critical-gaps/log-pii-warning`, {
+    await fetch(`${API_URL}/api/pii/log-warning`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uploadId, piiDetection, action })
@@ -65,7 +65,7 @@ export interface AuditAction {
 
 export async function logAuditAction(action: AuditAction): Promise<void> {
   try {
-    await fetch(`${API_URL}/api/critical-gaps/audit-log`, {
+    await fetch(`${API_URL}/api/audit/log`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(action)
@@ -77,7 +77,7 @@ export async function logAuditAction(action: AuditAction): Promise<void> {
 
 export async function getAuditTrail(entityType: string, entityId: string): Promise<any[]> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/audit-trail/${entityType}/${entityId}`);
+    const response = await fetch(`${API_URL}/api/audit/trail/${entityType}/${entityId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch audit trail');
     }
@@ -116,7 +116,7 @@ export async function sealMemo(memoId: string, userId: string, pdfBuffer?: Array
       formData.append('pdf', new Blob([pdfBuffer]));
     }
 
-    const response = await fetch(`${API_URL}/api/critical-gaps/seal-memo`, {
+    const response = await fetch(`${API_URL}/api/memos/${memoId}/seal`, {
       method: 'POST',
       body: formData
     });
@@ -140,7 +140,7 @@ export async function verifyMemoIntegrity(memoId: string, pdfBuffer?: ArrayBuffe
       formData.append('pdf', new Blob([pdfBuffer]));
     }
 
-    const response = await fetch(`${API_URL}/api/critical-gaps/verify-memo`, {
+    const response = await fetch(`${API_URL}/api/memos/${memoId}/verify`, {
       method: 'POST',
       body: formData
     });
@@ -158,7 +158,7 @@ export async function verifyMemoIntegrity(memoId: string, pdfBuffer?: ArrayBuffe
 
 export async function getVerificationHistory(memoId: string): Promise<any[]> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/verification-history/${memoId}`);
+    const response = await fetch(`${API_URL}/api/memos/${memoId}/verification-history`);
     if (!response.ok) {
       throw new Error('Failed to fetch verification history');
     }
@@ -187,7 +187,7 @@ export interface ApprovalSubmission {
 
 export async function createApprovalRequirement(request: ApprovalRequest): Promise<any> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/approval-requirements`, {
+    const response = await fetch(`${API_URL}/api/approvals/requirements`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request)
@@ -206,7 +206,7 @@ export async function createApprovalRequirement(request: ApprovalRequest): Promi
 
 export async function submitApproval(submission: ApprovalSubmission): Promise<any> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/approvals`, {
+    const response = await fetch(`${API_URL}/api/approvals`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(submission)
@@ -229,7 +229,7 @@ export async function checkApprovalStatus(entityType: string, entityId: string):
   approvals: any[];
 }> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/approval-status/${entityType}/${entityId}`);
+    const response = await fetch(`${API_URL}/api/approvals/status/${entityType}/${entityId}`);
     if (!response.ok) {
       throw new Error('Failed to check approval status');
     }
@@ -257,7 +257,7 @@ export interface StatuteOverride {
 
 export async function createStatuteOverride(override: StatuteOverride): Promise<any> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/statute-overrides`, {
+    const response = await fetch(`${API_URL}/api/statutes/overrides`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(override)
@@ -286,7 +286,7 @@ export async function getStatuteOverrides(organizationId: string, filters?: {
     if (filters?.taxType) params.append('taxType', filters.taxType);
     if (filters?.validationStatus) params.append('validationStatus', filters.validationStatus);
 
-    const response = await fetch(`${API_URL}/api/critical-gaps/statute-overrides?${params.toString()}`);
+    const response = await fetch(`${API_URL}/api/statutes/overrides?${params.toString()}`);
     if (!response.ok) {
       throw new Error('Failed to fetch statute overrides');
     }
@@ -299,7 +299,7 @@ export async function getStatuteOverrides(organizationId: string, filters?: {
 
 export async function validateStatuteOverride(overrideId: string, userId: string): Promise<any> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/statute-overrides/${overrideId}/validate`, {
+    const response = await fetch(`${API_URL}/api/statutes/overrides/${overrideId}/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId })
@@ -332,7 +332,7 @@ export interface NexusMemoCreate {
 
 export async function createNexusMemo(memo: NexusMemoCreate): Promise<any> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/nexus-memos`, {
+    const response = await fetch(`${API_URL}/api/memos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(memo)
@@ -355,7 +355,7 @@ export async function getNexusMemos(organizationId: string, clientId?: string): 
     params.append('organizationId', organizationId);
     if (clientId) params.append('clientId', clientId);
 
-    const response = await fetch(`${API_URL}/api/critical-gaps/nexus-memos?${params.toString()}`);
+    const response = await fetch(`${API_URL}/api/memos?${params.toString()}`);
     if (!response.ok) {
       throw new Error('Failed to fetch nexus memos');
     }
@@ -368,7 +368,7 @@ export async function getNexusMemos(organizationId: string, clientId?: string): 
 
 export async function getMemoById(memoId: string): Promise<any> {
   try {
-    const response = await fetch(`${API_URL}/api/critical-gaps/nexus-memos/${memoId}`);
+    const response = await fetch(`${API_URL}/api/memos/${memoId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch memo');
     }
