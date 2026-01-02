@@ -186,7 +186,7 @@ export default function PIIWarningModal({
                         </Chip>
                       </div>
                       <div className="text-xs text-gray-400">
-                        Found in columns: {[...new Set(instances.map(i => i.column))].join(", ")}
+                        Found in columns: {Array.from(new Set(instances.map(i => i.column))).join(", ")}
                       </div>
                     </CardBody>
                   </Card>

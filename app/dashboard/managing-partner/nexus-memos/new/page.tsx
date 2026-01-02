@@ -108,56 +108,80 @@ export default function NewNexusMemoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-black p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Premium Design */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">New Nexus Analysis</h1>
-          <p className="text-gray-400">Upload financial data for automated nexus detection and memo generation</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent mb-3">
+                New Nexus Analysis
+              </h1>
+              <p className="text-gray-400 text-lg">
+                Upload financial data for automated nexus detection and professional memo generation
+              </p>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-lg">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-300">Step {currentStep} of {STEPS.length}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Progress Steps - Streamlined */}
-        <Card className="bg-white/5 border border-white/10 mb-6">
-          <CardBody className="p-6">
+        {/* Progress Steps - Premium Design */}
+        <Card className="bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border border-zinc-800 mb-8 shadow-2xl">
+          <CardBody className="p-8">
             <div className="flex items-center justify-between">
               {STEPS.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = currentStep === step.id;
                 const isCompleted = currentStep > step.id;
-                
+
                 return (
                   <React.Fragment key={step.id}>
                     <div className="flex items-center">
-                      <div
-                        className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
-                          isActive
-                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white scale-110 shadow-lg shadow-blue-500/30'
-                            : isCompleted
-                            ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                            : 'bg-white/10 text-gray-400'
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 className="w-7 h-7" />
-                        ) : (
-                          <Icon className="w-7 h-7" />
+                      <div className="relative">
+                        {/* Glow effect for active step */}
+                        {isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full blur-xl opacity-40 animate-pulse"></div>
                         )}
+                        <div
+                          className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
+                            isActive
+                              ? 'bg-gradient-to-br from-emerald-500 to-blue-500 text-white scale-110 shadow-2xl shadow-emerald-500/30 ring-4 ring-emerald-500/20'
+                              : isCompleted
+                              ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-500/20'
+                              : 'bg-zinc-800/50 text-gray-500 border border-zinc-700'
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <CheckCircle2 className="w-8 h-8" />
+                          ) : (
+                            <Icon className="w-8 h-8" />
+                          )}
+                        </div>
                       </div>
-                      <div className="ml-4">
-                        <p className={`text-sm font-semibold ${isActive ? 'text-white' : isCompleted ? 'text-green-400' : 'text-gray-400'}`}>
+                      <div className="ml-5">
+                        <p className={`text-base font-bold transition-colors duration-300 ${
+                          isActive ? 'text-white' : isCompleted ? 'text-emerald-400' : 'text-gray-500'
+                        }`}>
                           {step.label}
                         </p>
-                        <p className={`text-xs ${isActive ? 'text-blue-400' : 'text-gray-500'}`}>
+                        <p className={`text-sm mt-0.5 transition-colors duration-300 ${
+                          isActive ? 'text-emerald-400' : 'text-gray-600'
+                        }`}>
                           {step.description}
                         </p>
                       </div>
                     </div>
                     {index < STEPS.length - 1 && (
-                      <div className="flex-1 mx-6 relative">
-                        <div className="h-1 bg-white/10 rounded-full">
-                          <div 
-                            className={`h-1 rounded-full transition-all duration-500 ${
-                              isCompleted ? 'bg-gradient-to-r from-green-500 to-green-400 w-full' : 'w-0'
+                      <div className="flex-1 mx-8 relative">
+                        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${
+                              isCompleted
+                                ? 'bg-gradient-to-r from-emerald-500 to-emerald-400 w-full shadow-lg shadow-emerald-500/30'
+                                : 'w-0'
                             }`}
                           />
                         </div>
@@ -170,9 +194,9 @@ export default function NewNexusMemoPage() {
           </CardBody>
         </Card>
 
-        {/* Step Content */}
-        <Card className="bg-white/5 border border-white/10">
-          <CardBody className="p-8">
+        {/* Step Content with Premium Card */}
+        <Card className="bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border border-zinc-800 shadow-2xl">
+          <CardBody className="p-10">
             {renderStepContent()}
           </CardBody>
         </Card>

@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableColumn,
   TableBody,
+  Checkbox,
   TableRow,
   TableCell
 } from "@nextui-org/react";
